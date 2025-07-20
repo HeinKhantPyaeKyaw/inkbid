@@ -1,17 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Forum, Montserrat } from "next/font/google";
-import "../styles/globals.css";
-
-const forum = Forum({
-  variable: "--font-Forum",
-  subsets: ["latin"],
-  weight: "400",
-});
-
-const montserrat = Montserrat({
-  variable: "--font-Montserrat",
-  subsets: ["latin"],
-});
+import "@/styles/globals.css";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -25,9 +13,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${forum.variable} ${montserrat.variable} antialiased`}
-      >
+      <body>
         {children}
       </body>
     </html>

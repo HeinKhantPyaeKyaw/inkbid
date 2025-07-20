@@ -1,17 +1,18 @@
 @import "tailwindcss";
 @import "tailwindcss/preflight";
 @import "tailwindcss/utilities";
+@import url("https://fonts.googleapis.com/css2?family=Forum&family=Montserrat:wght@400;500;600;700&display=swap");
 
-
-
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  /* colors */
   --color-primary: #112250;
   --color-secondary: #F5F0E9;
-  --color-muted: #3C507D;
-  --color-accent: #E0C58F;
   --color-tertiary: #D9CBC2;
+  --color-accent: #E0C58F;
+  --color-muted: #3C507D;
+  /* font families */
+  --font-Forum: "Forum", sans-serif;
+  --font-montserrat: "Montserrat", sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {
