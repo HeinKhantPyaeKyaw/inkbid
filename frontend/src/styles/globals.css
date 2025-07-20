@@ -12,7 +12,7 @@
   --color-muted: #3C507D;
   /* font families */
   --font-Forum: "Forum", sans-serif;
-  --font-montserrat: "Montserrat", sans-serif;
+  --font-Montserrat: "Montserrat", sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {

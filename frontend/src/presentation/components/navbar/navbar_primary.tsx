@@ -14,7 +14,7 @@ export const NavbarPrimary = () => {
   return (
     <nav className="flex items-center justify-between px-6 py-6 bg-primary/70">
       <div className="w-6" />
-      <div className="text-[64px] tracking-wide font-montserrat text-accent">
+      <div className="text-[64px] tracking-wide font-Montserrat text-accent">
         INKBID
       </div>
       <div className="text-[64px] tracking-wide font-Forum text-accent">
