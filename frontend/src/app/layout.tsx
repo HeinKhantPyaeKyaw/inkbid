@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Forum, Montserrat } from "next/font/google";
 import "@/styles/globals.css";
-
+import "@fortawesome/fontawesome-svg-core/styles.css";
 const forum = Forum({
   variable: "--font-Forum",
   subsets: ["latin"],
