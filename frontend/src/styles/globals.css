@@ -1,6 +1,4 @@
 @import 'tailwindcss';
-@import 'tailwindcss/preflight';
-@import 'tailwindcss/utilities';
 @import url('https://fonts.googleapis.com/css2?family=Forum&family=Montserrat:wght@400;500;600;700&display=swap');
 
 @theme {
@@ -10,6 +8,7 @@
   --color-tertiary: #d9cbc2;
   --color-accent: #e0c58f;
   --color-muted: #3c507d;
+  --color-primary-font: #313131;
   /* font families */
   --font-Forum: 'Forum', sans-serif;
   --font-Montserrat: 'Montserrat', sans-serif;

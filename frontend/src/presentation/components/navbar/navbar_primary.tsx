@@ -1,11 +1,11 @@
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBell, faUser } from "@fortawesome/free-solid-svg-icons";
+import { faBell, faUser } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 export const NavbarPrimary = () => {
   //---------------------
   //   CONST
   //---------------------
-  const title = "Primary Navbar";
+  const title = 'Primary Navbar';
 
   //---------------------
   //   HANDLE
@@ -15,7 +15,7 @@ export const NavbarPrimary = () => {
   //   RENDER
   //---------------------
   return (
-    <nav className="flex items-center justify-between px-6 py-6 bg-primary/70">
+    <nav className="flex items-center justify-between bg-primary">
       <div className="w-6" />
       <div className="text-[64px] tracking-wide font-Forum text-accent">
         INKBID
