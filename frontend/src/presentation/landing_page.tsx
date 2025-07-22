@@ -1,4 +1,5 @@
 import React from 'react'
+import { NavbarPrimary } from './components/navbar/navbar_primary';
 
 export const LandingPage = () => {
   //---------------------
@@ -16,7 +17,7 @@ export const LandingPage = () => {
   //---------------------
   return (
     <div>
-        
+      <NavbarPrimary />
     </div>
-  )
+  );
 }
