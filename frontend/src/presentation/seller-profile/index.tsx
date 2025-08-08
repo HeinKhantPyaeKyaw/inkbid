@@ -12,17 +12,27 @@ import SellerProfileCarousel from './components/SellerProfileCarousel';
 import WritingReviewSection from './components/WritingReviewSection';
 import { CarouselData, ReviewCardData } from './model';
 
-// FIXME: To fix seller info as user login.
+// FIXME: To fix seller info as user login. To implement setSellerInfo and setCarouselData.
 
 const SellerProfile = () => {
-  const [sellerInfo, setSellerInfo] = useState<SellerInfo>({
+  const [
+    sellerInfo,
+    {
+      /*setSellerInfo*/
+    },
+  ] = useState<SellerInfo>({
     name: 'Arthur Bills',
     specialization: 'Politics, Macroeconomics, Policy Analysis',
     writingStyle: 'Academical, Data-driven, Clear and Concise',
     bio: `I’m a freelance economic analyst and writer with a Ph.D. in Economics from the University of Chicago. Over the past decade, I’ve focused on macroeconomic trends, income inequality, and international trade policy. My work aims to translate complex data into accessible narratives, combining academic rigor with a clear, grounded voice. I’ve written extensively for both policy think tanks and business publications, with bylines in Bloomberg Economics and MarketWatch. I specialize in data-driven essays and long-form commentary on fiscal policy, labor markets, and global trade dynamics.`,
     imageUrl: '/images/images.jpeg',
   });
-  const [carouselData, setCarouselData] = useState(CarouselData);
+  const [
+    carouselData,
+    {
+      /*setCarouselData */
+    },
+  ] = useState(CarouselData);
   const [reviews, setReviews] = useState<ReviewCardProps[]>([]);
 
   // TODO: To implement to load data from backend for Carousel Data with useEffect
