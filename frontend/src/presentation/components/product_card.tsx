@@ -2,6 +2,7 @@
 import { useCountdown } from "@/lib/utilities/util_functions";
 import { IContent } from "../../interfaces/content/content.domain";
 import { Rating } from "@mui/material";
+import Link from "next/link";
 
 interface ProductCardProps {
   props: IContent[];
@@ -61,7 +62,7 @@ const SingleProductCard = ({
             Highest <br /> Bid
           </p>
           <div className="bg-primary font-Forum font-bold text-[20px] px-2 text-secondary rounded-lg flex justify-center items-center w-full">
-            ${product.highest_bid}
+            ฿{product.highest_bid}
           </div>
         </div>
         <div className="flex space-x-2 bg-primary border-2 border-primary rounded-lg p-1 w-full">
@@ -69,7 +70,7 @@ const SingleProductCard = ({
             Buy Now
           </p>
           <div className="bg-secondary font-Forum font-bold text-[20px] px-2 text-primary rounded-lg flex justify-center items-center w-full">
-            ${product.buy_now}
+            ฿{product.buy_now}
           </div>
         </div>
       </div>
@@ -84,11 +85,13 @@ export const ProductCard = ({ props }: ProductCardProps) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 p-4 justify-items-center">
       {props.map((product, index) => (
-        <SingleProductCard
-          key={`${product.title}-${index}`}
-          product={product}
-          index={index}
-        />
+        <Link href={`/content/1`} key={index}>
+          <SingleProductCard
+            key={`${product.title}-${index}`}
+            product={product}
+            index={index}
+          />
+        </Link>
       ))}
     </div>
   );

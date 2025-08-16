@@ -4,5 +4,5 @@ type User = {
   }
 
 export interface INavBarPrimaryProps {
-    user: User;
+  user: "buyer" | "seller";
 }
