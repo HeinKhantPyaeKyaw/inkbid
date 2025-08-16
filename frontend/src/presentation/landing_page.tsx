@@ -17,7 +17,7 @@ export const LandingPage = () => {
   //---------------------
   return (
     <div>
-      <NavbarPrimary />
+      <NavbarPrimary isDisableNoti={false} />
     </div>
   );
 }

@@ -4,6 +4,8 @@ import { Bell, UserCircle, Trash2, ImagePlus } from 'lucide-react'
 import { NavbarPrimary } from "./components/navbar/navbar_primary";
 
 export default function BuyerSettingsPage() {
+  const [showRetype, setShowRetype] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
   const [form, setForm] = useState({
     firstName: 'Arthur',
     lastName: 'Bills',
@@ -18,25 +20,6 @@ export default function BuyerSettingsPage() {
   }
 
   return (
-    <>
-      <NavbarPrimary />
-      <div className="min-h-screen bg-[#f3eee6] flex text-black">
-      {/* Left Sidebar */}
-      <aside className="w-64 p-6 bg-white rounded-r-xl shadow">
-        <h2 className="text-xl font-semibold mb-6">Settings</h2>
-        <div className="space-y-4">
-          <div className="flex items-center gap-2 text-black font-medium">
-            <UserCircle className="w-5 h-5" />
-            <span>Buyer Settings</span>
-          </div>
-          <div className="flex items-center gap-2 text-gray-500 hover:text-black cursor-pointer">
-            <Bell className="w-5 h-5" />
-            <span>Notification</span>
-          </div>
-        </div>
-      </aside>
-
-      {/* Main Content */}
       <main className="flex-1 p-8 bg-white rounded-l-xl shadow ml-6">
         <h2 className="text-2xl font-semibold flex items-center gap-2 mb-8">
           <UserCircle className="w-6 h-6" />
@@ -114,9 +97,43 @@ export default function BuyerSettingsPage() {
                 name="password"
                 value={form.password}
                 onChange={handleChange}
-                type="password"
+                type="text"
                 className="w-full border rounded px-3 py-2"
               />
+              {showRetype && (
+                <div className="mt-4">
+                  <label className="block font-medium mb-1">New Password</label>
+                  <input
+                    name="newPassword"
+                    value={newPassword}
+                    onChange={e => setNewPassword(e.target.value)}
+                    type="password"
+                    className="w-full border rounded px-3 py-2 mb-3"
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      className="px-4 py-1 rounded bg-blue-900 text-white hover:bg-blue-800"
+                      onClick={() => {
+                        if (newPassword.length < 6) {
+                          alert("Password must be at least 6 characters.");
+                          return;
+                        }
+                        setForm({ ...form, password: newPassword });
+                        setShowRetype(false);
+                        setNewPassword("");
+                      }}
+                    >
+                      Confirm
+                    </button>
+                    <button
+                      className="px-4 py-1 rounded bg-gray-200 hover:bg-gray-300"
+                      onClick={() => { setShowRetype(false); setNewPassword(""); }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -137,11 +154,12 @@ export default function BuyerSettingsPage() {
         </div>
 
         {/* Submit Button */}
-        <button className="bg-blue-900 text-white px-6 py-2 rounded hover:bg-blue-800 transition">
+        <button
+          className="bg-blue-900 text-white px-6 py-2 rounded hover:bg-blue-800 transition"
+          onClick={() => setShowRetype(true)}
+        >
           Update
         </button>
       </main>
-      </div>
-    </>
   )
 }

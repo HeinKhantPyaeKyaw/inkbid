@@ -1,7 +1,7 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBell, faUser } from "@fortawesome/free-solid-svg-icons";
 
-export const NavbarPrimary = () => {
+export const NavbarPrimary = ({isDisableNoti=false}: {isDisableNoti: boolean}) => {
   //---------------------
   //   CONST
   //---------------------
@@ -21,9 +21,9 @@ export const NavbarPrimary = () => {
         INKBID
       </div>
       <div className="flex items-center gap-4">
-        <button>
+        {!isDisableNoti &&<button>
           <FontAwesomeIcon icon={faBell} className="text-accent text-[24px]" />
-        </button>
+        </button>}
         <button>
           <FontAwesomeIcon icon={faUser} className="text-accent text-[24px]" />
         </button>

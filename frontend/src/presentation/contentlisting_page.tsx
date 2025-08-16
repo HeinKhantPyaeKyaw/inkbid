@@ -1,4 +1,6 @@
 "use client";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faStar } from "@fortawesome/free-solid-svg-icons";
 import { useState } from 'react'
 import { Bell, Menu } from 'lucide-react'
 import { CgProfile } from 'react-icons/cg'
@@ -129,8 +131,8 @@ export default function MarketplacePage() {
               </button>
               {showProfile && (
                 <div className="absolute right-0 top-10 w-56 bg-white text-black rounded shadow-lg px-4 py-4 text-sm z-50">
-                  <button className="w-full text-left py-2 px-2 rounded hover:bg-gray-100">⚙️ Settings</button>
-                  <button className="w-full text-left py-2 px-2 rounded hover:bg-gray-100">📦 Dashboard & Inventory</button>
+                  <button className="w-full text-left py-2 px-2 rounded hover:bg-gray-100"> Settings</button>
+                  <button className="w-full text-left py-2 px-2 rounded hover:bg-gray-100"> Dashboard & Inventory</button>
                 </div>
               )}
             </div>
@@ -153,8 +155,8 @@ export default function MarketplacePage() {
 
               <div className="flex items-center gap-1 mb-2">
                 {[...Array(5)].map((_, i) => (
-                  <span key={i} className={i < article.rating ? 'text-yellow-400' : 'text-gray-300'}>
-                    ★
+                  <span key={i}>
+                    <FontAwesomeIcon icon={faStar} className={i < article.rating ? 'text-yellow-400' : 'text-gray-300'} />
                   </span>
                 ))}
               </div>
