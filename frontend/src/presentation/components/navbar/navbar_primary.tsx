@@ -143,12 +143,12 @@ export const NavbarPrimary = ({user}: INavBarPrimaryProps) => {
           </button>
 
           {showDropdown && (
-            <div className="absolute right-0 mt-3 w-48 rounded-lg shadow-xl z-50 py-2">
+            <div className="absolute right-0 mt-3 w-48 rounded-lg z-50 py-2">
               {dropdownItemsBuyer.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-3 pl-8 px-4 mb-4 rounded-full bg-white py-2 hover:bg-gray-100 transition ${
+                  className={`flex items-center gap-3 pl-8 px-4 mb-4 rounded-full border-2 border-primary bg-white py-2 hover:bg-gray-100 transition ${
                     item.indent === 1
                       ? "mr-2 ml-4"
                       : item.indent === 2
@@ -157,9 +157,7 @@ export const NavbarPrimary = ({user}: INavBarPrimaryProps) => {
                   }`}
                 >
                   <FontAwesomeIcon icon={item.icon} className="text-gray-600" />
-                  <span className="text-gray-800">
-                    {item.label}
-                  </span>
+                  <span className="text-gray-800">{item.label}</span>
                 </Link>
               ))}
             </div>
