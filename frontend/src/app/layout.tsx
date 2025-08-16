@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { AppRouterCacheProvider} from '@mui/material-nextjs/v15-appRouter';
 import { Forum, Montserrat } from "next/font/google";
 import "@/styles/globals.css";
 import "@fortawesome/fontawesome-svg-core/styles.css";
@@ -28,7 +29,9 @@ export default function RootLayout({
       <body
         className={`${forum.variable} ${montserrat.variable} antialiased`}
       >
-        {children}
+        <AppRouterCacheProvider options={{ enableCssLayer: true }}>
+          {children}
+        </AppRouterCacheProvider>
       </body>
     </html>
   );
