@@ -1,0 +1,90 @@
+##Landing Page
+#Filter bar
+Service:
+METHOD GED
+ENDPOINT /options/type
+{data: {
+    genre:{
+        id: string
+        name: string
+    }[]
+    writing_style:{
+        id: string
+        name: string
+    }[]
+    date: string
+}}
+
+#Article Card
+Service:
+METHOD GET
+ENDPOINT /article
+
+{data: {
+    id: string
+    title: string
+    date: string
+    author: string
+    rating: number
+    tags: {
+        genre:{
+            id: string
+            name: string
+        }[]
+        writing_style:{
+            id: string
+            name: string
+        }[]
+    }
+    ends_in: string
+    synopsis: string
+    highest_bid: number
+    buy_now: number
+    }[]
+}
+
+#Article Detail
+Service:
+METHOD GET
+ENDPOINT /article/:id
+
+{data: {
+    id: string
+    title: string
+    date: string
+    author: string
+    rating: number
+    tags: {
+        genre:{
+            id: string
+            name: string
+        }[]
+        writing_style:{
+            id: string
+            name: string
+        }[]
+    }
+    ends_in: string
+    synopsis: string
+    highest_bid: number
+    buy_now: number
+    }
+}
+
+#Article Detail Bids
+Service:
+METHOD GET
+ENDPOINT /article/:id/bids
+
+{data: {
+    name: string
+    amount: number
+    time: string
+    }[]
+}
+
+##Dashboard
+#Analytical
+Service:
+METHOD GET
+ENDPOINT /dashboard/analytics
