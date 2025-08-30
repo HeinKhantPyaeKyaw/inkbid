@@ -7,6 +7,7 @@ import { useRouter, usePathname } from 'next/navigation';
 export default function Layout({children}: {children: React.ReactNode}) {
   const router = useRouter();
   const pathname = usePathname();
+  console.log(pathname)
 
   const isActive = (path: string) => pathname === path;
 
@@ -21,18 +22,18 @@ export default function Layout({children}: {children: React.ReactNode}) {
             <button
               type="button"
               onClick={() => router.push('/buyersetting')}
-              className={`flex items-center gap-2 text-black font-medium w-full text-left ${isActive('/buyersetting') ? '' : ''}`}
+              className={`flex items-center gap-2 text-black font-medium w-full text-left ${isActive('/buyersetting') ?  'text-black font-semibold' : 'text-gray-500 hover:text-black'}`}
               aria-current={isActive('/buyersetting') ? 'page' : undefined}
             >
               <UserCircle className="w-5 h-5" />
-              <span>Buyer Settings</span>
+              <span>Account Settings</span>
             </button>
 
             <button
               type="button"
               onClick={() => router.push('/buyersetting/buyersettingNotification')}
-              className={`flex items-center gap-2 w-full text-left ${isActive('/buyersetting/notification') ? 'text-black font-semibold' : 'text-gray-500 hover:text-black'}`}
-              aria-current={isActive('/buyersetting/notification') ? 'page' : undefined}
+              className={`flex items-center gap-2 w-full text-left ${isActive('/buyersetting/buyersettingNotification') ? 'text-black font-semibold' : 'text-gray-500 hover:text-black'}`}
+              aria-current={isActive('/buyersetting/buyersettingNotification') ? 'page' : undefined}
             >
               <Bell className="w-5 h-5" />
               <span>Notification</span>

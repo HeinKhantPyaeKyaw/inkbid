@@ -1,4 +1,5 @@
 "use client";
+import { useRouter } from 'next/navigation';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faStar } from "@fortawesome/free-solid-svg-icons";
 import { useState } from 'react'
@@ -34,6 +35,7 @@ const articles: Article[] = Array(6).fill({
 
 
 export default function MarketplacePage() {
+  const router = useRouter();
   const [notifications] = useState([
     'Your recent bid on the article "The Haunting of..."',
     'Your recent bid on the article "The Haunting of..."',
@@ -131,7 +133,15 @@ export default function MarketplacePage() {
               </button>
               {showProfile && (
                 <div className="absolute right-0 top-10 w-56 bg-white text-black rounded shadow-lg px-4 py-4 text-sm z-50">
-                  <button className="w-full text-left py-2 px-2 rounded hover:bg-gray-100"> Settings</button>
+                  <button
+                    className="w-full text-left py-2 px-2 rounded hover:bg-gray-100"
+                    onClick={() => {
+                      setShowProfile(false);
+                      router.push('/buyersetting');
+                    }}
+                  >
+                    Settings
+                  </button>
                   <button className="w-full text-left py-2 px-2 rounded hover:bg-gray-100"> Dashboard & Inventory</button>
                 </div>
               )}
