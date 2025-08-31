@@ -5,9 +5,11 @@ from services.preprocess_text import preprocess_text
 from services.models import load_vicuna, query_vicuna, query_szegedai
 from services.normalize_results import normalize_vicuna, normalize_szegedai
 from services.ensemble import ensemble_results
+from flask_cors import CORS
 
 # Create Flask app
 app = Flask(__name__)
+CORS(app, resources={r"/predict": {"origins": ["http://localhost:3000"]}})
 
 # Configure upload folder
 UPLOAD_FOLDER = "uploads"

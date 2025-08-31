@@ -1,5 +1,6 @@
 'use client';
 
+import { AiResults } from '@/interfaces/create-post-interface/create-post-types';
 import { useState } from 'react';
 import ArticleUpload from './ArticleUpload';
 import ImageUpload from './ImageUpload';
@@ -13,6 +14,7 @@ const PostingForm = () => {
   const [buynowPrice, setBuynowPrice] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [articleFile, setArticleFile] = useState<File | null>(null);
+  const [aiResults, setAiResults] = useState<AiResults | null>(null);
 
   const handleSubmit = () => {
     if (
@@ -26,6 +28,12 @@ const PostingForm = () => {
       alert('Please fill out all fields before submitting.');
       return;
     }
+
+    if (!aiResults?.eligible) {
+      alert('Article rejected by AI detection. Please revise before posting.');
+      return;
+    }
+
     const formData = {
       title,
       synopsis,
@@ -46,6 +54,7 @@ const PostingForm = () => {
     setBuynowPrice('');
     setImageFile(null);
     setArticleFile(null);
+    setAiResults(null);
   };
 
   // TODO: Send formData to backend using fetch or axios later
@@ -146,6 +155,8 @@ const PostingForm = () => {
             <ArticleUpload
               articleFile={articleFile}
               setArticleFile={setArticleFile}
+              aiResults={aiResults}
+              setAiResults={setAiResults}
             />
           </div>
           <div className="bg-muted p-1 rounded-[6px] w-[100px] text-center">

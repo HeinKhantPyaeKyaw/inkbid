@@ -6,4 +6,12 @@ export interface ImageUploadProps {
 export interface ArticleUploadProps {
   articleFile: File | null;
   setArticleFile: (file: File | null) => void;
+  aiResults: AiResults | null;
+  setAiResults: (results: AiResults | null) => void;
+}
+
+export interface AiResults {
+  ai: number;
+  human: number;
+  eligible: boolean;
 }

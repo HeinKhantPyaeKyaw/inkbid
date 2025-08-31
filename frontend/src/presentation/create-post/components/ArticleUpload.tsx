@@ -1,11 +1,19 @@
 'use client';
 
-import { ArticleUploadProps } from '@/interfaces/create-post-interface/create-post-types';
+import {
+  AiResults,
+  ArticleUploadProps,
+} from '@/interfaces/create-post-interface/create-post-types';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { RxCross2 } from 'react-icons/rx';
 
-const ArticleUpload = ({ articleFile, setArticleFile }: ArticleUploadProps) => {
+const ArticleUpload = ({
+  articleFile,
+  setArticleFile,
+  aiResults,
+  setAiResults,
+}: ArticleUploadProps) => {
   const [fileName, setFileName] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<{ human: number; ai: number } | null>(
@@ -27,14 +35,46 @@ const ArticleUpload = ({ articleFile, setArticleFile }: ArticleUploadProps) => {
     setFileName(file.name);
     setArticleFile(file);
     setLoading(true);
+    setAiResults(null);
 
-    setTimeout(() => {
-      const human = Math.floor(Math.random() * 41) + 60;
-      const ai = 100 - human;
+    //   setTimeout(() => {
+    //     const human = Math.floor(Math.random() * 41) + 60;
+    //     const ai = 100 - human;
 
-      setResult({ human, ai });
+    //     setResult({ human, ai });
+    //     setLoading(false);
+    //   }, 1500);
+    // };
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      // Call AI(Flask) Server
+      const response = await fetch('http://127.0.0.1:5000/predict', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('AI server error');
+      }
+
+      const data = await response.json();
+
+      const result: AiResults = {
+        ai: data.scores.ai,
+        human: data.scores.human,
+        eligible: data.eligible,
+      };
+
+      setAiResults(result);
+    } catch (err) {
+      console.error('Detection failed', err);
+      setError('Failed to analyze article. Please try again');
+    } finally {
       setLoading(false);
-    }, 1500);
+    }
   };
 
   const handleRemoveFile = () => {
@@ -46,7 +86,6 @@ const ArticleUpload = ({ articleFile, setArticleFile }: ArticleUploadProps) => {
     if (!articleFile) {
       setFileName(null);
       setLoading(false);
-      setResult(null);
       setError(null);
     }
   }, [articleFile]);
@@ -96,12 +135,12 @@ const ArticleUpload = ({ articleFile, setArticleFile }: ArticleUploadProps) => {
               )}
 
               {/* FIXME: To implement the logic to accept the result from backend server later */}
-              {result && (
+              {aiResults && (
                 <div>
-                  <p>Human: {result.human}%</p>
-                  <p>AI: {result.ai}% </p>
+                  <p>Human: {(aiResults.human * 100).toFixed(1)}%</p>
+                  <p>AI: {(aiResults.ai * 100).toFixed(1)}% </p>
                   <div className="bg-primary rounded px-2 py-1">
-                    {result.human >= 60 ? (
+                    {aiResults.eligible ? (
                       <p className="font-Montserrat text-sm text-accent font-semibold border-t-[1px] border-b-[1px] border-accent px-1">
                         Eligible for upload
                       </p>
