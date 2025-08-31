@@ -2,6 +2,9 @@ import os
 from flask import Flask, jsonify, request
 from services.pdf_handler import extract_text_from_pdf
 from services.preprocess_text import preprocess_text
+from services.models import load_vicuna, query_vicuna, query_szegedai
+from services.normalize_results import normalize_vicuna, normalize_szegedai
+from services.ensemble import ensemble_results
 
 # Create Flask app
 app = Flask(__name__)
@@ -10,6 +13,9 @@ app = Flask(__name__)
 UPLOAD_FOLDER = "uploads"
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+# Load Vicuna Model
+load_vicuna()
 
 # Home Route
 @app.route("/", methods = ["GET"])
@@ -39,11 +45,28 @@ def predict():
     # Preprocess and clean text from raw text of original file
     clean_text = preprocess_text(text, lowercase=False, remove_punctuation=False, normalize_encoding=True)
 
-    return jsonify({
-        "message": "File uploaded successfully ✅",
-        "filename": file.filename,
-        "text-preview": clean_text[:500]
-    }), 200
+    # Run both models
+    vicuna_raw = query_vicuna(clean_text)
+    szegedAI_raw = query_szegedai(clean_text)
+
+    # Normalize Result
+    vicuna_result = normalize_vicuna(vicuna_raw)
+    szegedAI_result = normalize_szegedai(szegedAI_raw)
+
+    # Ensemble + Decision
+    final_result = ensemble_results(vicuna_result, szegedAI_result)
+
+    # Final clean response
+    response = {
+       "filename": file.filename,
+       "scores": {
+          "ai": final_result["ai_score"],
+          "human": final_result["human_score"],
+       },
+       "eligible": final_result["eligible"]
+    }
+
+    return jsonify(response), 200
 
 if(__name__ == "__main__"):
   app.run(debug=True, port=5000)

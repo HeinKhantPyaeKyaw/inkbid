@@ -10,6 +10,7 @@ def preprocess_text(text: str, lowercase: bool=False, remove_punctuation: bool =
     - Remove multiple spaces
     - Remove page numbers or short lines
     - Convert to lowercase (optional, depends on model)
+    - Strip invalid characters (normalize encoding)
     """
 
   if normalize_encoding:
