@@ -1,10 +1,13 @@
 import { NavbarPrimary } from '../components/navbar/navbar_primary';
+import PostingForm from './components/PostingForm';
 
 const CreatePost = () => {
   return (
     <div>
       <NavbarPrimary />
-      <h1>Create Post</h1>
+      <div className="bg-secondary w-full h-lvh p-4">
+        <PostingForm />
+      </div>
     </div>
   );
 };
