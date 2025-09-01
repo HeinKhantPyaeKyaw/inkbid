@@ -29,11 +29,11 @@ ENDPOINT /article
     tags: {
         genre:{
             id: string
-            name: string
+            keyword: string
         }[]
         writing_style:{
             id: string
-            name: string
+            keyword: string
         }[]
     }
     ends_in: string
