@@ -1,11 +1,14 @@
-import { NavbarPrimary } from "@/presentation/components/navbar/navbar_primary";
-import { LandingPage } from "@/presentation/landing_page";
-import Image from "next/image";
+// import BuyerDashboard from '@/presentation/buyer-dashboard';
+
+// import SellerProfile from '../presentation/seller-profile';
+import CreatePost from '@/presentation/create-post';
 
 export default function Home() {
   return (
     <>
-      <LandingPage />
+      {/* <BuyerDashboard /> */}
+      {/* <SellerProfile /> */}
+      <CreatePost />
     </>
   );
 }
