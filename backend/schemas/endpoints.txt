@@ -88,3 +88,12 @@ ENDPOINT /article/:id/bids
 Service:
 METHOD GET
 ENDPOINT /dashboard/analytics
+
+
+Command Line to Run Redis
+docker run --name redis -p 6379:6379 -d redis
+docker exec -it redis redis-cli
+
+#PUB/SUB test
+Docker exec -it redis redis-cli
+SUBSCRIBE bids_updates

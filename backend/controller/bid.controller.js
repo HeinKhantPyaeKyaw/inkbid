@@ -1,4 +1,3 @@
-
 import Bid from "../schemas/bids.schema.js";
 import Article from "../schemas/article.schema.js";
 import redisClient from "../config/redis.js";
@@ -13,18 +12,17 @@ export const placeBid = async (req, res) => {
         .json({ error: "refId, ref_user, and amount are required" });
     }
 
-    // fetch article (to check highest_bid field)
+    // fetch article
     const article = await Article.findById(refId);
     if (!article) {
       return res.status(404).json({ error: "Article not found" });
     }
 
     // fetch bid record
-    let bidRecord = await Bid.findOne({ refId: refId });
+    let bidRecord = await Bid.findOne({ refId });
 
     // check current highest bid
     let currentHighest = 0;
-
     if (bidRecord && bidRecord.bids.length > 0) {
       const lastBid = bidRecord.bids[bidRecord.bids.length - 1];
       currentHighest = parseFloat(lastBid.amount.toString());
@@ -32,7 +30,6 @@ export const placeBid = async (req, res) => {
       currentHighest = parseFloat(article.highest_bid.toString());
     }
 
-    // reject if not higher
     if (amount <= currentHighest) {
       return res.status(400).json({
         success: false,
@@ -41,20 +38,11 @@ export const placeBid = async (req, res) => {
     }
 
     // create new bid
-    const newBid = {
-      ref_user,
-      amount,
-      timestamp: new Date(),
-    };
+    const newBid = { ref_user, amount, timestamp: new Date() };
 
     if (!bidRecord) {
-      // first bid
-      bidRecord = new Bid({
-        refId,
-        bids: [newBid],
-      });
+      bidRecord = new Bid({ refId, bids: [newBid] });
     } else {
-      // append bid
       bidRecord.bids.push(newBid);
     }
 
@@ -64,19 +52,31 @@ export const placeBid = async (req, res) => {
     article.highest_bid = amount;
     await article.save();
 
-    // publish via Redis
+    // 🔑 repopulate the latest bid with user details
+    const populatedBidRecord = await bidRecord.populate(
+      "bids.ref_user",
+      "name email img_url rating"
+    );
+    const latestBid =
+      populatedBidRecord.bids[populatedBidRecord.bids.length - 1];
+
+    // publish via Redis with full user info
     const payload = {
       articleId: refId,
-      userId: ref_user,
-      amount,
-      timestamp: newBid.timestamp,
+      bidId: latestBid.id,
+      amount: Number(latestBid.amount),
+      userId: latestBid.ref_user._id,
+      userName: latestBid.ref_user.name,
+      userImg: latestBid.ref_user.img_url,
+      userRating: latestBid.ref_user.rating,
+      timestamp: latestBid.timestamp,
     };
     await redisClient.publish("bids_updates", JSON.stringify(payload));
 
     res.status(201).json({
       success: true,
       message: "Bid placed successfully",
-      bidRecord,
+      bid: payload,
     });
   } catch (err) {
     console.error("Error placing bid:", err);

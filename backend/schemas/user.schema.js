@@ -27,6 +27,8 @@ const userSchema = new mongoose.Schema(
       enum: ["buyer", "seller"],
       default: "buyer",
     },
+    rating: { type: Number, min: 0, max: 5, default: 0 }, // from $numberDouble
+    img_url: { type: String, required: false, trim: true },
   },
   { timestamps: true }
 );
