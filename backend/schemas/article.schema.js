@@ -10,11 +10,10 @@ const articleSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     }, // seller reference
-    img_url: { type: String, required: false, trim: true },
-    rating: { type: Number, min: 0, max: 5, default: 0 }, // from $numberDouble
     ends_in: { type: Date, required: true }, // deadline
     synopsis: { type: String, trim: true },
     highest_bid: { type: mongoose.Schema.Types.Decimal128, default: 0.0 }, // from $numberDecimal
+    min_bid: { type: mongoose.Schema.Types.Decimal128, default: 0.0 }, // from $numberDecimal
     buy_now: { type: mongoose.Schema.Types.Decimal128 },
     winner: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // buyer reference
     tag: {
@@ -31,6 +30,7 @@ const articleSchema = new mongoose.Schema(
         },
       ],
     },
+    img_url: { type: String, required: false, trim: true },
   },
   { timestamps: true }
 );
