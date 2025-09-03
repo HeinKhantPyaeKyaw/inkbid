@@ -1,7 +1,6 @@
-
 "use client";
-import React from 'react';
-import Link from 'next/link';
+import React from "react";
+import Link from "next/link";
 export default function ForgotPasswordPage() {
   const [password, setPassword] = React.useState("");
   const [confirmPassword, setConfirmPassword] = React.useState("");
@@ -12,17 +11,19 @@ export default function ForgotPasswordPage() {
       return;
     }
     alert("Your password has been reset successfully.");
-    
   };
 
   return (
-    <div className="flex h-screen w-full" style={{ fontFamily: 'Montserrat, sans-serif' }}>
+    <div
+      className="flex h-screen w-full"
+      style={{ fontFamily: "Montserrat, sans-serif" }}
+    >
       <div className="w-1/2 h-full relative">
         <img
           src="/content.jpg"
           alt="Visual"
           className="object-cover w-full h-full"
-          style={{ objectPosition: 'center' }}
+          style={{ objectPosition: "center" }}
         />
       </div>
 
@@ -32,31 +33,52 @@ export default function ForgotPasswordPage() {
         </div>
 
         <div className="w-full max-w-md p-8 text-white">
-          <h2 className="text-2xl font-bold mb-6 text-center">Forgot Password</h2>
-          
+          <h2 className="text-2xl font-bold mb-6 text-center">
+            Forgot Password
+          </h2>
+          <div className="mb-6">
+            <label htmlFor="email" className="block mb-1 text-sm text-white">
+              Email
+            </label>
+            <input
+              id="email"
+              type="email"
+              className="w-full px-4 py-2 text-black rounded border-2 border-blue-400 bg-[#D9D9D9] shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="password" className="block mb-1 text-sm text-white">New Password</label>
+              <label
+                htmlFor="password"
+                className="block mb-1 text-sm text-white"
+              >
+                New Password
+              </label>
               <input
                 id="password"
                 name="password"
                 type="password"
                 required
                 value={password}
-                onChange={e => setPassword(e.target.value)}
+                onChange={(e) => setPassword(e.target.value)}
                 className="w-full px-4 py-2 text-black rounded border-2 border-blue-400 bg-[#D9D9D9] shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div>
-              <label htmlFor="confirmPassword" className="block mb-1 text-sm text-white">Confirm Password</label>
+              <label
+                htmlFor="confirmPassword"
+                className="block mb-1 text-sm text-white"
+              >
+                Confirm Password
+              </label>
               <input
                 id="confirmPassword"
                 name="confirmPassword"
                 type="password"
                 required
                 value={confirmPassword}
-                onChange={e => setConfirmPassword(e.target.value)}
+                onChange={(e) => setConfirmPassword(e.target.value)}
                 className="w-full px-4 py-2 text-black rounded border-2 border-blue-400 bg-[#D9D9D9] shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -68,14 +90,16 @@ export default function ForgotPasswordPage() {
             </button>
 
             <p className="text-sm mt-4 text-center">
-              Remembered your password?{' '}
+              Remembered your password?{" "}
               <Link href="/auth/login">
-                <span className="text-[#f3d175] hover:underline cursor-pointer">Back to Login</span>
+                <span className="text-[#f3d175] hover:underline cursor-pointer">
+                  Back to Login
+                </span>
               </Link>
             </p>
           </form>
         </div>
       </div>
     </div>
-  )
+  );
 }

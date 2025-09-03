@@ -50,9 +50,9 @@ export default function MarketplacePage() {
   const handleMenuClick = () => setShowFilter((prev) => !prev);
   const handleProfileClick = () => setShowProfile((prev) => !prev);
 
-  const genreOptions = ['Genre', 'Fiction', 'Non-fiction', 'Sci-Fi', 'Romance'];
-  const styleOptions = ['Writing Style', 'Formal', 'Casual', 'Academic', 'Creative'];
-  const durationOptions = ['Duration', '1 Day', '3 Days', '1 Week', '1 Month'];
+  const genreOptions = [ 'Fiction', 'Non-fiction', 'Sci-Fi', 'Romance'];
+  const styleOptions = [ 'Formal', 'Casual', 'Academic', 'Creative'];
+  const durationOptions = ['1 Day', '3 Days', '1 Week', '1 Month'];
 
   return (
     <div className="bg-[#f7f2eb] min-h-screen flex">

@@ -100,7 +100,7 @@ export default function AccountPreferencesPage() {
           </div>
 
           <button
-            className="bg-[#1f1f1f] text-white font-medium px-6 py-2 rounded hover:opacity-90"
+            className="bg-blue-900 text-white font-medium px-6 py-2 rounded hover:opacity-90"
             onClick={() => alert("Updated successfully!")}
           >
             Update

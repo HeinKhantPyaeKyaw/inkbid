@@ -29,7 +29,7 @@ export default function BuyerSettingsPage() {
        
 
          
-      
+  
         <div className="mb-6">
           <h3 className="text-lg font-semibold mb-2">Security</h3>
           <div className="grid grid-cols-1 gap-4">

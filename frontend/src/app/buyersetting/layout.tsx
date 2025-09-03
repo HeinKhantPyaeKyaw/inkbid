@@ -1,13 +1,12 @@
 "use client";
-import { Bell, UserCircle } from 'lucide-react'
+import { NavbarPrimary } from "@/presentation/components/navbar/navbar_primary";
+import { Bell, UserCircle } from "lucide-react";
+import { useRouter, usePathname } from "next/navigation";
 
-import { NavbarPrimary } from '@/presentation/components/navbar/navbar_primary';
-import { useRouter, usePathname } from 'next/navigation';
-
-export default function Layout({children}: {children: React.ReactNode}) {
+export default function Layout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  console.log(pathname)
+  console.log(pathname);
 
   const isActive = (path: string) => pathname === path;
 
@@ -15,15 +14,18 @@ export default function Layout({children}: {children: React.ReactNode}) {
     <>
       <NavbarPrimary isDisableNoti={true} />
       <div className="min-h-screen bg-[#f3eee6] flex text-black">
-        
         <aside className="w-64 p-6 bg-white rounded-r-xl shadow">
           <h2 className="text-xl font-semibold mb-6">Settings</h2>
           <div className="space-y-4">
             <button
               type="button"
-              onClick={() => router.push('/buyersetting')}
-              className={`flex items-center gap-2 text-black font-medium w-full text-left ${isActive('/buyersetting') ?  'text-black font-semibold' : 'text-gray-500 hover:text-black'}`}
-              aria-current={isActive('/buyersetting') ? 'page' : undefined}
+              onClick={() => router.push("/buyersetting")}
+              className={`flex items-center gap-2 text-black font-medium w-full text-left ${
+                isActive("/buyersetting")
+                  ? "text-black font-semibold"
+                  : "text-gray-500 hover:text-black"
+              }`}
+              aria-current={isActive("/buyersetting") ? "page" : undefined}
             >
               <UserCircle className="w-5 h-5" />
               <span>Account Settings</span>
@@ -31,9 +33,19 @@ export default function Layout({children}: {children: React.ReactNode}) {
 
             <button
               type="button"
-              onClick={() => router.push('/buyersetting/buyersettingNotification')}
-              className={`flex items-center gap-2 w-full text-left ${isActive('/buyersetting/buyersettingNotification') ? 'text-black font-semibold' : 'text-gray-500 hover:text-black'}`}
-              aria-current={isActive('/buyersetting/buyersettingNotification') ? 'page' : undefined}
+              onClick={() =>
+                router.push("/buyersetting/buyersettingNotification")
+              }
+              className={`flex items-center gap-2 w-full text-left ${
+                isActive("/buyersetting/buyersettingNotification")
+                  ? "text-black font-semibold"
+                  : "text-gray-500 hover:text-black"
+              }`}
+              aria-current={
+                isActive("/buyersetting/buyersettingNotification")
+                  ? "page"
+                  : undefined
+              }
             >
               <Bell className="w-5 h-5" />
               <span>Notification</span>
@@ -41,9 +53,8 @@ export default function Layout({children}: {children: React.ReactNode}) {
           </div>
         </aside>
 
-        {/* Main Content */}
         {children}
       </div>
     </>
-  )
+  );
 }

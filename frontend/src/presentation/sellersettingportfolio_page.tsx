@@ -46,7 +46,7 @@ export default function PortfolioPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#f6f2ef] p-8 text-[#1f1f1f]">
+    <main className="min-h-screen w-7xl bg-[#f6f2ef] p-8 text-[#1f1f1f]">
       <h1 className="text-2xl font-bold flex items-center gap-2 mb-6">
         <BookOpenText className="w-6 h-6" />
         Portfolio
