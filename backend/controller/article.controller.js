@@ -86,7 +86,9 @@ export const createArticle = async (req, res) => {
     );
 
     // FIXME: TEMP: Dummy author until you add authentication
-    const dummyAuthorId = new mongoose.Types.ObjectId(); // generates a valid new ObjectId
+    const dummyAuthorId = new mongoose.Types.ObjectId(
+      '68b409b40ae3b95ac45a1cbc',
+    ); // generates a valid new ObjectId
 
     // Handle file uploads
     const imageFile = req.files?.image ? req.files.image[0] : null;
