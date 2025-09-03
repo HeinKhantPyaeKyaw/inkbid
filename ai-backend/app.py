@@ -9,7 +9,7 @@ from flask_cors import CORS
 
 # Create Flask app
 app = Flask(__name__)
-CORS(app, resources={r"/predict": {"origins": ["http://localhost:3000"]}})
+CORS(app)
 
 # Configure upload folder
 UPLOAD_FOLDER = "uploads"
