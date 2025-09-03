@@ -1,5 +1,6 @@
 'use client';
 
+import { createPostAPI } from '@/hooks/create-post.api';
 import { AiResults } from '@/interfaces/create-post-interface/create-post-types';
 import { useState } from 'react';
 import ArticleUpload from './ArticleUpload';
@@ -9,14 +10,20 @@ const PostingForm = () => {
   const [title, setTitle] = useState('');
   const [synopsis, setSynopsis] = useState('');
   const [category, setCategory] = useState('');
-  const [duration, setDuration] = useState('');
-  const [minimumBid, setMinimumBid] = useState(''); // ? Should I use number for minimumBid and buyNowPrice
-  const [buynowPrice, setBuynowPrice] = useState('');
+  const [duration, setDuration] = useState<string | number>(1);
+  const [minimumBid, setMinimumBid] = useState<string | number>(''); // ? Should I use number for minimumBid and buyNowPrice
+  const [buynowPrice, setBuynowPrice] = useState<number | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [articleFile, setArticleFile] = useState<File | null>(null);
   const [aiResults, setAiResults] = useState<AiResults | null>(null);
 
-  const handleSubmit = () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // Conversion for duration, minimumBid, buynowPrice
+    const parsedDuration = Number(duration);
+    const parsedMinimumBid = Number(minimumBid);
+
     if (
       !title ||
       !synopsis ||
@@ -34,30 +41,49 @@ const PostingForm = () => {
       return;
     }
 
-    const formData = {
-      title,
-      synopsis,
-      category,
-      duration: Number(duration),
-      minimumBid: Number(minimumBid),
-      buynowPrice: Number(buynowPrice),
-      image: imageFile,
-      article: articleFile,
-    };
-    console.log('Final Form Data: ', formData);
+    try {
+      const formData = new FormData();
+      formData.append('title', title);
+      formData.append('synopsis', synopsis);
+      formData.append('category', category);
+      formData.append('duration', parsedDuration.toString());
+      formData.append('minimumBid', parsedMinimumBid.toString());
+      if (buynowPrice) formData.append('buynowPrice', buynowPrice.toString());
+      if (imageFile) formData.append('image', imageFile);
+      if (articleFile) formData.append('article', articleFile);
 
-    setTitle('');
-    setSynopsis('');
-    setCategory('');
-    setDuration('');
-    setMinimumBid('');
-    setBuynowPrice('');
-    setImageFile(null);
-    setArticleFile(null);
-    setAiResults(null);
+      console.log('Sending FormData:', [...formData.entries()]);
+
+      // TODO: Send formData to backend using fetch or axios later
+      const result = await createPostAPI(formData);
+
+      console.log('Article created:', result);
+      alert('Article created successfully');
+
+      //Reset Form
+      setTitle('');
+      setSynopsis('');
+      setCategory('');
+      setDuration(1);
+      setMinimumBid(0);
+      setBuynowPrice(null);
+      setImageFile(null);
+      setArticleFile(null);
+      setAiResults(null);
+    } catch {
+      alert('Failed to create article. Please try again.');
+    }
   };
 
-  // TODO: Send formData to backend using fetch or axios later
+  const isPostButtonDisabled =
+    !title ||
+    !synopsis ||
+    !category ||
+    !duration ||
+    !minimumBid ||
+    !articleFile ||
+    !aiResults ||
+    !aiResults.eligible;
 
   return (
     <div className="text-primary px-4 py-2 border-[2px] border-accent">
@@ -113,6 +139,7 @@ const PostingForm = () => {
             <div className="flex items-end gap-2">
               <input
                 type="number"
+                min={0}
                 value={duration}
                 onChange={(e) => setDuration(e.target.value)}
                 className="bg-[#D9D9D9] w-[56px] px-3 py-2 border-transparent rounded-[4px] font-Montserrat text-xl"
@@ -128,6 +155,7 @@ const PostingForm = () => {
               <p className="font-Montserrat text-xl">฿</p>
               <input
                 type="number"
+                min={0}
                 value={minimumBid}
                 onChange={(e) => setMinimumBid(e.target.value)}
                 className="bg-[#D9D9D9] w-[120px] px-3 py-2 border-transparent rounded-[4px] font-Montserrat text-xl"
@@ -142,8 +170,9 @@ const PostingForm = () => {
               <p className="font-Montserrat text-xl">฿</p>
               <input
                 type="number"
-                value={buynowPrice}
-                onChange={(e) => setBuynowPrice(e.target.value)}
+                min={0}
+                value={buynowPrice ?? ''}
+                onChange={(e) => setBuynowPrice(Number(e.target.value))}
                 className="bg-[#D9D9D9] w-[120px] px-3 py-2 border-transparent rounded-[4px] font-Montserrat text-xl"
               />
             </div>
@@ -162,8 +191,13 @@ const PostingForm = () => {
           <div className="bg-muted p-1 rounded-[6px] w-[100px] text-center">
             <button
               type="submit"
+              disabled={isPostButtonDisabled}
               onClick={handleSubmit}
-              className="px-6 py-1 border-2 border-[#FFFFFF] rounded-[4px] font-Montserrat font-bold text-white"
+              className={`px-6 py-1 border-2 rounded-[4px] font-Montserrat font-bold text-white ${
+                isPostButtonDisabled
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'border-[#FFFFFF] hover:bg-blue-600'
+              }`}
             >
               Post
             </button>

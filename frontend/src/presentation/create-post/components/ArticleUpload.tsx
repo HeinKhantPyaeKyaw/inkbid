@@ -6,6 +6,7 @@ import {
 } from '@/interfaces/create-post-interface/create-post-types';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
+import { FaSpinner } from 'react-icons/fa6';
 import { RxCross2 } from 'react-icons/rx';
 
 const ArticleUpload = ({
@@ -36,15 +37,6 @@ const ArticleUpload = ({
     setArticleFile(file);
     setLoading(true);
     setAiResults(null);
-
-    //   setTimeout(() => {
-    //     const human = Math.floor(Math.random() * 41) + 60;
-    //     const ai = 100 - human;
-
-    //     setResult({ human, ai });
-    //     setLoading(false);
-    //   }, 1500);
-    // };
 
     try {
       const formData = new FormData();
@@ -129,9 +121,10 @@ const ArticleUpload = ({
               </div>
 
               {loading && (
-                <p className="text-sm text-yellow-400">
-                  Waiting for the detection result...{' '}
-                </p>
+                <div className="flex items-center gap-2 text-yellow-500 font-Montserrat text-sm">
+                  <FaSpinner className="animate-spin text-lg" />
+                  <span>Analyzing article...</span>
+                </div>
               )}
 
               {/* FIXME: To implement the logic to accept the result from backend server later */}
