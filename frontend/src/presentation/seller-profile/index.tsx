@@ -74,7 +74,7 @@ const SellerProfile = () => {
       </section>
       <SellerProfileCarousel data={carouselData} />
       <RatingReview ratings={reviews.map((r) => r.rating)} />
-      <div className="px-5">
+      <div className="px-5 text-white">
         <hr />
       </div>
       <WritingReviewSection reviews={reviews} setReviews={setReviews} />
