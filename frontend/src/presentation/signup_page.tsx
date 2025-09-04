@@ -28,17 +28,20 @@ export default function SignUpPage() {
     }
     console.log(form, role);
     try {
-      const response = await fetch("http://localhost:3000/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: form.email,
-          password: form.password,
-          firstName: form.firstName,
-          lastName: form.lastName,
-          role,
-        }),
-      });
+      const response = await fetch(
+        "http://localhost:5500/api/v1/auth/register",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: form.email,
+            password: form.password,
+            firstName: form.firstName,
+            lastName: form.lastName,
+            role,
+          }),
+        }
+      );
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Registration failed");
@@ -193,7 +196,7 @@ export default function SignUpPage() {
                     }`}
                   onClick={() => setRole("writer")}
                 >
-                  Writer
+                  Seller
                 </button>
               </div>
             </div>

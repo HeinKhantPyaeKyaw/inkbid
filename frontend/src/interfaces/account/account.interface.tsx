@@ -5,4 +5,5 @@ type User = {
 
 export interface INavBarPrimaryProps {
   user: "buyer" | "seller";
+  isDisableNoti: boolean
 }

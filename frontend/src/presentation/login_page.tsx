@@ -18,7 +18,7 @@ export default function LoginPage() {
     console.log(form);
 
     try {
-      const response = await fetch("http://localhost:3000/auth/login", {
+      const response = await fetch("http://localhost:5500/api/v1/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -31,8 +31,8 @@ export default function LoginPage() {
         throw new Error(errorData.message || "Login failed");
       } else {
         const data = await response.json();
-
-        alert(`Login successful! Welcome ${data.profile.displayName}`);
+        console.log(data);
+        alert(`Login successful! Welcome ${data.profile.name}`);
         window.location.href = "/";
       }
     } catch (error: any) {
