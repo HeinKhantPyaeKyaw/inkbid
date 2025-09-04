@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import React, { useState } from 'react';
-
+import {useRouter} from 'next/navigation';
 export default function SignUpPage() {
   const [role, setRole] = useState<string | null>(null);
   const [form, setForm] = useState({
@@ -11,6 +11,8 @@ export default function SignUpPage() {
     password: '',
     retypePassword: '',
   });
+
+  const router = useRouter();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.id]: e.target.value });
@@ -46,8 +48,9 @@ export default function SignUpPage() {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Registration failed');
       } else {
-        alert('Registration successful! Please log in.');
-        window.location.href = '/auth/login';
+        // alert('Registration successful! Please log in.');
+        // window.location.href = '/auth/login';
+        router.push('/content-listing')
       }
     } catch (error) {
       const errorMessage =

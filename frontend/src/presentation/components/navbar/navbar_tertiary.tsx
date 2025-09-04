@@ -30,7 +30,7 @@ export const NavbarTertiary = () => {
             <FontAwesomeIcon
               icon={faUser}
               className="text-accent text-[32px]"
-              onClick={() => router.push("/signup/")}
+              onClick={() => router.push("/signup")}
             />
           </button>
         </div>
