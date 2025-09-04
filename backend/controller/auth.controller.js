@@ -1,5 +1,5 @@
 import axios from "axios";
-import { admin } from "../firebase.js";
+import { admin } from "../config/firebase.js";
 import User from "../schemas/user.schema.js";
 import { FIREBASE_API_KEY } from "../config/env.js";
 
