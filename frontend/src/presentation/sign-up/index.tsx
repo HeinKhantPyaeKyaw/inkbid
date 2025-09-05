@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
-import {useRouter} from 'next/navigation';
 export default function SignUpPage() {
   const [role, setRole] = useState<string | null>(null);
   const [form, setForm] = useState({
@@ -50,7 +50,7 @@ export default function SignUpPage() {
       } else {
         // alert('Registration successful! Please log in.');
         // window.location.href = '/auth/login';
-        router.push('/content-listing')
+        router.push('/content-listing');
       }
     } catch (error) {
       const errorMessage =
@@ -216,7 +216,7 @@ export default function SignUpPage() {
 
           <p className="text-xs sm:text-sm mt-4 sm:mt-6 text-center">
             <span className="text-white">Already have an account? </span>
-            <Link href="/auth/login">
+            <Link href="/login">
               <span className="text-[#f3d175] hover:underline cursor-pointer font-medium transition-all duration-200">
                 Log In
               </span>

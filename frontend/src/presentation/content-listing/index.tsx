@@ -8,17 +8,33 @@ import { CgProfile } from 'react-icons/cg';
 import { FaRegBell } from 'react-icons/fa6';
 import { MdMenu } from 'react-icons/md';
 
+// type Article = {
+//   title: string;
+//   date: string;
+//   author: string;
+//   // rating: number;
+//   // genre: string;
+//   // writingStyle: string;
+//   synopsis: string;
+//   highest_bid: { $numberDecimal: number };
+//   buy_now: { $numberDecimal: number };
+//   img_url: string;
+// };
+
 type Article = {
+  _id: string;
   title: string;
   date: string;
-  author: string;
-  // rating: number;
-  // genre: string;
-  // writingStyle: string;
+  author: {
+    _id: string;
+    name: string;
+    rating: number;
+    img_url: string;
+  } | null; // ✅ allow null because some articles have author = null
   synopsis: string;
-  highest_bid: { $numberDecimal: number };
-  buy_now: { $numberDecimal: number };
-  img_url: string;
+  highest_bid: number;
+  buy_now: number;
+  img_url: string | null;
 };
 
 // const articles: Article[] = Array(6).fill({
@@ -215,7 +231,9 @@ export default function MarketplacePage() {
                 </div>
                 <h3 className="font-semibold text-lg">{article.title}</h3>
                 <p className="text-sm text-gray-600">{article.date}</p>
-                <p className="text-sm text-gray-800">By {article.author}</p>
+                <p className="text-sm text-gray-800">
+                  By {article.author ? article.author.name : 'Unknown'}
+                </p>
 
                 <div className="flex items-center gap-1 mb-2">
                   {[...Array(5)].map((_, i) => (
@@ -248,13 +266,13 @@ export default function MarketplacePage() {
                   <div className="text-center mr-auto">
                     <div className="text-black-500 font-bold">Highest Bid</div>
                     <div className="bg-blue-900 text-white px-3 py-1 rounded ">
-                      ${article.highest_bid?.$numberDecimal || 0}
+                      ${article.highest_bid ?? 0}
                     </div>
                   </div>
                   <div className="flex flex-col items-end ml-auto">
                     <div className="mt-6">
                       <button className="bg-blue-900 text-white px-4 py-1 rounded ml-auto">
-                        Buy Now ${article.buy_now?.$numberDecimal || 0}
+                        Buy Now ${article.buy_now ?? 0}
                       </button>
                     </div>
                   </div>

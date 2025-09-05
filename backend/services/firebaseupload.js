@@ -1,4 +1,4 @@
-import bucket from '../config/firebase.js';
+import { bucket } from '../config/firebase.js';
 
 export const uploadFileToFirebase = async (file, folder) => {
   return new Promise((resolve, reject) => {

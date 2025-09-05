@@ -91,7 +91,7 @@ export default function ForgotPasswordPage() {
 
             <p className="text-sm mt-4 text-center">
               Remembered your password?{' '}
-              <Link href="/auth/login">
+              <Link href="/login">
                 <span className="text-[#f3d175] hover:underline cursor-pointer">
                   Back to Login
                 </span>

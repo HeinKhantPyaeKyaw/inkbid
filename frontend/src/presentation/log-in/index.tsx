@@ -114,7 +114,7 @@ export default function LoginPage() {
                 <span className="text-white select-none">Remember Me</span>
               </label>
               <Link
-                href="/auth/forgotpassword"
+                href="/forgotpassword"
                 className="text-[#f3d175] hover:underline transition-all duration-200 font-medium"
               >
                 Forgot Password?
@@ -131,7 +131,7 @@ export default function LoginPage() {
 
           <p className="text-xs sm:text-sm mt-4 sm:mt-6 text-center">
             <span className="text-white">Don&apos;t have an account yet? </span>
-            <Link href="/auth/signup">
+            <Link href="/signup">
               <span className="text-[#f3d175] hover:underline cursor-pointer font-medium transition-all duration-200">
                 Sign Up
               </span>
