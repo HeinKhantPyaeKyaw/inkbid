@@ -11,13 +11,16 @@ export const createPostAPI = async (formData: FormData) => {
     });
 
     return response.data;
-  } catch (error: Error | unknown) {
-    console.error(
-      'Error creating article:',
-      axios.isAxiosError(error)
-        ? error.response?.data
-        : (error as Error).message,
-    );
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      console.error('❌ Error creating article:', {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+      });
+    } else {
+      console.error('❌ Unexpected error:', error);
+    }
     throw error;
   }
 };
