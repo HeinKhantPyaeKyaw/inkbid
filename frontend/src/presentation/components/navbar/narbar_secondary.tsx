@@ -1,59 +1,77 @@
-"use client";
-import { useState } from "react";
-import { motion } from "framer-motion";
-import Link from "next/link";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+'use client';
 import {
+  faArrowDownWideShort,
+  faBars,
   faBell,
-  faUser,
-  faSheetPlastic,
   faCog,
+  faRightFromBracket,
   faScroll,
   faSearch,
-  faBars,
-  faArrowDownWideShort,
-  faRightFromBracket,
-} from "@fortawesome/free-solid-svg-icons";
+  faSheetPlastic,
+  faUser,
+} from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { motion } from 'framer-motion';
+import Link from 'next/link';
+import { useState } from 'react';
+
+import { useAuth } from '@/context/auth/AuthContext';
+import { useRouter } from 'next/navigation';
 
 export const NavbarSecondary = () => {
   //---------------------
   //   CONST
   //---------------------
   const [showDropdown, setShowDropdown] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
   const [selectedFilters, setSelectedFilters] = useState({
-    date: "",
-    rating: "",
-    genre: "",
+    date: '',
+    rating: '',
+    genre: '',
   });
+
+  const { logout } = useAuth();
+  const router = useRouter();
+
+  // Access logout from AuthContext
+  const handleLogout = async () => {
+    await logout();
+    router.push('/');
+  };
 
   const dropdownItemsBuyer = [
     {
-      label: "Product",
+      label: 'Product',
       icon: faScroll,
-      href: "/content",
+      href: '/content',
       indent: 1,
     },
     {
-      label: "Dashboard",
+      label: 'Dashboard',
       icon: faSheetPlastic,
-      href: "/dashboard",
+      href: '/dashboard',
       indent: 2,
     },
-    { label: "Settings", icon: faCog, href: "/settings", indent: 3 },
-    { label: "Log Out", icon: faRightFromBracket, href: "/logout", indent: 4 },
+    { label: 'Settings', icon: faCog, href: '/settings', indent: 3 },
+    {
+      label: 'Log Out',
+      icon: faRightFromBracket,
+      href: '/logout',
+      action: handleLogout,
+      indent: 4,
+    },
   ];
 
   const filterOptions = {
-    date: ["Newest", "Oldest", "This Week", "This Month"],
-    rating: ["5 Stars", "4 Stars", "3 Stars", "2 Stars", "1 Star"],
+    date: ['Newest', 'Oldest', 'This Week', 'This Month'],
+    rating: ['5 Stars', '4 Stars', '3 Stars', '2 Stars', '1 Star'],
     genre: [
-      "Politics",
-      "Health & Science",
-      "Economics",
-      "Technology",
-      "Entertainment",
+      'Politics',
+      'Health & Science',
+      'Economics',
+      'Technology',
+      'Entertainment',
     ],
   };
 
@@ -63,7 +81,7 @@ export const NavbarSecondary = () => {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     // Handle search logic here
-    console.log("Searching for:", searchQuery);
+    console.log('Searching for:', searchQuery);
   };
 
   const handleFilterSelect = (filterType: string, value: string) => {
@@ -124,11 +142,11 @@ export const NavbarSecondary = () => {
                     {filterOptions.date.map((option) => (
                       <button
                         key={option}
-                        onClick={() => handleFilterSelect("date", option)}
+                        onClick={() => handleFilterSelect('date', option)}
                         className={`block w-full text-left px-3 py-1 rounded hover:bg-gray-100 transition ${
                           selectedFilters.date === option
-                            ? "bg-primary text-white"
-                            : "text-gray-700"
+                            ? 'bg-primary text-white'
+                            : 'text-gray-700'
                         }`}
                       >
                         {option}
@@ -144,11 +162,11 @@ export const NavbarSecondary = () => {
                     {filterOptions.rating.map((option) => (
                       <button
                         key={option}
-                        onClick={() => handleFilterSelect("rating", option)}
+                        onClick={() => handleFilterSelect('rating', option)}
                         className={`block w-full text-left px-3 py-1 rounded hover:bg-gray-100 transition ${
                           selectedFilters.rating === option
-                            ? "bg-primary text-white"
-                            : "text-gray-700"
+                            ? 'bg-primary text-white'
+                            : 'text-gray-700'
                         }`}
                       >
                         {option}
@@ -164,11 +182,11 @@ export const NavbarSecondary = () => {
                     {filterOptions.genre.map((option) => (
                       <button
                         key={option}
-                        onClick={() => handleFilterSelect("genre", option)}
+                        onClick={() => handleFilterSelect('genre', option)}
                         className={`block w-full text-left px-3 py-1 rounded hover:bg-gray-100 transition ${
                           selectedFilters.genre === option
-                            ? "bg-primary text-white"
-                            : "text-gray-700"
+                            ? 'bg-primary text-white'
+                            : 'text-gray-700'
                         }`}
                       >
                         {option}
@@ -180,7 +198,7 @@ export const NavbarSecondary = () => {
                 {/* Clear Filters */}
                 <button
                   onClick={() =>
-                    setSelectedFilters({ date: "", rating: "", genre: "" })
+                    setSelectedFilters({ date: '', rating: '', genre: '' })
                   }
                   className="w-full bg-gray-200 text-gray-700 py-2 rounded hover:bg-gray-300 transition"
                 >
@@ -226,25 +244,46 @@ export const NavbarSecondary = () => {
                   animate={{ x: 0, opacity: 1 }}
                   transition={{ duration: 0.4, delay: i * 0.15 }}
                 >
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={`flex items-center justify-start gap-3 pl-8 px-4 mb-4 rounded-full border-2 border-primary bg-white py-2 hover:bg-gray-100 transition ${
-                      item.indent === 1
-                        ? "ml-14"
-                        : item.indent === 2
-                        ? "ml-10 mr-2"
-                        : item.indent === 3
-                        ? "ml-6 mr-6"
-                        : "mr-10 ml-2"
-                    }`}
-                  >
-                    <FontAwesomeIcon
-                      icon={item.icon}
-                      className="text-gray-600"
-                    />
-                    <span className="text-gray-800">{item.label}</span>
-                  </Link>
+                  {item.action ? (
+                    <button
+                      onClick={item.action}
+                      className={`flex items-center justify-start gap-3 pl-8 px-4 mb-4 rounded-full border-2 border-primary bg-white py-2 hover:bg-gray-100 transition ${
+                        item.indent === 1
+                          ? 'ml-14'
+                          : item.indent === 2
+                          ? 'ml-10 mr-2'
+                          : item.indent === 3
+                          ? 'ml-6 mr-6'
+                          : 'mr-10 ml-2'
+                      }`}
+                    >
+                      <FontAwesomeIcon
+                        icon={item.icon}
+                        className="text-gray-600"
+                      />
+                      <span className="text-gray-800">{item.label}</span>
+                    </button>
+                  ) : (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={`flex items-center justify-start gap-3 pl-8 px-4 mb-4 rounded-full border-2 border-primary bg-white py-2 hover:bg-gray-100 transition ${
+                        item.indent === 1
+                          ? 'ml-14'
+                          : item.indent === 2
+                          ? 'ml-10 mr-2'
+                          : item.indent === 3
+                          ? 'ml-6 mr-6'
+                          : 'mr-10 ml-2'
+                      }`}
+                    >
+                      <FontAwesomeIcon
+                        icon={item.icon}
+                        className="text-gray-600"
+                      />
+                      <span className="text-gray-800">{item.label}</span>
+                    </Link>
+                  )}
                 </motion.div>
               ))}
             </motion.div>
