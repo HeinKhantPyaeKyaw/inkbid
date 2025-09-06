@@ -1,7 +1,7 @@
 import axios from 'axios';
+import { FIREBASE_API_KEY } from '../config/env.js';
 import { admin } from '../config/firebase.js';
 import User from '../schemas/user.schema.js';
-import { FIREBASE_API_KEY } from '../config/env.js';
 
 import bcrypt from 'bcryptjs';
 
@@ -95,4 +95,39 @@ export const login = async (req, res) => {
     const msg = e?.response?.data?.error?.message || e.message;
     return res.status(500).json({ message: msg });
   }
+};
+
+// Check current logged-in user
+export const getMe = async (req, res) => {
+  try {
+    // token was already verified in middleware
+    const uid = req.user.uid;
+
+    const profile = await User.findOne({ firebaseUid: uid });
+    if (!profile) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json({
+      user: {
+        uid,
+        id: profile._id,
+        email: profile.email,
+        name: profile.name,
+        role: profile.role,
+        createdAt: profile.createdAt,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const logout = (req, res) => {
+  res.clearCookie('token', {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'Strict',
+  });
+  res.json({ message: 'Logged out successfully' });
 };

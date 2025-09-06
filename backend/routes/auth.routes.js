@@ -1,5 +1,10 @@
 import { Router } from 'express';
-import { login, register } from '../controller/auth.controller.js';
+import {
+  getMe,
+  login,
+  logout,
+  register,
+} from '../controller/auth.controller.js';
 import { verifyAuth } from '../middlewares/auth.middleware.js';
 
 const authRouter = Router();
@@ -14,9 +19,9 @@ authRouter.get('/protected', verifyAuth, (req, res) => {
   });
 });
 
+authRouter.get('/me', verifyAuth, getMe);
+
 // Placeholder for log-out route
-authRouter.post('/log-out', (req, res) => {
-  res.send({ title: 'Log out' });
-});
+authRouter.post('/log-out', logout);
 
 export default authRouter;

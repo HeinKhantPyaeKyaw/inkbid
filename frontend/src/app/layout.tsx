@@ -1,8 +1,10 @@
-import type { Metadata } from "next";
-import { AppRouterCacheProvider} from '@mui/material-nextjs/v15-appRouter';
-import { Forum, Montserrat } from "next/font/google";
-import "@/styles/globals.css";
-import "@fortawesome/fontawesome-svg-core/styles.css";
+import { AuthProvider } from '@/context/auth/AuthContext';
+import '@/styles/globals.css';
+import '@fortawesome/fontawesome-svg-core/styles.css';
+import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
+import type { Metadata } from 'next';
+import { Forum, Montserrat } from 'next/font/google';
+
 const forum = Forum({
   variable: '--font-Forum',
   subsets: ['latin'],
@@ -26,11 +28,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${forum.variable} ${montserrat.variable} antialiased`}
-      >
+      <body className={`${forum.variable} ${montserrat.variable} antialiased`}>
         <AppRouterCacheProvider options={{ enableCssLayer: true }}>
-          {children}
+          <AuthProvider>{children}</AuthProvider>
         </AppRouterCacheProvider>
       </body>
     </html>
