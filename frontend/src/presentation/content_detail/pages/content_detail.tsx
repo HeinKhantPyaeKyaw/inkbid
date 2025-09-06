@@ -93,9 +93,9 @@ export const ContentDetail = () => {
       const res = await fetch("http://localhost:5500/api/v1/bids", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           refId: id,
-          ref_user: "68b41bd5179807e6260a231d", // TODO: replace with actual logged-in user
           amount: parseFloat(bidAmount),
         }),
       });
