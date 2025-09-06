@@ -9,7 +9,8 @@ import {
   faSheetPlastic,
   faCog,
   faChartLine,
-  faScroll
+  faScroll,
+  faRightFromBracket,
 } from "@fortawesome/free-solid-svg-icons";
 import { INavBarPrimaryProps } from "../../../interfaces/account/account.interface";
 
@@ -114,7 +115,20 @@ export const NavbarPrimary = ({user}: INavBarPrimaryProps) => {
           },
           { label: "Settings", icon: faCog, href: "/settings", indent: 2 },
         ]
-      : [];
+      : [
+          {
+            label: "Dashboard",
+            icon: faChartLine,
+            href: "/dashboard",
+            indent: 1,
+          },
+          {
+            label: "Log Out",
+            icon: faRightFromBracket,
+            href: "/logout",
+            indent: 2,
+          },
+        ];
     return base;
   })();
   //---------------------
@@ -144,22 +158,45 @@ export const NavbarPrimary = ({user}: INavBarPrimaryProps) => {
 
           {showDropdown && (
             <div className="absolute right-0 mt-3 w-48 rounded-lg z-50 py-2">
-              {dropdownItemsBuyer.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`flex items-center gap-3 pl-8 px-4 mb-4 rounded-full border-2 border-primary bg-white py-2 hover:bg-gray-100 transition ${
-                    item.indent === 1
-                      ? "mr-2 ml-4"
-                      : item.indent === 2
-                      ? "mr-8"
-                      : "mr-0 ml-8"
-                  }`}
-                >
-                  <FontAwesomeIcon icon={item.icon} className="text-gray-600" />
-                  <span className="text-gray-800">{item.label}</span>
-                </Link>
-              ))}
+              {user === "buyer"
+                ? dropdownItemsBuyer.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={`flex items-center gap-3 pl-8 px-4 mb-4 rounded-full border-2 border-primary bg-white py-2 hover:bg-gray-100 transition ${
+                        item.indent === 1
+                          ? "mr-2 ml-4"
+                          : item.indent === 2
+                          ? "mr-8"
+                          : "mr-0 ml-8"
+                      }`}
+                    >
+                      <FontAwesomeIcon
+                        icon={item.icon}
+                        className="text-gray-600"
+                      />
+                      <span className="text-gray-800">{item.label}</span>
+                    </Link>
+                  ))
+                : dropdownItemsSeller.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={`flex items-center gap-3 pl-8 px-4 mb-4 rounded-full border-2 border-primary bg-white py-2 hover:bg-gray-100 transition ${
+                        item.indent === 1
+                          ? "mr-2 ml-4"
+                          : item.indent === 2
+                          ? "mr-8"
+                          : "mr-0 ml-8"
+                      }`}
+                    >
+                      <FontAwesomeIcon
+                        icon={item.icon}
+                        className="text-gray-600"
+                      />
+                      <span className="text-gray-800">{item.label}</span>
+                    </Link>
+                  ))}
             </div>
           )}
         </div>

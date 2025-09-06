@@ -4,12 +4,16 @@ import redisClient from "../config/redis.js";
 
 export const placeBid = async (req, res) => {
   try {
-    const { refId, ref_user, amount } = req.body;
+    const { refId, amount } = req.body;
+    const bidder = req.user;
 
-    if (!refId || !ref_user || !amount) {
-      return res
-        .status(400)
-        .json({ error: "refId, ref_user, and amount are required" });
+    if (!refId || !amount) {
+      return res.status(400).json({ error: "refId, and amount are required" });
+    }
+
+    // check bidder role
+    if (bidder.role !== "buyer") {
+      return res.status(403).json({ error: "Only buyers can place bids" });
     }
 
     // fetch article
@@ -38,7 +42,7 @@ export const placeBid = async (req, res) => {
     }
 
     // create new bid
-    const newBid = { ref_user, amount, timestamp: new Date() };
+    const newBid = { ref_user: bidder._id, amount, timestamp: new Date() };
 
     if (!bidRecord) {
       bidRecord = new Bid({ refId, bids: [newBid] });

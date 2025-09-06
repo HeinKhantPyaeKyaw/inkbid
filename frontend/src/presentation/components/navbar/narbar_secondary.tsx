@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { usePathname } from "next/navigation";
+import { motion } from "framer-motion";
 import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -12,6 +12,7 @@ import {
   faSearch,
   faBars,
   faArrowDownWideShort,
+  faRightFromBracket,
 } from "@fortawesome/free-solid-svg-icons";
 
 export const NavbarSecondary = () => {
@@ -26,37 +27,23 @@ export const NavbarSecondary = () => {
     rating: "",
     genre: "",
   });
-  const pathname = usePathname();
 
-  const dropdownItemsBuyer = (() => {
-    const base = pathname.startsWith("/content")
-      ? [
-          {
-            label: "Dashboard",
-            icon: faSheetPlastic,
-            href: "/dashboard",
-            indent: 1,
-          },
-          { label: "Settings", icon: faCog, href: "/settings", indent: 2 },
-        ]
-      : [
-          {
-            label: "Product",
-            icon: faScroll,
-            href: "/content",
-            indent: 1,
-          },
-          {
-            label: "Dashboard",
-            icon: faSheetPlastic,
-            href: "/dashboard",
-            indent: 2,
-          },
-          { label: "Settings", icon: faCog, href: "/settings", indent: 3 },
-        ];
-
-    return base;
-  })();
+  const dropdownItemsBuyer = [
+    {
+      label: "Product",
+      icon: faScroll,
+      href: "/content",
+      indent: 1,
+    },
+    {
+      label: "Dashboard",
+      icon: faSheetPlastic,
+      href: "/dashboard",
+      indent: 2,
+    },
+    { label: "Settings", icon: faCog, href: "/settings", indent: 3 },
+    { label: "Log Out", icon: faRightFromBracket, href: "/logout", indent: 4 },
+  ];
 
   const filterOptions = {
     date: ["Newest", "Oldest", "This Week", "This Month"],
@@ -219,24 +206,48 @@ export const NavbarSecondary = () => {
           </button>
 
           {showDropdown && (
-            <div className="absolute right-0 mt-3 w-48 rounded-lg shadow-xl z-50 py-2 bg-white">
-              {dropdownItemsBuyer.map((item) => (
-                <Link
+            <motion.div
+              className="absolute right-0 mt-3 w-48 rounded-lg z-50 py-2"
+              initial="hidden"
+              animate="visible"
+              variants={{
+                hidden: {},
+                visible: {
+                  transition: {
+                    staggerChildren: 0.15, // delay between each child
+                  },
+                },
+              }}
+            >
+              {dropdownItemsBuyer.map((item, i) => (
+                <motion.div
                   key={item.href}
-                  href={item.href}
-                  className={`flex items-center gap-3 pl-8 px-4 mb-4 rounded-full bg-white py-2 hover:bg-gray-100 transition ${
-                    item.indent === 1
-                      ? "mr-2 ml-4"
-                      : item.indent === 2
-                      ? "mr-8"
-                      : "mr-0 ml-8"
-                  }`}
+                  initial={{ x: 40, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  transition={{ duration: 0.4, delay: i * 0.15 }}
                 >
-                  <FontAwesomeIcon icon={item.icon} className="text-gray-600" />
-                  <span className="text-gray-800">{item.label}</span>
-                </Link>
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`flex items-center justify-start gap-3 pl-8 px-4 mb-4 rounded-full border-2 border-primary bg-white py-2 hover:bg-gray-100 transition ${
+                      item.indent === 1
+                        ? "ml-14"
+                        : item.indent === 2
+                        ? "ml-10 mr-2"
+                        : item.indent === 3
+                        ? "ml-6 mr-6"
+                        : "mr-10 ml-2"
+                    }`}
+                  >
+                    <FontAwesomeIcon
+                      icon={item.icon}
+                      className="text-gray-600"
+                    />
+                    <span className="text-gray-800">{item.label}</span>
+                  </Link>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           )}
         </div>
       </div>

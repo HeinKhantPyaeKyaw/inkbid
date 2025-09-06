@@ -7,26 +7,10 @@ import { useEffect, useState } from 'react';
 import { CgProfile } from 'react-icons/cg';
 import { FaRegBell } from 'react-icons/fa6';
 import { MdMenu } from 'react-icons/md';
-
-type Article = {
-  _id: string;
-  title: string;
-  date: string;
-  tag: {
-    genre: { code: string; keyword: string }[];
-    writing_style: { code: string; keyword: string }[];
-  };
-  author: {
-    _id: string;
-    name: string;
-    rating: number;
-    img_url: string;
-  } | null; // ✅ allow null because some articles have author = null
-  synopsis: string;
-  highest_bid: number;
-  buy_now: number;
-  img_url: string | null;
-};
+import Link from "next/link";
+import { NavbarSecondary } from '../components/navbar/narbar_secondary';
+import { ProductCard } from '../components/product_card';
+import { IContent } from "@/interfaces/content/content.domain";
 
 export default function MarketplacePage() {
   const router = useRouter();
@@ -39,7 +23,7 @@ export default function MarketplacePage() {
   const [showNoti, setShowNoti] = useState(false);
   const [showFilter, setShowFilter] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
-  const [articlesData, setArticlesData] = useState<Article[]>([]);
+  const [articlesData, setArticlesData] = useState<IContent[]>([]);
 
   const handleBellClick = () => setShowNoti((prev) => !prev);
   const handleMenuClick = () => setShowFilter((prev) => !prev);
@@ -69,206 +53,9 @@ export default function MarketplacePage() {
   };
 
   return (
-    <div className="bg-[#f7f2eb] min-h-screen flex">
-      <div className="flex-1 p-6">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-6">
-            <div className="text-3xl font-bold text-blue-900 tracking-wider">
-              INKBID
-            </div>
-            <div className="flex items-center border rounded-full px-4 py-1 bg-white shadow-sm">
-              <input
-                type="text"
-                placeholder="What are you looking for..."
-                className="bg-transparent outline-none px-2 text-sm w-60"
-              />
-              <button className="ml-2 text-white bg-blue-900 px-4 py-1 rounded-full text-sm">
-                Search
-              </button>
-              <div className="relative">
-                <button type="button" onClick={handleMenuClick}>
-                  <MdMenu className="ml-3 w-4 h-4 text-gray-500" />
-                </button>
-                {showFilter && (
-                  <div className="absolute left-1/2 -translate-x-1/2 top-8 w-80 bg-white text-black rounded shadow-lg px-6 py-5 text-sm z-50">
-                    <p className="font-bold mb-3">Filter Articles</p>
-                    <div className="mb-3">
-                      <label className="block mb-1 font-medium">Genre</label>
-                      <select className="w-full border rounded px-2 py-1">
-                        {genreOptions.map((option) => (
-                          <option key={option} value={option}>
-                            {option}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="mb-3">
-                      <label className="block mb-1 font-medium">
-                        Writing Style
-                      </label>
-                      <select className="w-full border rounded px-2 py-1">
-                        {styleOptions.map((option) => (
-                          <option key={option} value={option}>
-                            {option}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="mb-3">
-                      <label className="block mb-1 font-medium">Date</label>
-                      <input
-                        type="date"
-                        className="w-full border rounded px-2 py-1"
-                      />
-                    </div>
-                    <div className="mb-3">
-                      <label className="block mb-1 font-medium">Duration</label>
-                      <select className="w-full border rounded px-2 py-1">
-                        {durationOptions.map((option) => (
-                          <option key={option} value={option}>
-                            {option}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="flex justify-end gap-2 mt-4">
-                      <button
-                        className="px-4 py-1 rounded bg-gray-200 hover:bg-gray-300"
-                        onClick={() => setShowFilter(false)}
-                      >
-                        Cancel
-                      </button>
-                      <button className="px-4 py-1 rounded bg-blue-900 text-white hover:bg-blue-800">
-                        Apply
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center gap-4 relative">
-            <button onClick={handleBellClick} className="focus:outline-none">
-              <FaRegBell className="w-6 h-6 text-blue-900" />
-            </button>
-            {showNoti && (
-              <div className="absolute right-12 top-10 w-80 bg-white text-black rounded shadow-lg px-6 py-5 text-sm z-50">
-                <p className="font-bold mb-3">Notifications</p>
-                {notifications.map((note, i) => (
-                  <div
-                    key={i}
-                    className="border-b last:border-b-0 pb-2 mb-2 last:mb-0"
-                  >
-                    {note}
-                  </div>
-                ))}
-              </div>
-            )}
-            <div className="relative">
-              <button
-                onClick={handleProfileClick}
-                className="focus:outline-none"
-              >
-                <CgProfile className="w-7 h-7 text-blue-900 cursor-pointer" />
-              </button>
-              {showProfile && (
-                <div className="absolute right-0 top-10 w-56 bg-white text-black rounded shadow-lg px-4 py-4 text-sm z-50">
-                  <button
-                    className="w-full text-left py-2 px-2 rounded hover:bg-gray-100"
-                    onClick={() => {
-                      setShowProfile(false);
-                      router.push('/buyersetting');
-                    }}
-                  >
-                    Settings
-                  </button>
-                  <button className="w-full text-left py-2 px-2 rounded hover:bg-gray-100">
-                    {' '}
-                    Dashboard & Inventory
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {articlesData.length > 0 &&
-            articlesData.map((article, index) => (
-              <div
-                key={index}
-                className="bg-white rounded-lg border p-4 shadow-sm"
-              >
-                <div className="w-full h-40 bg-gray-200 rounded-md overflow-hidden mb-3">
-                  <img
-                    src={article.img_url}
-                    alt="Article"
-                    className="object-cover w-full h-full"
-                  />
-                </div>
-                <h3 className="font-semibold text-lg">{article.title}</h3>
-                <p className="text-sm text-gray-600">{article.date}</p>
-                <p className="text-sm text-gray-800">
-                  By {article.author ? article.author.name : 'Unknown'}
-                </p>
-
-                <div className="flex items-center gap-1 mb-2">
-                  {[...Array(5)].map((_, i) => (
-                    <span key={i}>
-                      <FontAwesomeIcon
-                        icon={faStar}
-                        className={i < 50 ? 'text-yellow-400' : 'text-gray-300'}
-                      />
-                    </span>
-                  ))}
-                </div>
-
-                <div className="flex flex-wrap text-xs gap-2 mb-2">
-                  {article.tag.genre?.map((g, i) => (
-                    <span
-                      key={i}
-                      className="bg-gray-100 px-2 py-1 rounded-full border"
-                    >
-                      {g.keyword}
-                    </span>
-                  ))}
-
-                  {article.tag.writing_style?.map((s, i) => (
-                    <span
-                      key={i}
-                      className="bg-gray-100 px-2 py-1 rounded-full border"
-                    >
-                      {s.keyword}
-                    </span>
-                  ))}
-                </div>
-
-                <p className="text-sm text-gray-600 mb-2">
-                  Ends In:{' '}
-                  <span className="font-semibold">1 Days 5Hr 14Min</span>
-                </p>
-
-                <p className="text-sm text-gray-500 mb-3">{article.synopsis}</p>
-
-                <div className="flex items-center text-sm">
-                  <div className="text-center mr-auto">
-                    <div className="text-black-500 font-bold">Highest Bid</div>
-                    <div className="bg-blue-900 text-white px-3 py-1 rounded ">
-                      ${article.highest_bid ?? 0}
-                    </div>
-                  </div>
-                  <div className="flex flex-col items-end ml-auto">
-                    <div className="mt-6">
-                      <button className="bg-blue-900 text-white px-4 py-1 rounded ml-auto">
-                        Buy Now ${article.buy_now ?? 0}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-        </div>
-      </div>
+    <div className="bg-[#f7f2eb] min-h-screen flex-col">
+      <NavbarSecondary />
+      <ProductCard props={articlesData} />
     </div>
   );
 }

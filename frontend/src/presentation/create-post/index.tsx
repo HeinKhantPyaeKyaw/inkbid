@@ -4,7 +4,7 @@ import PostingForm from './components/PostingForm';
 const CreatePost = () => {
   return (
     <div>
-      <NavbarPrimary />
+      <NavbarPrimary user='seller'/>
       <div className="bg-secondary w-full h-lvh p-4">
         <PostingForm />
       </div>

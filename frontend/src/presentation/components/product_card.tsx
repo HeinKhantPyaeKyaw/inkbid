@@ -86,7 +86,7 @@ const SingleProductCard = ({
           </div>
         </div>
       </div>
-      <p className="text-center px-4 py-2 font-Montserrat font-bold text-[16px]">
+      <p className="text-center px-4 py-2 font-Montserrat font-bold text-[14px]">
         Ends in: {countdown}
       </p>
     </div>
