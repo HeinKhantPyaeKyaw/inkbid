@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 const userSchema = new mongoose.Schema(
   {
@@ -22,11 +22,6 @@ const userSchema = new mongoose.Schema(
       trim: true,
       match: [/^\S+@\S+\.\S+$/],
     },
-    password: {
-      type: String,
-      required: true,
-      minLength: 6,
-    },
     role: {
       type: String,
       required: true,
@@ -36,9 +31,9 @@ const userSchema = new mongoose.Schema(
     rating: { type: Number, min: 0, max: 5, default: 0 }, // from $numberDouble
     img_url: { type: String, required: false, trim: true },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
-const User = mongoose.model("User", userSchema, "Users");
+const User = mongoose.model('User', userSchema, 'Users');
 
 export default User;
