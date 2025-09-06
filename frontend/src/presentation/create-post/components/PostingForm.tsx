@@ -59,6 +59,7 @@ const PostingForm = () => {
 
       console.log('Article created:', result);
       alert('Article created successfully');
+      window.location.href = '/profile/seller';
 
       //Reset Form
       setTitle('');

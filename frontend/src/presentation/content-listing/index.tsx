@@ -8,23 +8,14 @@ import { CgProfile } from 'react-icons/cg';
 import { FaRegBell } from 'react-icons/fa6';
 import { MdMenu } from 'react-icons/md';
 
-// type Article = {
-//   title: string;
-//   date: string;
-//   author: string;
-//   // rating: number;
-//   // genre: string;
-//   // writingStyle: string;
-//   synopsis: string;
-//   highest_bid: { $numberDecimal: number };
-//   buy_now: { $numberDecimal: number };
-//   img_url: string;
-// };
-
 type Article = {
   _id: string;
   title: string;
   date: string;
+  tag: {
+    genre: { code: string; keyword: string }[];
+    writing_style: { code: string; keyword: string }[];
+  };
   author: {
     _id: string;
     name: string;
@@ -36,20 +27,6 @@ type Article = {
   buy_now: number;
   img_url: string | null;
 };
-
-// const articles: Article[] = Array(6).fill({
-//   title: "Oval office or hall of shame",
-//   date: "22/May/2025",
-//   author: "Bill Murry",
-//   rating: 4,
-//   genre: "Genre",
-//   writingStyle: "Writing Style",
-//   description:
-//     "This article explores how escalating global tariff wars are intensifying the economic divide between high-income and low-income... Read More.",
-//   bid: 100,
-//   buyNow: 100,
-//   imageUrl: "/content.jpg",
-// });
 
 export default function MarketplacePage() {
   const router = useRouter();
@@ -247,12 +224,23 @@ export default function MarketplacePage() {
                 </div>
 
                 <div className="flex flex-wrap text-xs gap-2 mb-2">
-                  <span className="bg-gray-100 px-2 py-1 rounded-full border">
-                    {`Genre`}
-                  </span>
-                  <span className="bg-gray-100 px-2 py-1 rounded-full border">
-                    {`Writing Style`}
-                  </span>
+                  {article.tag.genre?.map((g, i) => (
+                    <span
+                      key={i}
+                      className="bg-gray-100 px-2 py-1 rounded-full border"
+                    >
+                      {g.keyword}
+                    </span>
+                  ))}
+
+                  {article.tag.writing_style?.map((s, i) => (
+                    <span
+                      key={i}
+                      className="bg-gray-100 px-2 py-1 rounded-full border"
+                    >
+                      {s.keyword}
+                    </span>
+                  ))}
                 </div>
 
                 <p className="text-sm text-gray-600 mb-2">
