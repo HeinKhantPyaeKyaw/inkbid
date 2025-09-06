@@ -38,7 +38,7 @@ export const register = async (req, res) => {
       profile: {
         id: profile._id,
         email: profile.email,
-        displayName: `${profile.firstName} ${profile.lastName}`,
+        displayName: profile.name,
         role: profile.role,
         createdAt: profile.createdAt,
       },

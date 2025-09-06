@@ -30,7 +30,7 @@ const userSchema = new mongoose.Schema(
     role: {
       type: String,
       required: true,
-      enum: ["buyer", "seller"],
+      enum: ["buyer", "writer"],
       default: "buyer",
     },
     rating: { type: Number, min: 0, max: 5, default: 0 }, // from $numberDouble
