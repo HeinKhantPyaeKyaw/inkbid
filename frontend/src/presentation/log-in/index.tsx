@@ -1,13 +1,19 @@
 'use client';
 
+import { useAuth } from '@/context/auth/AuthContext';
 import Link from 'next/link';
-import React from 'react';
+import { useRouter } from 'next/navigation';
+import React, { useEffect } from 'react';
 
 export default function LoginPage() {
+  const { login, user } = useAuth();
+  const router = useRouter();
+
   const [form, setForm] = React.useState({
     email: '',
     password: '',
   });
+  const [error, setError] = React.useState<string | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.id]: e.target.value });
@@ -15,34 +21,25 @@ export default function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log(form);
+    // console.log(form);
+    setError(null);
 
     try {
-      const response = await fetch('http://localhost:5500/api/v1/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: form.email,
-          password: form.password,
-        }),
-      });
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Login failed');
-      } else {
-        const data = await response.json();
-        console.log(data);
-        alert(`Login successful! Welcome ${data.profile.name}`);
-        window.location.href = '/';
-      }
-    } catch (error: unknown) {
-      alert(
-        `Error: ${
-          error instanceof Error ? error.message : 'An error occurred'
-        }`,
-      );
+      //Call context login (set cookies + fetches user)
+      await login(form.email, form.password);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Login Failed');
     }
   };
+
+  useEffect(() => {
+    if (!user) return;
+    if (user?.role === 'seller') {
+      router.push('/create-post');
+    } else {
+      router.push('/content-listing');
+    }
+  }, [user, router]);
 
   return (
     <div
@@ -67,6 +64,11 @@ export default function LoginPage() {
           <h2 className="text-xl sm:text-2xl font-bold mb-6 sm:mb-8 text-center">
             Welcome Back
           </h2>
+
+          {/* Show error if login failed */}
+          {error && (
+            <div className="mb-4 text-red-400 text-center text-sm">{error}</div>
+          )}
 
           <form onSubmit={handleLogin} className="space-y-4 sm:space-y-6">
             <div>

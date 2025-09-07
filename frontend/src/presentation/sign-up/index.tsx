@@ -1,7 +1,9 @@
 'use client';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '@/context/auth/AuthContext';
+
 export default function SignUpPage() {
   const [role, setRole] = useState<string | null>(null);
   const [form, setForm] = useState({
@@ -11,7 +13,9 @@ export default function SignUpPage() {
     password: '',
     retypePassword: '',
   });
+  const [error, setError] = useState<string | null>(null);
 
+  const { login, user } = useAuth();
   const router = useRouter();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -20,6 +24,8 @@ export default function SignUpPage() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
+
     if (!role) {
       alert('Please select a role');
       return;
@@ -50,7 +56,7 @@ export default function SignUpPage() {
       } else {
         // alert('Registration successful! Please log in.');
         // window.location.href = '/auth/login';
-        router.push('/content-listing');
+        await login(form.email, form.password);
       }
     } catch (error) {
       const errorMessage =
@@ -58,6 +64,15 @@ export default function SignUpPage() {
       alert(`Error: ${errorMessage}`);
     }
   };
+
+  useEffect(() => {
+    if (!user) return;
+    if (user.role === 'seller') {
+      router.push('/create-post');
+    } else {
+      router.push('/content-listing');
+    }
+  }, [user, router]);
 
   return (
     <div
@@ -81,6 +96,11 @@ export default function SignUpPage() {
           <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-center">
             Sign Up
           </h2>
+
+          {/* Show Errors */}
+          {error && (
+            <div className="mb-4 text-red-400 text-center text-sm">{error}</div>
+          )}
 
           <form onSubmit={handleRegister} className="space-y-4 sm:space-y-6">
             <div className="flex flex-col sm:flex-row sm:space-x-4 space-y-4 sm:space-y-0">
@@ -195,11 +215,11 @@ export default function SignUpPage() {
                   type="button"
                   className={`w-full sm:w-1/2 py-2 sm:py-3 border-2 rounded-full transition-all duration-200 font-medium text-sm sm:text-base
                     ${
-                      role === 'writer'
+                      role === 'seller'
                         ? 'bg-[#f3d175] text-[#0c1e45] border-[#f3d175] shadow-lg'
                         : 'bg-transparent border-white text-white hover:bg-white hover:text-[#0c1e45] hover:shadow-md'
                     }`}
-                  onClick={() => setRole('writer')}
+                  onClick={() => setRole('seller')}
                 >
                   Seller
                 </button>
