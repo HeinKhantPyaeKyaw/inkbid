@@ -1,8 +1,8 @@
-import Article from "../schemas/article.schema.js";
-import Bid from "../schemas/bids.schema.js";
-import User from "../schemas/user.schema.js";
+import mongoose from 'mongoose';
+import Article from '../schemas/article.schema.js';
+import Bid from '../schemas/bids.schema.js';
+import User from '../schemas/user.schema.js';
 import { uploadFileToFirebase } from '../services/firebaseupload.js';
-import mongoose from "mongoose";
 function normalizeArticle(article) {
   return {
     ...article,
@@ -19,17 +19,16 @@ function normalizeBid(bid) {
   };
 }
 
-
 export const getAllArticlesWithBids = async (req, res) => {
   try {
     const articles = await Article.find()
-      .populate("author", "name img_url rating") // ✅ get author info
+      .populate('author', 'name img_url rating') // ✅ get author info
       .lean();
 
     const results = await Promise.all(
       articles.map(async (article) => {
         const bids = await Bid.findOne({ refId: article._id })
-          .populate("bids.ref_user", "name email role")
+          .populate('bids.ref_user', 'name email role')
           .lean();
 
         const topBids = bids
@@ -53,13 +52,12 @@ export const getAllArticlesWithBids = async (req, res) => {
   }
 };
 
-
 export const getArticleWithBids = async (req, res) => {
   try {
     const { id } = req.params;
 
     const article = await Article.findById(id)
-      .populate("author", "name img_url rating") // ✅ populate seller info
+      .populate('author', 'name img_url rating') // ✅ populate seller info
       .lean();
 
     if (!article) {
@@ -104,10 +102,8 @@ export const createArticle = async (req, res) => {
       now.getTime() + Number(duration) * 24 * 60 * 60 * 1000,
     );
 
-    // FIXME: TEMP: Dummy author until you add authentication
-    const dummyAuthorId = new mongoose.Types.ObjectId(
-      '68b409b40ae3b95ac45a1cbc',
-    ); // generates a valid new ObjectId
+    // G real author ID from auth middleware
+    const authorID = req.user.id;
 
     // Handle file uploads
     const imageFile = req.files?.image ? req.files.image[0] : null;
@@ -121,7 +117,7 @@ export const createArticle = async (req, res) => {
       title,
       synopsis,
       date: now,
-      author: dummyAuthorId,
+      author: authorID,
       duration: mongoose.Types.Decimal128.fromString(duration.toString()),
       min_bid: mongoose.Types.Decimal128.fromString(minimumBid.toString()),
       highest_bid: mongoose.Types.Decimal128.fromString('0.0'),

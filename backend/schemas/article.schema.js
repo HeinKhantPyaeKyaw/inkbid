@@ -15,7 +15,11 @@ const articleSchema = new mongoose.Schema(
     ends_in: { type: Date, required: true }, // deadline
     synopsis: { type: String, trim: true },
     highest_bid: { type: mongoose.Schema.Types.Decimal128, default: 0.0 }, // from $numberDecimal
-    min_bid: { type: mongoose.Schema.Types.Decimal128, required: true, default: 0.0 }, // from $numberDecimal
+    min_bid: {
+      type: mongoose.Schema.Types.Decimal128,
+      required: true,
+      default: 0.0,
+    }, // from $numberDecimal
     buy_now: { type: mongoose.Schema.Types.Decimal128 },
     winner: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // buyer reference
     tag: {

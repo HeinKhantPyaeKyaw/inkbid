@@ -5,6 +5,7 @@ import {
   getArticleWithBids,
   buyNow,
 } from '../controller/article.controller.js';
+import { verifyAuth } from '../middlewares/auth.middleware.js';
 import upload from '../middlewares/upload.js';
 import { verifyAuth } from '../middlewares/auth.middleware.js';
 
@@ -17,6 +18,7 @@ articleRouter.post('/articles/:id/buy-now', verifyAuth, buyNow);
 // / POST new article(Create Post page)
 articleRouter.post(
   '/articles',
+  verifyAuth,
   upload.fields([
     { name: 'image', maxCount: 1 },
     { name: 'article', maxCount: 1 },
