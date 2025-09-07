@@ -39,17 +39,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   // Login function
   const login = async (email: string, password: string) => {
     try {
-      await axios.post(
+      const res = await axios.post(
         `${API_URL}/login`,
         { email, password },
         { withCredentials: true },
       );
 
-      //After login, fetch user info again
-      const res = await axios.get(`${API_URL}/me`, {
-        withCredentials: true,
-      });
-      setUser(res.data.user);
+      console.log('Login response:', res.data);
+
+      setUser(res.data.profile);
     } catch (error: Error | unknown) {
       const axiosError = error as AxiosError;
       console.error(
