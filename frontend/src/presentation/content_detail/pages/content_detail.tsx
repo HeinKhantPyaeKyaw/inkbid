@@ -3,7 +3,7 @@ import { useState, useEffect, useMemo } from "react";
 import { NavbarPrimary } from "../../components/navbar/navbar_primary";
 import { Rating } from "@mui/material";
 import { useCountdown } from "@/lib/utilities/util_functions";
-import { getArticleDetail } from "@/hooks/content_detail.api";
+import { getArticleDetail, buyNowArticle } from "@/hooks/content_detail.api";
 import { IContent } from "../../../interfaces/content_detail/content_detail.domain";
 import { io } from "socket.io-client";
 import { useParams } from "next/navigation";
@@ -120,22 +120,17 @@ export const ContentDetail = () => {
   // BUY NOW
   const handleBuyNow = async () => {
     try {
-      const res = await fetch(
-        `http://localhost:5500/api/v1/articles/${id}/buy`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId: "CURRENT_USER_ID" }),
-        }
-      );
-      const data = await res.json();
+      const { data } = await buyNowArticle(id);
       if (data.success) {
         alert("Article purchased successfully!");
+        // Optionally update local state
+        setArticleDetail(data.article);
       } else {
-        alert(data.message);
+        alert(data.message || "Buy Now failed");
       }
     } catch (err) {
       console.error("Error buying article:", err);
+      alert("Something went wrong");
     }
   };
 

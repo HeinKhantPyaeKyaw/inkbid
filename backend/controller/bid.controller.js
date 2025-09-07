@@ -34,6 +34,17 @@ export const placeBid = async (req, res) => {
       currentHighest = parseFloat(article.highest_bid.toString());
     }
 
+    // enforce min_bid if this is the first bid
+    if ((!bidRecord || bidRecord.bids.length === 0) && article.min_bid) {
+      const minBid = parseFloat(article.min_bid.toString());
+      if (amount < minBid) {
+        return res.status(400).json({
+          success: false,
+          message: `The first bid must be at least the minimum bid (${minBid})`,
+        });
+      }
+    }
+
     if (amount <= currentHighest) {
       return res.status(400).json({
         success: false,

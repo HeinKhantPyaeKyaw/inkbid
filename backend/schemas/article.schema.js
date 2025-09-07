@@ -11,9 +11,7 @@ const articleSchema = new mongoose.Schema(
       required: true,
     }, // seller reference
     duration: { type: mongoose.Schema.Types.Decimal128, required: true },
-    // img_url: { type: String, required: false, trim: true },
     article_url: { type: String, required: false, trim: true },
-    // min_bid: { type: mongoose.Schema.Types.Decimal128, required: true },
     ends_in: { type: Date, required: true }, // deadline
     synopsis: { type: String, trim: true },
     highest_bid: { type: mongoose.Schema.Types.Decimal128, default: 0.0 }, // from $numberDecimal
@@ -35,6 +33,8 @@ const articleSchema = new mongoose.Schema(
       ],
     },
     img_url: { type: String, required: false, trim: true },
+    proprietor: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // final owner (after payment)
+    status: { type: String, enum: ['in_progress', 'awaiting_contract', 'awaiting_payment', 'completed', 'cancelled'], default: 'in_progress' },
   },
   { timestamps: true },
 );

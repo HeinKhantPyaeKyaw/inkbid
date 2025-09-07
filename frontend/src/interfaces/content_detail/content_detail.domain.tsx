@@ -26,14 +26,24 @@ export interface IBid {
 export interface IContent {
   _id: string;
   title: string;
-  date: string; // ISO string (backend sends Date)
-  author: IUser | null; // null if author deleted
+  date: string;
+  author: IUser | null;
   synopsis: string;
-  highest_bid: number; // converted from Decimal128 in backend
+  highest_bid: number;
   min_bid: number;
   buy_now: number;
-  ends_in: string; // ISO string
+  ends_in: string;
   img_url?: string;
   tag: ITag;
   bids: IBid[];
+
+  // ✅ New fields
+  status:
+    | "in_progress"
+    | "awaiting_contract"
+    | "awaiting_payment"
+    | "completed"
+    | "cancelled";
+  winner?: IUser | null;
+  proprietor?: IUser | null;
 }

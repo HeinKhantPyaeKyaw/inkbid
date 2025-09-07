@@ -148,3 +148,57 @@ export const createArticle = async (req, res) => {
   }
 };
 
+export const buyNow = async (req, res) => {
+  try {
+    const { id } = req.params; // article id
+    const buyer = req.user; // should be full Mongo user in future
+
+    if (!buyer) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+    if (buyer.role !== "buyer") {
+      return res.status(403).json({ error: "Only buyers can buy articles" });
+    }
+
+    const article = await Article.findById(id);
+    if (!article) {
+      return res.status(404).json({ error: "Article not found" });
+    }
+
+    if (article.status !== "in_progress") {
+      return res
+        .status(400)
+        .json({ error: "Article is not available for buy now" });
+    }
+
+    // Mark article as won
+    article.winner = buyer._id;
+    article.status = "awaiting_contract";
+
+    // Also record a "buy now" bid in Bid collection
+    let bidRecord = await Bid.findOne({ refId: article._id });
+    const newBid = {
+      ref_user: buyer._id,
+      amount: parseFloat(article.buy_now.toString()),
+      timestamp: new Date(),
+    };
+
+    if (!bidRecord) {
+      bidRecord = new Bid({ refId: article._id, bids: [newBid] });
+    } else {
+      bidRecord.bids.push(newBid);
+    }
+
+    await bidRecord.save();
+    await article.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Article bought with buy now price",
+      article,
+    });
+  } catch (err) {
+    console.error("Error in buyNow:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+};
