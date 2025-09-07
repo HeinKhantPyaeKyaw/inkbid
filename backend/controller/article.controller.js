@@ -146,55 +146,48 @@ export const createArticle = async (req, res) => {
 
 export const buyNow = async (req, res) => {
   try {
-    const { id } = req.params; // article id
-    const buyer = req.user; // should be full Mongo user in future
-
-    if (!buyer) {
-      return res.status(401).json({ error: "Not authenticated" });
-    }
-    if (buyer.role !== "buyer") {
-      return res.status(403).json({ error: "Only buyers can buy articles" });
-    }
+    const buyer = req.user;
+    const { id } = req.params;
 
     const article = await Article.findById(id);
     if (!article) {
-      return res.status(404).json({ error: "Article not found" });
-    }
-
-    if (article.status !== "in_progress") {
       return res
-        .status(400)
-        .json({ error: "Article is not available for buy now" });
+        .status(404)
+        .json({ success: false, message: "Article not found" });
     }
 
-    // Mark article as won
+    // mark as bought
     article.winner = buyer._id;
-    article.status = "awaiting_contract";
-
-    // Also record a "buy now" bid in Bid collection
-    let bidRecord = await Bid.findOne({ refId: article._id });
-    const newBid = {
-      ref_user: buyer._id,
-      amount: parseFloat(article.buy_now.toString()),
-      timestamp: new Date(),
-    };
-
-    if (!bidRecord) {
-      bidRecord = new Bid({ refId: article._id, bids: [newBid] });
-    } else {
-      bidRecord.bids.push(newBid);
-    }
-
-    await bidRecord.save();
+    article.status = "awaiting_contract"; // example status
     await article.save();
 
-    res.status(200).json({
+    // optional: add a "buy now" bid
+    const bidRecord = await Bid.findOne({ refId: article._id });
+    if (bidRecord) {
+      bidRecord.bids.push({
+        ref_user: buyer._id,
+        amount: article.buy_now,
+        timestamp: new Date(),
+      });
+      await bidRecord.save();
+    }
+
+    // ✅ sanitize Decimal128 → Number
+    const responseArticle = {
+      ...article.toObject(),
+      highest_bid: parseFloat(article.highest_bid?.toString() || "0"),
+      min_bid: parseFloat(article.min_bid?.toString() || "0"),
+      buy_now: parseFloat(article.buy_now?.toString() || "0"),
+    };
+
+    return res.status(200).json({
       success: true,
-      message: "Article bought with buy now price",
-      article,
+      message: "Article bought successfully",
+      article: responseArticle,
     });
   } catch (err) {
     console.error("Error in buyNow:", err);
-    res.status(500).json({ error: "Server error" });
+    return res.status(500).json({ success: false, message: "Server error" });
   }
 };
+

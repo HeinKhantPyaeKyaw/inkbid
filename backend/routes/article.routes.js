@@ -7,7 +7,6 @@ import {
 } from '../controller/article.controller.js';
 import { verifyAuth } from '../middlewares/auth.middleware.js';
 import upload from '../middlewares/upload.js';
-import { verifyAuth } from '../middlewares/auth.middleware.js';
 
 const articleRouter = express.Router();
 

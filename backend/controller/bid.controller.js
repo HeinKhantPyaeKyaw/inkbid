@@ -53,7 +53,7 @@ export const placeBid = async (req, res) => {
     }
 
     // create new bid
-    const newBid = { ref_user: bidder._id, amount, timestamp: new Date() };
+    const newBid = { ref_user: bidder.id, amount, timestamp: new Date() };
 
     if (!bidRecord) {
       bidRecord = new Bid({ refId, bids: [newBid] });
@@ -80,7 +80,7 @@ export const placeBid = async (req, res) => {
       articleId: refId,
       bidId: latestBid.id,
       amount: Number(latestBid.amount),
-      userId: latestBid.ref_user._id,
+      userId: latestBid.ref_user.id,
       userName: latestBid.ref_user.name,
       userImg: latestBid.ref_user.img_url,
       userRating: latestBid.ref_user.rating,

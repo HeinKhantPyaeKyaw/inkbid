@@ -20,12 +20,7 @@ export const verifyAuth = async (req, res, next) => {
     }
 
     // Attach user info to the request
-    req.user = {
-      id: user._id,
-      email: user.email,
-      role: user.role,
-      name: user.name,
-    };
+    req.user = user;
 
     // ALlow the request to continue
     next();
