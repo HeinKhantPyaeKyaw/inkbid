@@ -7,6 +7,8 @@ import { getArticleDetail, buyNowArticle } from "@/hooks/content_detail.api";
 import { IContent } from "../../../interfaces/content_detail/content_detail.domain";
 import { io } from "socket.io-client";
 import { useParams } from "next/navigation";
+import { ErrorToast } from "../components/ErrorToast";
+import { SuccessToast } from "../components/SuccessToast";
 
 export const ContentDetail = () => {
   // STATE
@@ -14,6 +16,9 @@ export const ContentDetail = () => {
   const [bidAmount, setBidAmount] = useState("");
   const params = useParams();
   const id = params?.id as string;
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
   // SOCKET
   const socket = useMemo(() => io("http://localhost:5500"), []);
 
@@ -82,34 +87,47 @@ export const ContentDetail = () => {
 
   // PLACE BID
   const handlePlaceBid = async () => {
-    if (!bidAmount || parseFloat(bidAmount) <= (articleDetail?.highest_bid || 0)) {
-      alert(
-        `Bid must be higher than current highest bid of ฿${articleDetail?.highest_bid}`
-      );
-      return;
-    }
-
     try {
       const res = await fetch("http://localhost:5500/api/v1/bids", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({
-          refId: id,
-          amount: parseFloat(bidAmount),
-        }),
+        body: JSON.stringify({ refId: id, amount: parseFloat(bidAmount) }),
       });
+      
+
+      if (res.status === 422) {
+        const data = await res.json();
+        setToastMessage(
+          data.message || "The first bid must be at least the minimum bid."
+        );
+        return;
+      }
+
+      if (res.status === 409) {
+        const data = await res.json();
+        setToastMessage(
+          data.message || "Bid must be higher than current highest bid."
+        );
+        return;
+      }
 
       const data = await res.json();
       if (!data.success) {
-        alert(data.message || "Bid failed");
-      } else {
+        setToastMessage(data.message || "Bid failed");
+      } 
+
+      if (data.success) {
         setBidAmount("");
+        setSuccessMessage(" Bid placed successfully!");
       }
+
     } catch (err) {
       console.error("Error placing bid:", err);
+      setToastMessage("Server error while placing bid.");
     }
   };
+
 
   // QUICK BID
   const handleQuickBid = (multiplier: number) => {
@@ -122,17 +140,21 @@ export const ContentDetail = () => {
     try {
       const { data } = await buyNowArticle(id);
       if (data.success) {
-        alert("Article purchased successfully!");
-        // Optionally update local state
         setArticleDetail(data.article);
+        setSuccessMessage("🎉 Congratulations! You are the Winner");
       } else {
-        alert(data.message || "Buy Now failed");
+        setToastMessage(data.message || "Buy Now failed");
       }
     } catch (err) {
       console.error("Error buying article:", err);
-      alert("Something went wrong");
+      setToastMessage("Something went wrong while buying the article.");
     }
   };
+
+
+  //-------
+  // RENDER
+  //-------
 
   return (
     <div className="min-h-screen bg-secondary">
@@ -383,5 +405,19 @@ export const ContentDetail = () => {
           </div>
         </div>
       </div>
+
+      {toastMessage && (
+        <ErrorToast
+          message={toastMessage}
+          onClose={() => setToastMessage(null)}
+        />
+      )}
+
+      {successMessage && (
+        <SuccessToast
+          message={successMessage}
+          onClose={() => setSuccessMessage(null)}
+        />
+      )}
     </div>
   );}

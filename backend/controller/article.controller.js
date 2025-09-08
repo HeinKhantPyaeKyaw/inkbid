@@ -21,36 +21,42 @@ function normalizeBid(bid) {
 
 export const getAllArticlesWithBids = async (req, res) => {
   try {
-    const articles = await Article.find()
-      .populate('author', 'name img_url rating') // ✅ get author info
+    const articles = await Article.find({
+      $and: [
+        { winner: { $exists: false } }, // no winner
+        { status: { $ne: "awaiting_contract" } }, // not awaiting contract
+      ],
+    })
+      .populate("author", "name img_url rating") // ✅ get author info
       .lean();
 
     const results = await Promise.all(
       articles.map(async (article) => {
         const bids = await Bid.findOne({ refId: article._id })
-          .populate('bids.ref_user', 'name email role')
+          .populate("bids.ref_user", "name email role")
           .lean();
 
         const topBids = bids
           ? bids.bids
-              .map(normalizeBid) // ✅ convert Decimal128 to Number
+              .map(normalizeBid)
               .sort((a, b) => b.amount - a.amount)
               .slice(0, 4)
           : [];
 
         return {
-          ...normalizeArticle(article), // ✅ normalize article fields
+          ...normalizeArticle(article),
           bids: topBids,
         };
-      }),
+      })
     );
 
     res.status(200).json(results);
   } catch (err) {
-    console.error('Error fetching articles with bids:', err);
-    res.status(500).json({ error: 'Server error' });
+    console.error("Error fetching articles with bids:", err);
+    res.status(500).json({ error: "Server error" });
   }
 };
+
 
 export const getArticleWithBids = async (req, res) => {
   try {
