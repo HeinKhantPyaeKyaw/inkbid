@@ -1,0 +1,133 @@
+import axios from 'axios';
+import { FIREBASE_API_KEY } from '../config/env.js';
+import { admin } from '../config/firebase.js';
+import User from '../schemas/user.schema.js';
+
+import bcrypt from 'bcryptjs';
+
+// export const hash = (input) => {
+//   const salt = bcrypt.genSaltSync(10);
+//   return bcrypt.hashSync(input, salt);
+// };
+
+export const register = async (req, res) => {
+  const { email, password, firstName, lastName, role } = req.body;
+  console.log(email, password, firstName, lastName, role);
+
+  try {
+    const userRecord = await admin.auth().createUser({
+      email,
+      password,
+      displayName: `${firstName} ${lastName}`.trim(),
+      emailVerified: false,
+      disabled: false,
+    });
+
+    const profile = await User.create({
+      firebaseUid: userRecord.uid,
+      email: userRecord.email,
+      name: `${firstName} ${lastName}`.trim(),
+      role,
+    });
+
+    const customToken = await admin.auth().createCustomToken(userRecord.uid);
+
+    res.status(201).json({
+      message: 'User registered',
+      firebase: { uid: userRecord.uid, email: userRecord.email },
+      profile: {
+        id: profile._id,
+        email: profile.email,
+        displayName: profile.name,
+        role: profile.role,
+        createdAt: profile.createdAt,
+      },
+      customToken,
+    });
+  } catch (e) {
+    res.status(500).json({ message: e.message });
+  }
+};
+
+export const login = async (req, res) => {
+  const { email, password } = req.body;
+  // console.log(email, password);
+  try {
+    // Verify with Firebase Auth REST API
+    const url = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${FIREBASE_API_KEY}`;
+    const { data } = await axios.post(url, {
+      email,
+      password,
+      returnSecureToken: true,
+    });
+
+    console.log(data);
+
+    // Find profile in MongoDB
+    const profile = await User.findOne({ firebaseUid: data.localId });
+    if (!profile) {
+      return res.status(404).json({ message: 'User profile not found' });
+    }
+
+    res.cookie('token', data.idToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'Strict',
+      maxAge: 60 * 60 * 1000,
+    });
+
+    // Send back a clean response
+    return res.json({
+      uid: data.localId,
+      email: data.email,
+      // idToken: data.idToken, //short-lived JWT
+      // refreshToken: data.refreshToken, // to renew the JWT later
+      // expiresIn: Number(data.expiresIn),
+      profile: {
+        id: profile._id,
+        email: profile.email,
+        name: profile.name,
+        role: profile.role,
+        createdAt: profile.createdAt,
+      },
+    });
+  } catch (e) {
+    const msg = e?.response?.data?.error?.message || e.message;
+    return res.status(500).json({ message: msg });
+  }
+};
+
+// Check current logged-in user
+export const getMe = async (req, res) => {
+  try {
+    // token was already verified in middleware
+    const uid = req.user.uid;
+
+    const profile = await User.findOne({ firebaseUid: uid });
+    if (!profile) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json({
+      user: {
+        uid,
+        id: profile._id,
+        email: profile.email,
+        name: profile.name,
+        role: profile.role,
+        createdAt: profile.createdAt,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const logout = (req, res) => {
+  res.clearCookie('token', {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'Strict',
+  });
+  res.json({ message: 'Logged out successfully' });
+};

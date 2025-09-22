@@ -11,7 +11,7 @@ const RatingReview = ({ ratings }: RatingReviewProps) => {
 
   return (
     <div className="w-full flex justify-between items-center py-5 px-5">
-      <div className="flex flex-col justify-center items-center">
+      <div className="flex flex-col justify-center items-center text-white">
         {/* FIX: To fix Rating to be reactive according to the total ratings */}
         <h2 className="font-Montserrat text-4xl">Rating & Reviews</h2>
         <p className="font-Montserrat text-[64px] font-bold">3.5</p>

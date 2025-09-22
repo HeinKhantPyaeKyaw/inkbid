@@ -1,17 +1,16 @@
-@import 'tailwindcss';
-@import url('https://fonts.googleapis.com/css2?family=Forum&family=Montserrat:wght@400;500;600;700&display=swap');
+@layer theme, base, mui, components, utilities;
+@import "tailwindcss";
+@import url("https://fonts.googleapis.com/css2?family=Forum&family=Montserrat:wght@400;500;600;700&display=swap");
 
 @theme {
-  /* colors */
   --color-primary: #112250;
-  --color-secondary: #f5f0e9;
-  --color-tertiary: #d9cbc2;
-  --color-accent: #e0c58f;
-  --color-muted: #3c507d;
-  --color-primary-font: #313131;
-  /* font families */
-  --font-Forum: 'Forum', sans-serif;
-  --font-Montserrat: 'Montserrat', sans-serif;
+  --color-secondary: #F5F0E9;
+  --color-tertiary: #D9CBC2;
+  --color-accent: #E0C58F;
+  --color-muted: #3C507D;
+
+  --font-Forum: "Forum", sans-serif;
+  --font-Montserrat: "Montserrat", sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -22,6 +21,7 @@
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--color-secondary);
+  color: var(--color-primary);
+  font-family: var(--font-family-Montserrat);
 }

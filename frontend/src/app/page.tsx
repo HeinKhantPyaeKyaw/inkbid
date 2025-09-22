@@ -1,14 +1,13 @@
-// import BuyerDashboard from '@/presentation/buyer-dashboard';
-
-// import SellerProfile from '../presentation/seller-profile';
-import CreatePost from '@/presentation/create-post';
+import { LandingPage } from '@/presentation/landing_page';
+// import CreatePost from '@/presentation/create-post';
 
 export default function Home() {
   return (
     <>
+      <LandingPage />
       {/* <BuyerDashboard /> */}
       {/* <SellerProfile /> */}
-      <CreatePost />
+      {/* <CreatePost /> */}
     </>
   );
 }
