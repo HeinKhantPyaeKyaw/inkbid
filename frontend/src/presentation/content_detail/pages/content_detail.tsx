@@ -1,26 +1,27 @@
-"use client";
-import { useState, useEffect, useMemo } from "react";
-import { NavbarPrimary } from "../../components/navbar/navbar_primary";
-import { Rating } from "@mui/material";
-import { useCountdown } from "@/lib/utilities/util_functions";
-import { getArticleDetail, buyNowArticle } from "@/hooks/content_detail.api";
-import { IContent } from "../../../interfaces/content_detail/content_detail.domain";
-import { io } from "socket.io-client";
-import { useParams } from "next/navigation";
-import { ErrorToast } from "../components/ErrorToast";
-import { SuccessToast } from "../components/SuccessToast";
+'use client';
+import { buyNowArticle, getArticleDetail } from '@/hooks/content_detail.api';
+import { useCountdown } from '@/lib/utilities/util_functions';
+import { Rating } from '@mui/material';
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
+import { useEffect, useMemo, useState } from 'react';
+import { io } from 'socket.io-client';
+import { IContent } from '../../../interfaces/content_detail/content_detail.domain';
+import { NavbarPrimary } from '../../components/navbar/navbar_primary';
+import { ErrorToast } from '../components/ErrorToast';
+import { SuccessToast } from '../components/SuccessToast';
 
 export const ContentDetail = () => {
   // STATE
   const [articleDetail, setArticleDetail] = useState<IContent | null>(null);
-  const [bidAmount, setBidAmount] = useState("");
+  const [bidAmount, setBidAmount] = useState('');
   const params = useParams();
   const id = params?.id as string;
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // SOCKET
-  const socket = useMemo(() => io("http://localhost:5500"), []);
+  const socket = useMemo(() => io('http://localhost:5500'), []);
 
   // FETCH ARTICLE
   useEffect(() => {
@@ -30,7 +31,7 @@ export const ContentDetail = () => {
         const { data } = await getArticleDetail(id);
         setArticleDetail(data);
       } catch (err) {
-        console.error("Error fetching article:", err);
+        console.error('Error fetching article:', err);
       }
     }
     fetchArticle();
@@ -38,7 +39,7 @@ export const ContentDetail = () => {
 
   // SUBSCRIBE TO REALTIME BID UPDATES
   useEffect(() => {
-    socket.on("bidUpdate", (update) => {
+    socket.on('bidUpdate', (update) => {
       if (update.articleId === id) {
         setArticleDetail((prev) =>
           prev
@@ -60,27 +61,26 @@ export const ContentDetail = () => {
                   ...(prev.bids || []),
                 ],
               }
-            : prev
+            : prev,
         );
       }
     });
 
     return () => {
-      socket.off("bidUpdate");
+      socket.off('bidUpdate');
     };
   }, [id, socket]);
-
 
   // COUNTDOWN
   const countdown = useCountdown(articleDetail?.ends_in || '');
   const parseCountdown = (countdownStr: string) => {
-    if (countdownStr === "Expired")
-      return { days: "00", hours: "00", mins: "00" };
-    const parts = countdownStr.split(" ");
+    if (countdownStr === 'Expired')
+      return { days: '00', hours: '00', mins: '00' };
+    const parts = countdownStr.split(' ');
     return {
-      days: parts[0] || "00",
-      hours: parts[2] || "00",
-      mins: parts[4] || "00",
+      days: parts[0] || '00',
+      hours: parts[2] || '00',
+      mins: parts[4] || '00',
     };
   };
   const { days, hours, mins } = parseCountdown(countdown);
@@ -88,18 +88,17 @@ export const ContentDetail = () => {
   // PLACE BID
   const handlePlaceBid = async () => {
     try {
-      const res = await fetch("http://localhost:5500/api/v1/bids", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
+      const res = await fetch('http://localhost:5500/api/v1/bids', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ refId: id, amount: parseFloat(bidAmount) }),
       });
-      
 
       if (res.status === 422) {
         const data = await res.json();
         setToastMessage(
-          data.message || "The first bid must be at least the minimum bid."
+          data.message || 'The first bid must be at least the minimum bid.',
         );
         return;
       }
@@ -107,27 +106,25 @@ export const ContentDetail = () => {
       if (res.status === 409) {
         const data = await res.json();
         setToastMessage(
-          data.message || "Bid must be higher than current highest bid."
+          data.message || 'Bid must be higher than current highest bid.',
         );
         return;
       }
 
       const data = await res.json();
       if (!data.success) {
-        setToastMessage(data.message || "Bid failed");
-      } 
-
-      if (data.success) {
-        setBidAmount("");
-        setSuccessMessage(" Bid placed successfully!");
+        setToastMessage(data.message || 'Bid failed');
       }
 
+      if (data.success) {
+        setBidAmount('');
+        setSuccessMessage(' Bid placed successfully!');
+      }
     } catch (err) {
-      console.error("Error placing bid:", err);
-      setToastMessage("Server error while placing bid.");
+      console.error('Error placing bid:', err);
+      setToastMessage('Server error while placing bid.');
     }
   };
-
 
   // QUICK BID
   const handleQuickBid = (multiplier: number) => {
@@ -141,16 +138,15 @@ export const ContentDetail = () => {
       const { data } = await buyNowArticle(id);
       if (data.success) {
         setArticleDetail(data.article);
-        setSuccessMessage("🎉 Congratulations! You are the Winner");
+        setSuccessMessage('🎉 Congratulations! You are the Winner');
       } else {
-        setToastMessage(data.message || "Buy Now failed");
+        setToastMessage(data.message || 'Buy Now failed');
       }
     } catch (err) {
-      console.error("Error buying article:", err);
-      setToastMessage("Something went wrong while buying the article.");
+      console.error('Error buying article:', err);
+      setToastMessage('Something went wrong while buying the article.');
     }
   };
-
 
   //-------
   // RENDER
@@ -158,13 +154,13 @@ export const ContentDetail = () => {
 
   return (
     <div className="min-h-screen bg-secondary">
-      <NavbarPrimary user={"buyer"} />
+      <NavbarPrimary user={'buyer'} />
 
       <div className="container mx-auto px-6 py-8 max-w-7xl">
         {/* IMAGE */}
         <div className="bg-white rounded-lg p-4 shadow-lg mb-6">
           <img
-            src={articleDetail?.img_url || "/imgs/placeholder.png"}
+            src={articleDetail?.img_url || '/imgs/placeholder.png'}
             alt="Content Image"
             className="w-full h-100 object-cover rounded-lg"
           />
@@ -184,20 +180,26 @@ export const ContentDetail = () => {
                   <span className="text-sm text-gray-600 font-Montserrat">
                     Author
                   </span>
-                  <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-primary">
+                  <Link
+                    href={`/profile/seller/${articleDetail?.author?._id}`}
+                    className="w-12 h-12 rounded-full overflow-hidden border-2 border-primary cursor-pointer"
+                  >
                     <img
                       src={
                         articleDetail?.author?.img_url ||
-                        "/imgs/default-avatar.png"
+                        '/imgs/default-avatar.png'
                       }
-                      alt={articleDetail?.author?.name || "Unknown"}
+                      alt={articleDetail?.author?.name || 'Unknown'}
                       className="w-full h-full object-cover"
                     />
-                  </div>
+                  </Link>
                   <div>
-                    <p className="font-Montserrat font-semibold text-primary text-lg">
-                      {articleDetail?.author?.name || "Unknown Author"}
-                    </p>
+                    <Link
+                      href={`/profile/seller/${articleDetail?.author?._id}`}
+                      className="font-Montserrat font-semibold text-primary text-lg cursor-pointer"
+                    >
+                      {articleDetail?.author?.name || 'Unknown Author'}
+                    </Link>
                     <Rating
                       name="author-rating"
                       value={articleDetail?.author?.rating || 0}
@@ -210,10 +212,10 @@ export const ContentDetail = () => {
                 <div className="text-left sm:text-right">
                   <p className="text-lg font-Montserrat text-gray-700">
                     {articleDetail?.date &&
-                      new Date(articleDetail.date).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
+                      new Date(articleDetail.date).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
                       })}
                   </p>
                 </div>
@@ -263,9 +265,9 @@ export const ContentDetail = () => {
                       <img
                         src={
                           articleDetail.bids[0].ref_user?.img_url ||
-                          "/imgs/default-avatar.png"
+                          '/imgs/default-avatar.png'
                         }
-                        alt={articleDetail.bids[0].ref_user?.name || "Bidder"}
+                        alt={articleDetail.bids[0].ref_user?.name || 'Bidder'}
                         className="w-full h-full object-cover"
                       />
                     </div>
@@ -297,9 +299,9 @@ export const ContentDetail = () => {
                           <img
                             src={
                               bid.ref_user?.img_url ||
-                              "/imgs/default-avatar.png"
+                              '/imgs/default-avatar.png'
                             }
-                            alt={bid.ref_user?.name || "Bidder"}
+                            alt={bid.ref_user?.name || 'Bidder'}
                             className="w-8 h-8 rounded-full object-cover"
                           />
                           {bid.ref_user?.name}
@@ -420,4 +422,5 @@ export const ContentDetail = () => {
         />
       )}
     </div>
-  );}
+  );
+};

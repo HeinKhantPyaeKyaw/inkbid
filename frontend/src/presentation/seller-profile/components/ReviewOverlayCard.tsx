@@ -6,13 +6,13 @@ import { AiFillStar, AiOutlineStar } from 'react-icons/ai';
 import { RxCross2 } from 'react-icons/rx';
 
 const ReviewOverlayCard = ({ onCancel, onSubmit }: ReviewOverlayCardProps) => {
-  const [name, setName] = useState('');
-  const [review, setReview] = useState('');
+  // const [name, setName] = useState('');
+  const [comment, setComment] = useState('');
   const [rating, setRating] = useState(0);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({ name, review, rating });
+    onSubmit({ comment, rating });
     onCancel();
   };
 
@@ -56,20 +56,6 @@ const ReviewOverlayCard = ({ onCancel, onSubmit }: ReviewOverlayCardProps) => {
             </div>
             <div className="w-full flex items-start gap-4 mt-4">
               <label
-                htmlFor="Name"
-                className="w-[75px] font-Forum text-primary text-lg"
-              >
-                Name:{' '}
-              </label>
-              <input
-                name="Name"
-                id="Name"
-                className="w-full bg-[#D9D9D9] p-2 font-Montserrat text-primary text-md"
-                onChange={(e) => setName(e.target.value)}
-              />
-            </div>
-            <div className="w-full flex items-start gap-4 mt-4">
-              <label
                 htmlFor="Review"
                 className="w-[75px] font-Forum text-primary text-lg"
               >
@@ -79,7 +65,7 @@ const ReviewOverlayCard = ({ onCancel, onSubmit }: ReviewOverlayCardProps) => {
                 name="Review"
                 id="Review"
                 className="w-full bg-[#D9D9D9] p-2 font-Montserrat text-primary text-md"
-                onChange={(e) => setReview(e.target.value)}
+                onChange={(e) => setComment(e.target.value)}
               />
             </div>
             <button className="block w-[200px] font-Montserrat text-primary text-lg font-bold mx-auto mt-4 py-1  border-2 border-primary rounded-[6px]">

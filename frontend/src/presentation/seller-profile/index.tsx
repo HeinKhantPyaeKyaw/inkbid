@@ -1,10 +1,14 @@
 'use client';
 
+import { useAuth } from '@/context/auth/AuthContext';
+import { getSellerReviews } from '@/hooks/review.api';
 import {
+  GetReviewsResponse,
   ReviewCardProps,
   SellerInfo,
 } from '@/interfaces/seller-profile-interface/seller-profile-types';
 import Image from 'next/image';
+import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { NavbarPrimary } from '../components/navbar/navbar_primary';
 import RatingReview from './components/RatingReview';
@@ -15,6 +19,14 @@ import { CarouselData, ReviewCardData } from './model';
 // FIXME: To fix seller info as user login. To implement setSellerInfo and setCarouselData.
 
 const SellerProfile = () => {
+  const { user } = useAuth();
+  const params = useParams();
+
+  console.log('User Role: ', user?.role);
+
+  const sellerId = params.id as string;
+  console.log('Seller ID: ', sellerId);
+
   const [
     sellerInfo,
     {
@@ -33,16 +45,34 @@ const SellerProfile = () => {
       /*setCarouselData */
     },
   ] = useState(CarouselData);
+
   const [reviews, setReviews] = useState<ReviewCardProps[]>([]);
+  const [avgRating, setAvgRating] = useState<number>(0);
+  const [totalReviews, setTotalReviews] = useState<number>(0);
 
   // TODO: To implement to load data from backend for Carousel Data with useEffect
   useEffect(() => {
-    setReviews(ReviewCardData);
-  }, []);
+    if (!sellerId) return;
+
+    const fetchReviews = async () => {
+      try {
+        const data: GetReviewsResponse = await getSellerReviews(sellerId);
+        console.log('Fetched Data: ', data);
+        setReviews(data.reviews);
+        setAvgRating(data.avgRating);
+        setTotalReviews(data.totalReviews);
+      } catch (error) {
+        console.error('Failed to fetch reviews: ', error);
+      }
+    };
+
+    fetchReviews();
+  }, [sellerId]);
 
   return (
     <div className="bg-primary h-full">
-      <NavbarPrimary />
+      <NavbarPrimary user={user?.role || 'buyer'} userId={sellerId} />{' '}
+      {/* ? To fix user here with role or just string */}
       <section>
         <div className="flex items-start">
           <Image
@@ -73,11 +103,22 @@ const SellerProfile = () => {
         </div>
       </section>
       <SellerProfileCarousel data={carouselData} />
-      <RatingReview ratings={reviews.map((r) => r.rating)} />
+      <RatingReview
+        ratings={reviews.map((r) => r.rating)}
+        avgRating={avgRating}
+        totalReviews={totalReviews}
+      />
       <div className="px-5 text-white">
         <hr />
       </div>
-      <WritingReviewSection reviews={reviews} setReviews={setReviews} />
+      <WritingReviewSection
+        userRole={user?.role}
+        sellerId={sellerId}
+        reviews={reviews}
+        setReviews={setReviews}
+        setAvgRating={setAvgRating}
+        setTotalReviews={setTotalReviews}
+      />
     </div>
   );
 };

@@ -15,7 +15,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { INavBarPrimaryProps } from '../../../interfaces/account/account.interface';
 
-export const NavbarPrimary = ({ user }: INavBarPrimaryProps) => {
+export const NavbarPrimary = ({ user, userId }: INavBarPrimaryProps) => {
   //---------------------
   //   CONST
   //---------------------
@@ -87,58 +87,139 @@ export const NavbarPrimary = ({ user }: INavBarPrimaryProps) => {
   })();
 
   const dropdownItemsSeller = (() => {
-    const base = pathname.startsWith('/dashboard')
-      ? [
-          {
-            label: 'Profile',
-            icon: faUser,
-            href: '/profile',
-            indent: 1,
-          },
-          { label: 'Settings', icon: faCog, href: '/settings', indent: 2 },
-        ]
-      : pathname.startsWith('/settings')
-      ? [
-          {
-            label: 'Profile',
-            icon: faUser,
-            href: '/profile',
-            indent: 1,
-          },
-          {
-            label: 'Dashboard',
-            icon: faChartLine,
-            href: '/dashboard',
-            indent: 2,
-          },
-        ]
-      : pathname.startsWith('/profile')
-      ? [
-          {
-            label: 'Dashboard',
-            icon: faChartLine,
-            href: '/dashboard',
-            indent: 1,
-          },
-          { label: 'Settings', icon: faCog, href: '/settings', indent: 2 },
-        ]
-      : [
-          {
-            label: 'Dashboard',
-            icon: faChartLine,
-            href: '/dashboard',
-            indent: 1,
-          },
-          {
-            label: 'Log Out',
-            icon: faRightFromBracket,
-            href: '/logout',
-            action: handleLogout,
-            indent: 2,
-          },
-        ];
-    return base;
+    if (pathname.startsWith('/dashboard')) {
+      return [
+        {
+          label: 'Profile',
+          icon: faUser,
+          href: `/profile/seller/${userId}`,
+          indent: 1,
+        },
+        { label: 'Settings', icon: faCog, href: '/settings', indent: 2 },
+        {
+          label: 'Log Out',
+          icon: faRightFromBracket,
+          href: '/logout',
+          action: handleLogout,
+          indent: 3,
+        },
+      ];
+    } else if (pathname.startsWith('/settings')) {
+      return [
+        {
+          label: 'Profile',
+          icon: faUser,
+          href: `/profile/seller/${userId}`,
+          indent: 1,
+        },
+        {
+          label: 'Dashboard',
+          icon: faChartLine,
+          href: '/dashboard',
+          indent: 2,
+        },
+        {
+          label: 'Log Out',
+          icon: faRightFromBracket,
+          href: '/logout',
+          action: handleLogout,
+          indent: 3,
+        },
+      ];
+    } else if (pathname.startsWith('/profile/seller')) {
+      return [
+        {
+          label: 'Dashboard',
+          icon: faChartLine,
+          href: '/dashboard',
+          indent: 1,
+        },
+        { label: 'Settings', icon: faCog, href: '/settings', indent: 2 },
+        {
+          label: 'Log Out',
+          icon: faRightFromBracket,
+          href: '/logout',
+          action: handleLogout,
+          indent: 3,
+        },
+      ];
+    } else {
+      return [
+        {
+          label: 'Dashboard',
+          icon: faChartLine,
+          href: '/dashboard',
+          indent: 1,
+        },
+        {
+          label: 'Profile',
+          icon: faUser,
+          href: `/profile/seller/${userId}`,
+          indent: 2,
+        },
+        { label: 'Settings', icon: faCog, href: '/settings', indent: 3 },
+        {
+          label: 'Log Out',
+          icon: faRightFromBracket,
+          href: '/logout',
+          action: handleLogout,
+          indent: 4,
+        },
+      ];
+    }
+    // const base = pathname.startsWith('/dashboard')
+    //   ? [
+    //       {
+    //         label: 'Profile',
+    //         icon: faUser,
+    //         href: '/profile',
+    //         indent: 1,
+    //       },
+    //       { label: 'Settings', icon: faCog, href: '/settings', indent: 2 },
+    //     ]
+    //   : pathname.startsWith('/settings')
+    //   ? [
+    //       {
+    //         label: 'Profile',
+    //         icon: faUser,
+    //         href: '/profile',
+    //         indent: 1,
+    //       },
+    //       {
+    //         label: 'Dashboard',
+    //         icon: faChartLine,
+    //         href: '/dashboard',
+    //         indent: 2,
+    //       },
+    //     ]
+    //   : pathname.startsWith('/profile')
+    //   ? [
+    //       {
+    //         label: 'Dashboard',
+    //         icon: faChartLine,
+    //         href: '/dashboard',
+    //         indent: 1,
+    //       },
+    //       { label: 'Settings', icon: faCog, href: '/settings', indent: 2 },
+    //     ]
+    //   : [
+    //       {
+    //         label: 'Dashboard',
+    //         icon: faChartLine,
+    //         href: '/dashboard',
+    //         indent: 1,
+    //       },
+    //       {
+    //         label: 'Log Out',
+    //         icon: faRightFromBracket,
+    //         href: '/logout',
+    //         action: handleLogout,
+    //         indent: 2,
+    //       },
+    //     ];
+    // return base;
   })();
+
   //---------------------
   //   HANDLE
   //---------------------
@@ -176,7 +257,9 @@ export const NavbarPrimary = ({ user }: INavBarPrimaryProps) => {
                           ? 'mr-2 ml-4'
                           : item.indent === 2
                           ? 'mr-8'
-                          : 'mr-0 ml-8'
+                          : item.indent === 3
+                          ? 'mr-10 ml-2'
+                          : 'mr-0 ml-12' // fallback for indent 4
                       }`}
                     >
                       <FontAwesomeIcon
@@ -191,12 +274,14 @@ export const NavbarPrimary = ({ user }: INavBarPrimaryProps) => {
                       <button
                         key={item.label}
                         onClick={item.action}
-                        className={`flex items-center gap-3 w-full text-left pl-8 px-4 mb-4 rounded-full border-2 border-primary bg-white py-2 hover:bg-gray-100 transition ${
+                        className={`flex items-center gap-3 pl-8 px-4 mb-4 rounded-full border-2 border-primary bg-white py-2 hover:bg-gray-100 transition ${
                           item.indent === 1
                             ? 'mr-2 ml-4'
                             : item.indent === 2
                             ? 'mr-8'
-                            : 'mr-0 ml-8'
+                            : item.indent === 3
+                            ? 'mr-10 ml-2'
+                            : 'mr-0 ml-12' // fallback for indent 4
                         }`}
                       >
                         <FontAwesomeIcon
