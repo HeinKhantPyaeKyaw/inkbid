@@ -3,13 +3,6 @@ import { FIREBASE_API_KEY } from '../config/env.js';
 import { admin } from '../config/firebase.js';
 import User from '../schemas/user.schema.js';
 
-import bcrypt from 'bcryptjs';
-
-// export const hash = (input) => {
-//   const salt = bcrypt.genSaltSync(10);
-//   return bcrypt.hashSync(input, salt);
-// };
-
 export const register = async (req, res) => {
   const { email, password, firstName, lastName, role } = req.body;
   console.log(email, password, firstName, lastName, role);
@@ -26,6 +19,8 @@ export const register = async (req, res) => {
     const profile = await User.create({
       firebaseUid: userRecord.uid,
       email: userRecord.email,
+      firstName,
+      lastName,
       name: `${firstName} ${lastName}`.trim(),
       role,
     });
@@ -39,6 +34,8 @@ export const register = async (req, res) => {
         id: profile._id,
         email: profile.email,
         displayName: profile.name,
+        firstName: profile.firstName,
+        lastName: profile.lastName,
         role: profile.role,
         createdAt: profile.createdAt,
       },
@@ -87,7 +84,13 @@ export const login = async (req, res) => {
         id: profile._id,
         email: profile.email,
         name: profile.name,
+        firstName: profile.firstName,
+        lastName: profile.lastName,
         role: profile.role,
+        bio: profile.bio,
+        specialization: profile.specialization,
+        writingStyle: profile.writingStyle,
+        img_url: profile.img_url,
         createdAt: profile.createdAt,
       },
     });
@@ -114,7 +117,13 @@ export const getMe = async (req, res) => {
         id: profile._id,
         email: profile.email,
         name: profile.name,
+        firstName: profile.firstName,
+        lastName: profile.lastName,
         role: profile.role,
+        bio: profile.bio,
+        specialization: profile.specialization,
+        writingStyle: profile.writingStyle,
+        img_url: profile.img_url,
         createdAt: profile.createdAt,
       },
     });
