@@ -1,9 +1,12 @@
 export interface SellerInfo {
   name: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
   specialization: string;
   writingStyle: string;
   bio: string;
-  imageUrl: string;
+  img_url?: string;
 }
 
 export interface SellerProfileCarouselProps {

@@ -37,10 +37,17 @@ export const NavbarPrimary = ({ user, userId }: INavBarPrimaryProps) => {
           {
             label: 'Dashboard',
             icon: faSheetPlastic,
-            href: '/dashboard',
+            href: '/dashboard/buyer-dashboard',
             indent: 1,
           },
           { label: 'Settings', icon: faCog, href: '/settings', indent: 2 },
+          {
+            label: 'Log Out',
+            icon: faRightFromBracket,
+            href: '/logout',
+            action: handleLogout,
+            indent: 3,
+          },
         ]
       : pathname.startsWith('/settings')
       ? [
@@ -53,11 +60,18 @@ export const NavbarPrimary = ({ user, userId }: INavBarPrimaryProps) => {
           {
             label: 'Dashboard',
             icon: faSheetPlastic,
-            href: '/dashboard',
+            href: '/dashboard/buyer-dashboard',
             indent: 2,
           },
+          {
+            label: 'Log Out',
+            icon: faRightFromBracket,
+            href: '/logout',
+            action: handleLogout,
+            indent: 3,
+          },
         ]
-      : pathname.startsWith('/dashboard')
+      : pathname.startsWith('/dashboard/buyer-dashboard')
       ? [
           {
             label: 'Product',
@@ -65,7 +79,14 @@ export const NavbarPrimary = ({ user, userId }: INavBarPrimaryProps) => {
             href: '/content',
             indent: 1,
           },
-          { label: 'Settings', icon: faCog, href: '/settings', indent: 1 },
+          { label: 'Settings', icon: faCog, href: '/settings', indent: 2 },
+          {
+            label: 'Log Out',
+            icon: faRightFromBracket,
+            href: '/logout',
+            action: handleLogout,
+            indent: 3,
+          },
         ]
       : [
           {
@@ -77,10 +98,17 @@ export const NavbarPrimary = ({ user, userId }: INavBarPrimaryProps) => {
           {
             label: 'Dashboard',
             icon: faSheetPlastic,
-            href: '/dashboard',
+            href: '/dashboard/buyer-dashboard',
             indent: 2,
           },
           { label: 'Settings', icon: faCog, href: '/settings', indent: 3 },
+          {
+            label: 'Log Out',
+            icon: faRightFromBracket,
+            href: '/logout',
+            action: handleLogout,
+            indent: 4,
+          },
         ];
 
     return base;

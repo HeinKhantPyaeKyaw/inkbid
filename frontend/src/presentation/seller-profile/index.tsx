@@ -2,6 +2,7 @@
 
 import { useAuth } from '@/context/auth/AuthContext';
 import { getSellerReviews } from '@/hooks/review.api';
+import { getSellerProfileAPI } from '@/hooks/sellerProfile.api';
 import {
   GetReviewsResponse,
   ReviewCardProps,
@@ -27,18 +28,7 @@ const SellerProfile = () => {
   const sellerId = params.id as string;
   console.log('Seller ID: ', sellerId);
 
-  const [
-    sellerInfo,
-    {
-      /*setSellerInfo*/
-    },
-  ] = useState<SellerInfo>({
-    name: 'Arthur Bills',
-    specialization: 'Politics, Macroeconomics, Policy Analysis',
-    writingStyle: 'Academical, Data-driven, Clear and Concise',
-    bio: `I’m a freelance economic analyst and writer with a Ph.D. in Economics from the University of Chicago. Over the past decade, I’ve focused on macroeconomic trends, income inequality, and international trade policy. My work aims to translate complex data into accessible narratives, combining academic rigor with a clear, grounded voice. I’ve written extensively for both policy think tanks and business publications, with bylines in Bloomberg Economics and MarketWatch. I specialize in data-driven essays and long-form commentary on fiscal policy, labor markets, and global trade dynamics.`,
-    imageUrl: '/images/images.jpeg',
-  });
+  const [sellerInfo, setSellerInfo] = useState<SellerInfo | null>(null);
   const [
     carouselData,
     {
@@ -51,6 +41,22 @@ const SellerProfile = () => {
   const [totalReviews, setTotalReviews] = useState<number>(0);
 
   // TODO: To implement to load data from backend for Carousel Data with useEffect
+  useEffect(() => {
+    if (!sellerId) return;
+
+    const fetchSellerProfile = async () => {
+      try {
+        const sellerProfile = await getSellerProfileAPI(sellerId);
+        console.log('Seller Profile: ', sellerProfile);
+
+        setSellerInfo(sellerProfile);
+      } catch (error) {
+        console.error('Failed to fetch seller profile: ', error);
+      }
+    };
+    fetchSellerProfile();
+  }, [sellerId]);
+
   useEffect(() => {
     if (!sellerId) return;
 
@@ -76,29 +82,34 @@ const SellerProfile = () => {
       <section>
         <div className="flex items-start">
           <Image
-            src={sellerInfo.imageUrl}
+            src={sellerInfo?.img_url || '/images/images.jpeg'}
             width={250}
             height={300}
             alt="Dummy Seller Profile"
           />
           <div className="py-3 px-4 text-white">
             <div className="">
-              <h2 className="font-Forum text-[40px]">{sellerInfo.name}</h2>
+              <h2 className="font-Forum text-[40px]">{sellerInfo?.name}</h2>
               {/* TODO: To add Ratings according to the mean of all ratings */}
             </div>
             <p className="font-Montserrat text-[16px]">
               <em>
                 <b>Specialization: </b>
               </em>
-              {sellerInfo.specialization}
+              {sellerInfo?.specialization || 'Not provided yet.'}
             </p>
             <p className="font-Montserrat text-[16px]">
               <em>
                 <b>Writing Style: </b>
               </em>
-              {sellerInfo.writingStyle}
+              {sellerInfo?.writingStyle || 'Not provided yet.'}
             </p>
-            <p className="font-Montserrat text-[16px]">{sellerInfo.bio}</p>
+            <p className="font-Montserrat text-[16px]">
+              <em>
+                <b>Bio: </b>
+              </em>
+              {sellerInfo?.bio || 'This seller has not added a bio yet.'}
+            </p>
           </div>
         </div>
       </section>

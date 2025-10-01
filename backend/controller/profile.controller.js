@@ -1,20 +1,32 @@
-import User from '../schemas/user.schema';
+import User from '../schemas/user.schema.js';
+import { uploadProfilePicture } from '../services/firebaseupload.js';
 
 // Update User Info
 export const updateProfile = async (req, res) => {
   try {
     const userId = req.user._id;
-    const { bio, specialization, writingStyle, img_url } = req.body;
+    const { bio, specialization, writingStyle } = req.body;
+
+    let imageUrl = null;
+
+    if (req.file) {
+      imageUrl = await uploadProfilePicture(req.file);
+    }
+
+    const updateFields = {
+      bio,
+      specialization,
+      writingStyle,
+    };
+
+    if (imageUrl) {
+      updateFields.img_url = imageUrl;
+    }
 
     const updatedUser = await User.findByIdAndUpdate(
       userId,
       {
-        $set: {
-          bio,
-          specialization,
-          writingStyle,
-          img_url,
-        },
+        $set: updateFields,
       },
       { new: true },
     );
@@ -39,7 +51,7 @@ export const getProfileInfo = async (req, res) => {
     const userId = req.params.id;
 
     const user = await User.findById(userId).select(
-      'name firstName lastName email role bio specialization writingStyle img_url rating',
+      'name firstName lastName email role bio specialization writingStyle img_url rating createdAt',
     );
 
     if (!user) {
