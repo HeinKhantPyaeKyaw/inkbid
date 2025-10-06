@@ -3,13 +3,6 @@ import { FIREBASE_API_KEY } from '../config/env.js';
 import { admin } from '../config/firebase.js';
 import User from '../schemas/user.schema.js';
 
-import bcrypt from 'bcryptjs';
-
-// export const hash = (input) => {
-//   const salt = bcrypt.genSaltSync(10);
-//   return bcrypt.hashSync(input, salt);
-// };
-
 export const register = async (req, res) => {
   const { email, password, firstName, lastName, role } = req.body;
   console.log(email, password, firstName, lastName, role);

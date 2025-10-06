@@ -1,8 +1,8 @@
 import mongoose from 'mongoose';
 import Article from '../schemas/article.schema.js';
 import Bid from '../schemas/bids.schema.js';
-import User from '../schemas/user.schema.js';
 import { uploadFileToFirebase } from '../services/firebaseupload.js';
+import { auctionQueue } from '../jobs/auction.queue.js';
 function normalizeArticle(article) {
   return {
     ...article,
@@ -139,9 +139,16 @@ export const createArticle = async (req, res) => {
     // Save article to MongoDB
     await newArticle.save();
 
-    // Respond with success + saved article
+    // Add job to finalize when auction ends
+    const delayMs = newArticle.ends_in.getTime() - Date.now();
+    await auctionQueue.add(
+      "finalize-auction",
+      { articleId: newArticle._id },
+      { delay: delayMs } // job runs automatically when auction ends
+    );
+
     res.status(201).json({
-      message: 'Article created successfully',
+      message: "Article created successfully",
       article: newArticle,
     });
   } catch (err) {
@@ -195,5 +202,41 @@ export const buyNow = async (req, res) => {
     console.error("Error in buyNow:", err);
     return res.status(500).json({ success: false, message: "Server error" });
   }
+};
+
+export const finalizeAuction = async (articleId) => {
+  const now = new Date();
+  const article = await Article.findById(articleId);
+  if (!article) return;
+
+  // already finalized / not in progress
+  if (article.status && article.status !== "in_progress") return;
+
+  // not yet expired
+  if (now < new Date(article.ends_in)) return;
+
+  // pick highest bid
+  const bidDoc = await Bid.findOne({ refId: article._id }).lean();
+  let highest = null;
+
+  if (bidDoc?.bids?.length) {
+    highest = [...bidDoc.bids].sort(
+      (a, b) => Number(b.amount) - Number(a.amount)
+    )[0];
+  }
+
+  if (highest) {
+    article.winner = highest.ref_user; // ObjectId of buyer
+    article.status = "awaiting_contract";
+    article.highest_bid = highest.amount;
+  } else {
+    article.status = "cancelled"; // or "expired_without_bids"
+  }
+
+  await article.save();
+
+  // optional: notify clients
+  // import { io } from "../server.js";
+  // io.emit("auctionFinalized", { articleId, status: article.status, winner: article.winner });
 };
 
