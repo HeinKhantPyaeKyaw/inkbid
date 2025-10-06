@@ -1,8 +1,9 @@
-import mongoose from 'mongoose';
-import Article from '../schemas/article.schema.js';
-import Bid from '../schemas/bids.schema.js';
-import { uploadFileToFirebase } from '../services/firebaseupload.js';
-import { auctionQueue } from '../jobs/auction.queue.js';
+import mongoose from "mongoose";
+import Article from "../schemas/article.schema.js";
+import Bid from "../schemas/bids.schema.js";
+import { uploadFileToFirebase } from "../services/firebaseupload.js";
+import { scheduleOrRescheduleFinalize } from "../jobs/scheduleFinalize.js";
+
 function normalizeArticle(article) {
   return {
     ...article,
@@ -22,10 +23,8 @@ function normalizeBid(bid) {
 export const getAllArticlesWithBids = async (req, res) => {
   try {
     const articles = await Article.find({
-      $and: [
-        { winner: { $exists: false } }, // no winner
-        { status: { $ne: "awaiting_contract" } }, // not awaiting contract
-      ],
+      status: "in_progress",
+      $or: [{ winner: { $exists: false } }, { winner: null }],
     })
       .populate("author", "name img_url rating") // ✅ get author info
       .lean();
@@ -57,21 +56,20 @@ export const getAllArticlesWithBids = async (req, res) => {
   }
 };
 
-
 export const getArticleWithBids = async (req, res) => {
   try {
     const { id } = req.params;
 
     const article = await Article.findById(id)
-      .populate('author', 'name img_url rating') // ✅ populate seller info
+      .populate("author", "name img_url rating") // ✅ populate seller info
       .lean();
 
     if (!article) {
-      return res.status(404).json({ error: 'Article not found' });
+      return res.status(404).json({ error: "Article not found" });
     }
 
     const bids = await Bid.findOne({ refId: article._id })
-      .populate('bids.ref_user', 'name email role')
+      .populate("bids.ref_user", "name email role")
       .lean();
 
     const topBids = bids
@@ -86,8 +84,8 @@ export const getArticleWithBids = async (req, res) => {
       bids: topBids,
     });
   } catch (err) {
-    console.error('Error fetching article with bids:', err);
-    res.status(500).json({ error: 'Server error' });
+    console.error("Error fetching article with bids:", err);
+    res.status(500).json({ error: "Server error" });
   }
 };
 
@@ -99,13 +97,13 @@ export const createArticle = async (req, res) => {
 
     // Validate the required fields
     if (!title || !synopsis || !category || !duration || !minimumBid) {
-      return res.status(400).json({ error: 'Missing required field.' });
+      return res.status(400).json({ error: "Missing required field." });
     }
 
     // Compute deadline
     const now = new Date();
     const deadline = new Date(
-      now.getTime() + Number(duration) * 24 * 60 * 60 * 1000,
+      now.getTime() + Number(duration) * 24 * 60 * 60 * 1000
     );
 
     // G real author ID from auth middleware
@@ -115,8 +113,8 @@ export const createArticle = async (req, res) => {
     const imageFile = req.files?.image ? req.files.image[0] : null;
     const articleFile = req.files?.article ? req.files.article[0] : null;
 
-    const imageUrl = await uploadFileToFirebase(imageFile, 'articles/imgs');
-    const articleUrl = await uploadFileToFirebase(articleFile, 'articles/pdfs');
+    const imageUrl = await uploadFileToFirebase(imageFile, "articles/imgs");
+    const articleUrl = await uploadFileToFirebase(articleFile, "articles/pdfs");
 
     // Create a new article object
     const newArticle = new Article({
@@ -126,7 +124,7 @@ export const createArticle = async (req, res) => {
       author: authorID,
       duration: mongoose.Types.Decimal128.fromString(duration.toString()),
       min_bid: mongoose.Types.Decimal128.fromString(minimumBid.toString()),
-      highest_bid: mongoose.Types.Decimal128.fromString('0.0'),
+      highest_bid: mongoose.Types.Decimal128.fromString("0.0"),
       ends_in: deadline,
       buy_now: buynowPrice
         ? mongoose.Types.Decimal128.fromString(buynowPrice.toString())
@@ -139,21 +137,16 @@ export const createArticle = async (req, res) => {
     // Save article to MongoDB
     await newArticle.save();
 
-    // Add job to finalize when auction ends
-    const delayMs = newArticle.ends_in.getTime() - Date.now();
-    await auctionQueue.add(
-      "finalize-auction",
-      { articleId: newArticle._id },
-      { delay: delayMs } // job runs automatically when auction ends
-    );
+    // Enqueue or re-enqueue the finalize job right away
+    await scheduleOrRescheduleFinalize(newArticle);
 
     res.status(201).json({
       message: "Article created successfully",
       article: newArticle,
     });
   } catch (err) {
-    console.error('Error creating article:', err);
-    res.status(500).json({ error: 'Server Error' });
+    console.error("Error creating article:", err);
+    res.status(500).json({ error: "Server Error" });
   }
 };
 
@@ -239,4 +232,3 @@ export const finalizeAuction = async (articleId) => {
   // import { io } from "../server.js";
   // io.emit("auctionFinalized", { articleId, status: article.status, winner: article.winner });
 };
-

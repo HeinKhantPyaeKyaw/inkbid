@@ -1,5 +1,5 @@
 // jobs/scheduleFinalize.js
-import { auctionQueue, finalizeJobId } from "../config/bullmq.js";
+import { auctionQueue, finalizeJobId } from "./bullmq.js";
 
 export const scheduleOrRescheduleFinalize = async (article) => {
   const articleId = article._id.toString();
