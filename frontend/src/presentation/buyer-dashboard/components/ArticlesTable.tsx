@@ -1,7 +1,14 @@
 'use client';
-import { ArticleTableItems } from '@/interfaces/buyer-dashboard-interface/buyer-dashboard-types';
-import { ArticleTableStatus } from '@/interfaces/buyer-dashboard-interface/status-types';
-import { useMemo, useState } from 'react';
+import { useBuyerDashboardAPI } from '@/hooks/buyer-dashboard-hooks/buyer-dashboard.api';
+import {
+  ArticleTableItems,
+  InventoryTableItems,
+} from '@/interfaces/buyer-dashboard-interface/buyer-dashboard-types';
+import {
+  ArticleTableStatus,
+  InventoryTableStatus,
+} from '@/interfaces/buyer-dashboard-interface/status-types';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { SlOptions } from 'react-icons/sl';
 import Pagination from './Pagination';
 
@@ -16,49 +23,127 @@ const TableHead = [
 
 interface ArticleTableProps {
   data: ArticleTableItems[]; // * Array of Items to map for Articles Table Data
+  setArticlesTableData: React.Dispatch<
+    React.SetStateAction<ArticleTableItems[]>
+  >;
+  setInventoryTableData: React.Dispatch<
+    React.SetStateAction<InventoryTableItems[]>
+  >;
 }
 
-const ArticleTable = ({ data }: ArticleTableProps) => {
+const ArticleTable = ({
+  data,
+  setArticlesTableData,
+  setInventoryTableData,
+}: ArticleTableProps) => {
   const [rowsLimit] = useState(5);
-  const [rowsToShow, setRowsToShow] = useState(data.slice(0, rowsLimit));
-  const [customPagination, setCustomPagination] = useState<(number | null)[]>(
-    [],
-  ); // ? To fix when fix useMemo
-  const [totalPages] = useState(Math.ceil(data?.length / rowsLimit));
   const [currentPage, setCurrentPage] = useState(0);
 
-  const nextPage = () => {
-    const startIndex = rowsLimit * (currentPage + 1);
-    const endIndex = startIndex + rowsLimit;
-    const newArray = data.slice(startIndex, endIndex);
-    setRowsToShow(newArray);
-    setCurrentPage(currentPage + 1);
-  };
+  // For ActionButton Dropdown
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
-  const changePage = (value: number) => {
-    const startIndex = value * rowsLimit;
-    const endIndex = startIndex + rowsLimit;
-    const newArray = data.slice(startIndex, endIndex);
-    setRowsToShow(newArray);
-    setCurrentPage(value);
-  };
+  const [loadingAction, setLoadingAction] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const previousPage = () => {
-    const startIndex = (currentPage - 1) * rowsLimit;
-    const endIndex = startIndex + rowsLimit;
-    const newArray = data.slice(startIndex, endIndex);
-    setRowsToShow(newArray);
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-    } else {
-      setCurrentPage(0);
+  const { signContractAPI, proceedPaymentAPI } = useBuyerDashboardAPI();
+
+  const rowsToShow = useMemo(() => {
+    const startIndex = currentPage * rowsLimit;
+    return data.slice(startIndex, startIndex + rowsLimit);
+  }, [data, currentPage, rowsLimit]);
+
+  const totalPages = Math.ceil(data.length / rowsLimit);
+
+  // To handle closing dropdown wherever click
+  const dropdownRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        openDropdown !== null &&
+        dropdownRefs.current[openDropdown] &&
+        !dropdownRefs.current[openDropdown]?.contains(event.target as Node)
+      ) {
+        setOpenDropdown(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [openDropdown]);
+
+  // Action Button{Sign Contract & Proceed with payment}
+  const handleSignContract = async (id: string) => {
+    setLoadingAction(id);
+    setError(null);
+    try {
+      await signContractAPI(id);
+      setArticlesTableData((prev) =>
+        prev.map((article) =>
+          article.id === id
+            ? { ...article, bidStatus: ArticleTableStatus.PENDING }
+            : article,
+        ),
+      );
+    } catch (err) {
+      console.error('Failed to sign contract', err);
+      setError('Failed to sign contract. Please try again.');
+    } finally {
+      setLoadingAction(null);
+      setOpenDropdown(null);
     }
   };
 
-  // FIXME: I'm not sure to use useMemo or useEffect
-  useMemo(() => {
-    setCustomPagination(Array(Math.ceil(data.length / rowsLimit)).fill(null));
-  }, []);
+  const handleProceedPayment = async (id: string) => {
+    setLoadingAction(id);
+    setError(null);
+    try {
+      const res = await proceedPaymentAPI(id);
+
+      const newItem = res.inventory;
+      console.log('New inventory from backend: ', newItem);
+
+      setArticlesTableData((prev) =>
+        prev.filter((article) => article.id !== id),
+      );
+      setInventoryTableData((prev) => [
+        ...prev,
+        {
+          id: String(newItem._id),
+          title: String(newItem.article.title ?? 'Untitled'),
+          purchasedDate: new Date(newItem.purchasedDate).toLocaleDateString(),
+          contractPeriod: String(newItem.contractPeriod ?? '30 Days'),
+          contractStatus: String(
+            newItem.contractStatus
+              ? newItem.contractStatus.charAt(0).toUpperCase() +
+                  newItem.contractStatus.slice(1).toLowerCase()
+              : 'Active',
+          ),
+        },
+      ]);
+    } catch (err) {
+      console.error('Failed to process payment', err);
+      setError('Payment failed. Please try again');
+    } finally {
+      setLoadingAction(null);
+      setOpenDropdown(null);
+    }
+  };
+
+  // Pagination to change page in the tables
+  const nextPage = () => {
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages - 1));
+  };
+
+  const changePage = (value: number) => {
+    if (value >= 0 && value < totalPages) {
+      setCurrentPage(value);
+    }
+  };
+
+  const previousPage = () => {
+    setCurrentPage((prev) => Math.max(prev - 1, 0));
+  };
 
   function getStatusDecoraton(status: string) {
     switch (status) {
@@ -75,6 +160,76 @@ const ArticleTable = ({ data }: ArticleTableProps) => {
     }
   }
 
+  // For Action Buttons Rendering
+  function renderActionButton(item: ArticleTableItems) {
+    const isLoading = loadingAction === item.id;
+    switch (item.bidStatus) {
+      case ArticleTableStatus.WON:
+        return (
+          <div
+            className="relative"
+            ref={(el) => {
+              dropdownRefs.current[item.id] = el;
+            }}
+          >
+            <button
+              onClick={() =>
+                setOpenDropdown(openDropdown === item.id ? null : item.id)
+              }
+              className="cursor-pointer "
+              disabled={isLoading} // ? Might fix later
+            >
+              <SlOptions />
+            </button>
+            {openDropdown === item.id && (
+              <div className="absolute top-8 -right-3 w-48 rounded-lg z-50">
+                <button
+                  className="whitespace-nowrap px-8 py-2 rounded-[8px] text-lg text-primary font-Montserrat font-bold border-2 border-[#B9B9B9] bg-[#ffffff] hover:bg-gray-100 active:scale-95 cursor-pointer transition"
+                  onClick={() => handleSignContract(item.id)}
+                  aria-label={`Sign contract for article ${item.title}`}
+                >
+                  Sign Contract
+                </button>
+              </div>
+            )}
+          </div>
+        );
+      case ArticleTableStatus.PENDING:
+        return (
+          <div
+            className="relative"
+            ref={(el) => {
+              dropdownRefs.current[item.id] = el;
+            }}
+          >
+            <button
+              onClick={() =>
+                setOpenDropdown(openDropdown === item.id ? null : item.id)
+              }
+              className="cursor-pointer"
+            >
+              <SlOptions />
+            </button>
+            {openDropdown === item.id && (
+              <div className="absolute top-8 right-16 w-48 rounded-lg z-50">
+                <button
+                  className="whitespace-nowrap px-8 py-2 rounded-[8px] text-lg text-primary font-Montserrat font-bold border-2 border-[#B9B9B9] bg-[#ffffff] hover:bg-gray-100 active:scale-95 cursor-pointer transition"
+                  onClick={() => handleProceedPayment(item.id)}
+                  aria-label={`Proceed with payment for article ${item.title}`}
+                >
+                  Proceed with Payment
+                </button>
+              </div>
+            )}
+          </div>
+        );
+      case ArticleTableStatus.INPROGRESS:
+      case ArticleTableStatus.LOST:
+      default:
+        return <span className="text-gray-400"></span>;
+    }
+  }
+
   return (
     <div className="w-full bg-white mt-4 rounded-2xl pb-4">
       <div className="px-5 py-3">
@@ -82,8 +237,10 @@ const ArticleTable = ({ data }: ArticleTableProps) => {
         <p className="font-Montserrat text-lg text-primary-font">
           Keep track of recent biddings and other information.
         </p>
+        {/* Show error messgage if exists */}
+        {error && <p className="text-red-500 mt-2">{error}</p>}
       </div>
-      <table className="table-auto w-full">
+      <table className="table-auto w-full focus-within:shadow-md transition-shadow">
         <thead>
           <tr className="bg-tertiary">
             {TableHead.map((head) => (
@@ -110,7 +267,9 @@ const ArticleTable = ({ data }: ArticleTableProps) => {
                 <td className="px-8 py-1.5 min-w-[220px] text-2xl font-medium">
                   ฿ {item.currentBid}
                 </td>
-                <td className="px-8 py-1.5">{item.timeRemaining}</td>
+                <td className="px-8 py-1.5 text-xl font-bold">
+                  {item.timeRemaining}
+                </td>
                 <td className="text-center">
                   <p className={getStatusDecoraton(item.bidStatus)}>
                     {item.bidStatus}
@@ -118,9 +277,7 @@ const ArticleTable = ({ data }: ArticleTableProps) => {
                 </td>
                 <td className="m-auto text-5xl text-[#5c5c5c]">
                   <div className="flex justify-center items-center">
-                    <button onClick={() => console.log('Clicked!')}>
-                      <SlOptions />
-                    </button>
+                    {renderActionButton(item)}
                   </div>
                 </td>
               </tr>

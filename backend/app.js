@@ -8,6 +8,8 @@ import bidsRouter from './routes/bid.routes.js';
 import userRouter from './routes/user.routes.js';
 import reviewRouter from './routes/reviews.routes.js';
 import sellerProfileRouter from './routes/seller-profile.routes.js';
+import buyerRouter from './routes/buyer.routes.js';
+
 const app = express();
 app.use(
   cors({
@@ -25,6 +27,7 @@ app.use('/api/v1/', articleRouter);
 app.use('/api/v1/', bidsRouter);
 app.use('/api/v1/reviews', reviewRouter);
 app.use('/api/v1/seller-profile', sellerProfileRouter);
+app.use('/api/v1/buyer', buyerRouter);
 app.use(errorMiddleware);
 
 export default app;
