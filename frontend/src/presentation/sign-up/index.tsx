@@ -1,8 +1,8 @@
 'use client';
+import { useAuth } from '@/context/auth/AuthContext';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '@/context/auth/AuthContext';
+import React, { useEffect, useState } from 'react';
 
 export default function SignUpPage() {
   const [role, setRole] = useState<string | null>(null);
@@ -68,7 +68,7 @@ export default function SignUpPage() {
   useEffect(() => {
     if (!user) return;
     if (user.role === 'seller') {
-      router.push('/create-post');
+      router.push(`/profile/seller/${user.id}`);
     } else {
       router.push('/content-listing');
     }

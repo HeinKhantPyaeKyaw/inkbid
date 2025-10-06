@@ -8,6 +8,20 @@ const userSchema = new mongoose.Schema(
       unique: true,
       index: true,
     },
+    firstName: {
+      type: String,
+      required: true,
+      trim: true,
+      minLength: 2,
+      maxLength: 50,
+    },
+    lastName: {
+      type: String,
+      required: true,
+      trim: true,
+      minLength: 2,
+      maxLength: 50,
+    },
     name: {
       type: String,
       required: true,
@@ -30,6 +44,9 @@ const userSchema = new mongoose.Schema(
     },
     rating: { type: Number, min: 0, max: 5, default: 0 }, // from $numberDouble
     img_url: { type: String, required: false, trim: true },
+    specialization: { type: String, required: false, trim: true, default: '' },
+    writingStyle: { type: String, required: false, trim: true, default: '' },
+    bio: { type: String, required: false, trim: true, default: '' },
   },
   { timestamps: true },
 );
