@@ -75,15 +75,16 @@ export const ContentDetail = () => {
   const countdown = useCountdown(articleDetail?.ends_in || '');
   const parseCountdown = (countdownStr: string) => {
     if (countdownStr === "Expired")
-      return { days: "00", hours: "00", mins: "00" };
+      return { days: "00", hours: "00", mins: "00", secs: "00" };
     const parts = countdownStr.split(" ");
     return {
       days: parts[0] || "00",
       hours: parts[2] || "00",
       mins: parts[4] || "00",
+      secs: parts[6] || "00",
     };
   };
-  const { days, hours, mins } = parseCountdown(countdown);
+  const { days, hours, mins, secs } = parseCountdown(countdown);
 
   // PLACE BID
   const handlePlaceBid = async () => {
@@ -343,6 +344,15 @@ export const ContentDetail = () => {
                     </div>
                     <div className="text-sm text-gray-600 font-Montserrat">
                       Mins
+                    </div>
+                  </div>
+                  <div className="text-2xl font-bold text-gray-400">:</div>
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-primary font-Forum">
+                      {secs}
+                    </div>
+                    <div className="text-sm text-gray-600 font-Montserrat">
+                      Secs
                     </div>
                   </div>
                 </div>
