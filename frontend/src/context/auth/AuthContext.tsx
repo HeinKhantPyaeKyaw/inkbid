@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
 import {
   AuthContextType,
   UserProfile,
-} from '@/interfaces/auth-interface/auth-types';
-import axios, { AxiosError } from 'axios';
-import React, { createContext, useContext, useEffect, useState } from 'react';
+} from "@/interfaces/auth-interface/auth-types";
+import axios, { AxiosError } from "axios";
+import React, { createContext, useContext, useEffect, useState } from "react";
 
-const API_URL = 'http://localhost:5500/api/v1/auth';
+const API_URL = "http://localhost:5500/api/v1/auth";
 
 // empty by default
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -26,6 +26,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         const res = await axios.get(`${API_URL}/me`, {
           withCredentials: true,
         }); // This route to remember logged in use even though refresh the page
+        console.log(res);
         setUser(res.data.user); // In this step, backend should send {user: {}}
       } catch (err) {
         setUser(null);
@@ -42,17 +43,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       const res = await axios.post(
         `${API_URL}/login`,
         { email, password },
-        { withCredentials: true },
+        { withCredentials: true }
       );
 
-      console.log('Login response:', res.data);
+      console.log("Login response:", res.data);
 
       setUser(res.data.profile);
     } catch (error: Error | unknown) {
       const axiosError = error as AxiosError;
       console.error(
-        'Login Failed:',
-        axiosError.response?.data || axiosError.message,
+        "Login Failed:",
+        axiosError.response?.data || axiosError.message
       );
       throw error;
     }
@@ -74,7 +75,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 export const useAuth = () => {
   const ctx = useContext(AuthContext);
   if (!ctx) {
-    throw new Error('useAuth msut be used within AuthProvider');
+    throw new Error("useAuth msut be used within AuthProvider");
   }
   return ctx;
 };

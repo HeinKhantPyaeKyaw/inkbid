@@ -12,6 +12,7 @@ import bcrypt from "bcryptjs";
 
 export const register = async (req, res) => {
   const { email, password, firstName, lastName, role } = req.body;
+  console.log(email, password, firstName, lastName, role);
 
   try {
     const userRecord = await admin.auth().createUser({
@@ -96,41 +97,6 @@ export const login = async (req, res) => {
   }
 };
 
-// Check current logged-in user
-export const getMe = async (req, res) => {
-  try {
-    // token was already verified in middleware
-    const uid = req.user._id;
-
-    const profile = await User.findOne({ _id: uid });
-
-    if (!profile) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    console.log(profile);
-
-    res.json({
-      user: {
-        uid,
-        id: profile._id,
-        email: profile.email,
-        name: profile.name,
-        role: profile.role,
-        organization: profile.organization,
-        paypalEmail: profile.paypalEmail,
-        bio: profile.bio,
-        specialization: profile.specialization,
-        writingStyle: profile.writingStyle,
-        createdAt: profile.createdAt,
-        profileImage: profile.img_url,
-      },
-    });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
 export const logout = (req, res) => {
   res.clearCookie("token", {
     httpOnly: true,
@@ -138,37 +104,4 @@ export const logout = (req, res) => {
     sameSite: "Strict",
   });
   res.json({ message: "Logged out successfully" });
-};
-
-export const updatePassword = async (req, res) => {
-  const { newPassword } = req.body;
-  const uid = req.user.firebaseUid;
-  try {
-    // Get user by UID to retrieve email
-    const userRecord = await admin.auth().getUser(uid);
-    const email = userRecord.email;
-    if (!email) {
-      return res.status(404).json({ message: "User email not found" });
-    }
-
-    // Update new password using Firebase Auth REST API
-    const url = `https://identitytoolkit.googleapis.com/v1/accounts:update?key=${FIREBASE_API_KEY}`;
-    await axios.post(url, {
-      idToken: req.cookies.token, // Current ID token from cookie
-      password: newPassword,
-      returnSecureToken: false,
-    });
-
-    // Update password using Firebase Admin SDK
-    await admin.auth().updateUser(uid, { password: newPassword });
-    res.clearCookie("token", {
-      httpOnly: true,
-      secure: true,
-      sameSite: "Strict",
-    });
-    res.json({ message: "Password updated successfully" });
-  } catch (error) {
-    console.error("Error updating password:", error);
-    res.status(500).json({ message: error.message });
-  }
 };

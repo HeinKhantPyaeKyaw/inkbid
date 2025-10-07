@@ -1,26 +1,30 @@
-import cookieParser from 'cookie-parser';
-import cors from 'cors';
-import express from 'express';
-import errorMiddleware from './middlewares/error.middleware.js';
-import articleRouter from './routes/article.routes.js';
-import authRouter from './routes/auth.routes.js';
-import bidsRouter from './routes/bid.routes.js';
-import userRouter from './routes/user.routes.js';
+import cookieParser from "cookie-parser";
+import cors from "cors";
+import express from "express";
+import errorMiddleware from "./middlewares/error.middleware.js";
+import articleRouter from "./routes/article.routes.js";
+import authRouter from "./routes/auth.routes.js";
+import bidsRouter from "./routes/bid.routes.js";
+import userRouter from "./routes/user.routes.js";
+import sellerProfileRouter from "./routes/seller-profile.routes.js";
+import portfolioRouter from "./routes/portfolio.routes.js";
 const app = express();
 app.use(
   cors({
-    origin: 'http://localhost:3000',
+    origin: "http://localhost:3000",
     credentials: true,
-  }),
+  })
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
-app.use('/api/v1/auth', authRouter);
-app.use('/api/v1/users', userRouter);
-app.use('/api/v1/', articleRouter);
-app.use('/api/v1/', bidsRouter);
+app.use("/api/v1/auth", authRouter);
+app.use("/api/v1/users", userRouter);
+app.use("/api/v1/", articleRouter);
+app.use("/api/v1/", bidsRouter);
+app.use("/api/v1/seller-profile", sellerProfileRouter);
+app.use("/api/v1/", portfolioRouter);
 app.use(errorMiddleware);
 
 export default app;

@@ -1,5 +1,5 @@
-'use client';
-import { useAuth } from '@/context/auth/AuthContext';
+"use client";
+import { useAuth } from "@/context/auth/AuthContext";
 import {
   faBell,
   faChartLine,
@@ -8,14 +8,17 @@ import {
   faScroll,
   faSheetPlastic,
   faUser,
-} from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { useState } from 'react';
-import { INavBarPrimaryProps } from '../../../interfaces/account/account.interface';
+} from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
+import { INavBarPrimaryProps } from "../../../interfaces/account/account.interface";
 
-export const NavbarPrimary = ({ user }: INavBarPrimaryProps) => {
+export const NavbarPrimary = ({
+  user,
+  showNotification = true,
+}: INavBarPrimaryProps) => {
   //---------------------
   //   CONST
   //---------------------
@@ -28,111 +31,125 @@ export const NavbarPrimary = ({ user }: INavBarPrimaryProps) => {
 
   const handleLogout = async () => {
     await logout();
-    router.push('/');
+    router.push("/");
   };
 
   const dropdownItemsBuyer = (() => {
-    const base = pathname.startsWith('/content')
+    const base = pathname.startsWith("/content")
       ? [
           {
-            label: 'Dashboard',
+            label: "Dashboard",
             icon: faSheetPlastic,
-            href: '/dashboard',
+            href: "/dashboard",
             indent: 1,
           },
-          { label: 'Settings', icon: faCog, href: '/settings', indent: 2 },
+          { label: "Settings", icon: faCog, href: "/settings", indent: 2 },
         ]
-      : pathname.startsWith('/settings')
+      : pathname.startsWith("/settings")
       ? [
           {
-            label: 'Products',
+            label: "Products",
             icon: faScroll,
-            href: '/content',
+            href: "/content",
             indent: 1,
           },
           {
-            label: 'Dashboard',
+            label: "Dashboard",
             icon: faSheetPlastic,
-            href: '/dashboard',
+            href: "/dashboard",
+            indent: 2,
+          },
+          {
+            label: "Log Out",
+            icon: faRightFromBracket,
+            href: "/logout",
+            action: handleLogout,
             indent: 2,
           },
         ]
-      : pathname.startsWith('/dashboard')
+      : pathname.startsWith("/dashboard")
       ? [
           {
-            label: 'Product',
+            label: "Product",
             icon: faScroll,
-            href: '/content',
+            href: "/content",
             indent: 1,
           },
-          { label: 'Settings', icon: faCog, href: '/settings', indent: 1 },
+          { label: "Settings", icon: faCog, href: "/settings", indent: 1 },
         ]
       : [
           {
-            label: 'Product',
+            label: "Product",
             icon: faScroll,
-            href: '/content',
+            href: "/content",
             indent: 1,
           },
           {
-            label: 'Dashboard',
+            label: "Dashboard",
             icon: faSheetPlastic,
-            href: '/dashboard',
+            href: "/dashboard",
             indent: 2,
           },
-          { label: 'Settings', icon: faCog, href: '/settings', indent: 3 },
+          { label: "Settings", icon: faCog, href: "/settings", indent: 3 },
+          {
+            label: "Log Out",
+            icon: faRightFromBracket,
+            href: "/logout",
+            action: handleLogout,
+            indent: 2,
+          },
         ];
 
     return base;
   })();
 
   const dropdownItemsSeller = (() => {
-    const base = pathname.startsWith('/dashboard')
+    const base = pathname.startsWith("/dashboard")
       ? [
           {
-            label: 'Profile',
+            label: "Profile",
             icon: faUser,
-            href: '/profile',
+            href: "/profile",
             indent: 1,
           },
-          { label: 'Settings', icon: faCog, href: '/settings', indent: 2 },
+          { label: "Settings", icon: faCog, href: "/settings", indent: 2 },
         ]
-      : pathname.startsWith('/settings')
+      : pathname.startsWith("/settings")
       ? [
           {
-            label: 'Profile',
+            label: "Profile",
             icon: faUser,
-            href: '/profile',
+            href: "/profile",
             indent: 1,
           },
           {
-            label: 'Dashboard',
+            label: "Dashboard",
             icon: faChartLine,
-            href: '/dashboard',
+            href: "/dashboard",
             indent: 2,
           },
         ]
-      : pathname.startsWith('/profile')
+      : pathname.startsWith("/profile")
       ? [
           {
-            label: 'Dashboard',
+            label: "Dashboard",
             icon: faChartLine,
-            href: '/dashboard',
+            href: "/dashboard",
             indent: 1,
           },
-          { label: 'Settings', icon: faCog, href: '/settings', indent: 2 },
+          { label: "Settings", icon: faCog, href: "/settings", indent: 2 },
         ]
       : [
           {
-            label: 'Dashboard',
+            label: "Dashboard",
             icon: faChartLine,
-            href: '/dashboard',
+            href: "/dashboard",
             indent: 1,
           },
           {
-            label: 'Log Out',
+            label: "Log Out",
             icon: faRightFromBracket,
-            href: '/logout',
+            href: "/logout",
             action: handleLogout,
             indent: 2,
           },
@@ -152,10 +169,16 @@ export const NavbarPrimary = ({ user }: INavBarPrimaryProps) => {
       <div className="text-[64px] tracking-wide font-Forum text-accent">
         INKBID
       </div>
+
       <div className="flex items-center gap-8">
-        <button>
-          <FontAwesomeIcon icon={faBell} className="text-accent text-[32px]" />
-        </button>
+        {showNotification && (
+          <button>
+            <FontAwesomeIcon
+              icon={faBell}
+              className="text-accent text-[32px]"
+            />
+          </button>
+        )}
         <div className="relative">
           <button onClick={() => setShowDropdown((prev) => !prev)}>
             <FontAwesomeIcon
@@ -166,37 +189,18 @@ export const NavbarPrimary = ({ user }: INavBarPrimaryProps) => {
 
           {showDropdown && (
             <div className="absolute right-0 mt-3 w-48 rounded-lg z-50 py-2">
-              {user === 'buyer'
-                ? dropdownItemsBuyer.map((item) => (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className={`flex items-center gap-3 pl-8 px-4 mb-4 rounded-full border-2 border-primary bg-white py-2 hover:bg-gray-100 transition ${
-                        item.indent === 1
-                          ? 'mr-2 ml-4'
-                          : item.indent === 2
-                          ? 'mr-8'
-                          : 'mr-0 ml-8'
-                      }`}
-                    >
-                      <FontAwesomeIcon
-                        icon={item.icon}
-                        className="text-gray-600"
-                      />
-                      <span className="text-gray-800">{item.label}</span>
-                    </Link>
-                  ))
-                : dropdownItemsSeller.map((item) =>
+              {user === "buyer"
+                ? dropdownItemsBuyer.map((item) =>
                     item.action ? (
                       <button
                         key={item.label}
                         onClick={item.action}
                         className={`flex items-center gap-3 w-full text-left pl-8 px-4 mb-4 rounded-full border-2 border-primary bg-white py-2 hover:bg-gray-100 transition ${
                           item.indent === 1
-                            ? 'mr-2 ml-4'
+                            ? "mr-2 ml-4"
                             : item.indent === 2
-                            ? 'mr-8'
-                            : 'mr-0 ml-8'
+                            ? "mr-8"
+                            : "mr-0 ml-8"
                         }`}
                       >
                         <FontAwesomeIcon
@@ -211,10 +215,10 @@ export const NavbarPrimary = ({ user }: INavBarPrimaryProps) => {
                         href={item.href}
                         className={`flex items-center gap-3 pl-8 px-4 mb-4 rounded-full border-2 border-primary bg-white py-2 hover:bg-gray-100 transition ${
                           item.indent === 1
-                            ? 'mr-2 ml-4'
+                            ? "mr-2 ml-4"
                             : item.indent === 2
-                            ? 'mr-8'
-                            : 'mr-0 ml-8'
+                            ? "mr-8"
+                            : "mr-0 ml-8"
                         }`}
                       >
                         <FontAwesomeIcon
@@ -223,7 +227,46 @@ export const NavbarPrimary = ({ user }: INavBarPrimaryProps) => {
                         />
                         <span className="text-gray-800">{item.label}</span>
                       </Link>
-                    ),
+                    )
+                  )
+                : dropdownItemsSeller.map((item) =>
+                    item.action ? (
+                      <button
+                        key={item.label}
+                        onClick={item.action}
+                        className={`flex items-center gap-3 w-full text-left pl-8 px-4 mb-4 rounded-full border-2 border-primary bg-white py-2 hover:bg-gray-100 transition ${
+                          item.indent === 1
+                            ? "mr-2 ml-4"
+                            : item.indent === 2
+                            ? "mr-8"
+                            : "mr-0 ml-8"
+                        }`}
+                      >
+                        <FontAwesomeIcon
+                          icon={item.icon}
+                          className="text-gray-600"
+                        />
+                        <span className="text-gray-800">{item.label}</span>
+                      </button>
+                    ) : (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        className={`flex items-center gap-3 pl-8 px-4 mb-4 rounded-full border-2 border-primary bg-white py-2 hover:bg-gray-100 transition ${
+                          item.indent === 1
+                            ? "mr-2 ml-4"
+                            : item.indent === 2
+                            ? "mr-8"
+                            : "mr-0 ml-8"
+                        }`}
+                      >
+                        <FontAwesomeIcon
+                          icon={item.icon}
+                          className="text-gray-600"
+                        />
+                        <span className="text-gray-800">{item.label}</span>
+                      </Link>
+                    )
                   )}
             </div>
           )}
