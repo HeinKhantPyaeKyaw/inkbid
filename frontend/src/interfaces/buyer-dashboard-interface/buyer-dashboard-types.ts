@@ -13,6 +13,9 @@ export interface ArticleTableItems {
   currentBid: number;
   timeRemaining: string; // ? DateTime
   bidStatus: ArticleTableStatus | string;
+  author: {
+    name: string;
+  };
 }
 
 export interface InventoryTableItems {
@@ -31,6 +34,13 @@ export interface BuyerDashboardPaginationProps {
   onClickNextPage: () => void;
 }
 
+export interface ContractArticle {
+  _id: string;
+  title: string;
+  highest_bid?: number;
+  author?: { name?: string };
+}
+
 export type RawArticle = {
   _id?: string;
   title?: string;
@@ -38,6 +48,9 @@ export type RawArticle = {
   currentBid?: number;
   timeRemaining?: { $numberDecimal?: string } | number | string;
   status?: string;
+  author: {
+    name: string;
+  };
 };
 
 export type RawInventory = {
@@ -48,4 +61,12 @@ export type RawInventory = {
   purchasedDate?: string;
   contractPeriod?: string;
   contractStatus?: string;
+};
+
+export type ContractModalProps = {
+  isOpen: boolean;
+  onClose: () => void;
+  article: ContractArticle | null;
+  buyerName: string;
+  onAgree?: () => void;
 };

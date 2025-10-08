@@ -42,6 +42,9 @@ export const useBuyerDashboardAPI = () => {
               : item.status === 'awaiting_payment'
               ? 'Pending'
               : 'Lost',
+          author: {
+            name: item.author.name,
+          },
         }),
       );
 
@@ -123,11 +126,14 @@ export const useBuyerDashboardAPI = () => {
     try {
       const res = await axios.get(
         `${API_BASE_URL}/${buyerId}/inventory/${inventoryId}/contract`,
-        {
-          withCredentials: true,
-          responseType: 'blob', // file download
-        },
+        { withCredentials: true },
       );
+
+      const fileUrl = res.data.url;
+      if (!fileUrl) throw new Error('File URL missing from response');
+
+      window.open(fileUrl, '_blank');
+
       return res.data;
     } catch (error) {
       console.error('Error downloading contract: ', error);
@@ -140,11 +146,14 @@ export const useBuyerDashboardAPI = () => {
     try {
       const res = await axios.get(
         `${API_BASE_URL}/${buyerId}/inventory/${inventoryId}/article`,
-        {
-          withCredentials: true,
-          responseType: 'blob', // file download
-        },
+        { withCredentials: true },
       );
+
+      const fileUrl = res.data.url;
+      if (!fileUrl) throw new Error('File URL missing from response');
+
+      window.open(fileUrl, '_blank');
+
       return res.data;
     } catch (error) {
       console.error('Error downloading article: ', error);

@@ -72,8 +72,9 @@ const InventoryTable = ({ data }: InventoryTableProps) => {
               setLoadingAction(item.id);
               setError(null);
               try {
-                const file = await downloadContractAPI(item.id);
-                console.log('Download Contract blob: ', file);
+                // const file = await downloadContractAPI(item.id);
+                // console.log('Download Contract blob: ', file);
+                await downloadContractAPI(item.id);
               } catch (err) {
                 console.error('Failed to download contract', err);
                 setError('Failed to download contract. Please try again');
@@ -95,8 +96,9 @@ const InventoryTable = ({ data }: InventoryTableProps) => {
               setLoadingAction(item.id);
               setError(null);
               try {
-                const file = await downloadArticleAPI(item.id);
-                console.log('Download article blob: ', file);
+                // const file = await downloadArticleAPI(item.id);
+                // console.log('Download article blob: ', file);
+                await downloadArticleAPI(item.id);
               } catch (err) {
                 console.error('Failed to download ', err);
                 setError('Failed to download article. Please try again.');
