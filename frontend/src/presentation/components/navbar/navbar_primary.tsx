@@ -143,7 +143,7 @@ export const NavbarPrimary = ({ user, userId }: INavBarPrimaryProps) => {
         {
           label: 'Dashboard',
           icon: faChartLine,
-          href: '/dashboard',
+          href: '/dashboard/seller',
           indent: 2,
         },
         {
@@ -159,7 +159,7 @@ export const NavbarPrimary = ({ user, userId }: INavBarPrimaryProps) => {
         {
           label: 'Dashboard',
           icon: faChartLine,
-          href: '/dashboard',
+          href: '/dashboard/seller',
           indent: 1,
         },
         { label: 'Settings', icon: faCog, href: '/settings', indent: 2 },
