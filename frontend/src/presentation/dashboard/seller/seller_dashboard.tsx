@@ -45,24 +45,6 @@ interface SellerInventoryApi {
 }
 
 export const SellerDashboard = () => {
-  const StatData = [
-    {
-      key: "In-Progress",
-      value: 4,
-    },
-    {
-      key: "Sold",
-      value: 14,
-    },
-    {
-      key: "Action",
-      value: 2,
-    },
-    {
-      key: "Contracts",
-      value: 1,
-    },
-  ];
 
   const [articles, setArticles] = useState<ArticleRow[]>([]);
   const [inventory, setInventory] = useState<InventoryRow[]>([]);
@@ -122,7 +104,7 @@ export const SellerDashboard = () => {
       <p className="font-Montserrat text-[15px]">
         An overview of all biddings, inventory, and analysis.
       </p>
-      <EngagementSection />
+      {/* <EngagementSection /> */}
       <div className="grid grid-cols-4 gap-4 mt-4">
         <StatCard
           title={"Total Article Bids In-Progress"}

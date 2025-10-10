@@ -6,6 +6,7 @@ import {
   getSellerArticles,
   getSellerInventory,
 } from "../controller/seller-dashboard.controller.js";
+import { getSellerAnalytics } from "../controller/seller-analytics.controller.js";
 
 const sellerDashboardRouter = express.Router();
 
@@ -32,6 +33,13 @@ sellerDashboardRouter.get(
   verifyAuth,
   noStore,
   getSellerInventory
+);
+
+sellerDashboardRouter.get(
+  "/analytics",
+  verifyAuth,
+  noStore,
+  getSellerAnalytics
 );
 
 export default sellerDashboardRouter;

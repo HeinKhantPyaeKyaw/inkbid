@@ -40,3 +40,19 @@ export async function getSellerInventory(params?: {
   });
   return data;
 }
+
+export async function getSellerAnalytics(
+  range: "week" | "month" | "year" = "week"
+) {
+  const { data } = await axios.get(`${API_BASE}/analytics`, {
+    params: { range },
+    withCredentials: true, // ✅ ensure cookie auth is sent
+  });
+  return data as {
+    range: string;
+    bidsSeries: { label: string; count: number }[];
+    viewsSeries: { label: string; count: number }[];
+    totalBids: number;
+    totalIncome: number;
+  };
+}
