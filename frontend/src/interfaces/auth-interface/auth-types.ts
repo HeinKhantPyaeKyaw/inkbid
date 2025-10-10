@@ -3,8 +3,14 @@ export interface UserProfile {
   id: string;
   email: string;
   name: string;
-  role: 'buyer' | 'seller';
+  role: "buyer" | "seller";
+  profileImage?: string;
+  organization?: string;
+  bio?: string;
+  paypalEmail?: string;
   createdAt: string;
+  specialization?: string;
+  writingStyle?: string;
 }
 
 export interface AuthContextType {

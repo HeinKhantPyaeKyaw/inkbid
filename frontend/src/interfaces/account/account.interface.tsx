@@ -7,4 +7,5 @@ export interface INavBarPrimaryProps {
   user?: 'buyer' | 'seller';
   // user: User | null;
   userId?: string;
+  showNotification?: boolean;
 }

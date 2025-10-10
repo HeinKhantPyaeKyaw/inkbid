@@ -15,7 +15,11 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { INavBarPrimaryProps } from '../../../interfaces/account/account.interface';
 
-export const NavbarPrimary = ({ user, userId }: INavBarPrimaryProps) => {
+export const NavbarPrimary = ({
+  user,
+  userId,
+  showNotification = true,
+}: INavBarPrimaryProps) => {
   //---------------------
   //   CONST
   //---------------------
@@ -261,10 +265,16 @@ export const NavbarPrimary = ({ user, userId }: INavBarPrimaryProps) => {
       <div className="text-[64px] tracking-wide font-Forum text-accent">
         INKBID
       </div>
+
       <div className="flex items-center gap-8">
-        <button>
-          <FontAwesomeIcon icon={faBell} className="text-accent text-[32px]" />
-        </button>
+        {showNotification && (
+          <button>
+            <FontAwesomeIcon
+              icon={faBell}
+              className="text-accent text-[32px]"
+            />
+          </button>
+        )}
         <div className="relative">
           <button onClick={() => setShowDropdown((prev) => !prev)}>
             <FontAwesomeIcon
@@ -324,14 +334,12 @@ export const NavbarPrimary = ({ user, userId }: INavBarPrimaryProps) => {
                       <button
                         key={item.label}
                         onClick={item.action}
-                        className={`flex items-center gap-3 pl-8 px-4 mb-4 rounded-full border-2 border-primary bg-white py-2 hover:bg-gray-100 transition ${
+                        className={`flex items-center gap-3 w-full text-left pl-8 px-4 mb-4 rounded-full border-2 border-primary bg-white py-2 hover:bg-gray-100 transition ${
                           item.indent === 1
                             ? 'mr-2 ml-4'
                             : item.indent === 2
                             ? 'mr-8'
-                            : item.indent === 3
-                            ? 'mr-10 ml-2'
-                            : 'mr-0 ml-12' // fallback for indent 4
+                            : 'mr-0 ml-8'
                         }`}
                       >
                         <FontAwesomeIcon
