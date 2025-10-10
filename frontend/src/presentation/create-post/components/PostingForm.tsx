@@ -1,12 +1,16 @@
 'use client';
 
+import { useAuth } from '@/context/auth/AuthContext';
 import { createPostAPI } from '@/hooks/create-post.api';
 import { AiResults } from '@/interfaces/create-post-interface/create-post-types';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import ArticleUpload from './ArticleUpload';
 import ImageUpload from './ImageUpload';
 
 const PostingForm = () => {
+  const router = useRouter();
+  const { user } = useAuth();
   const [title, setTitle] = useState('');
   const [synopsis, setSynopsis] = useState('');
   const [category, setCategory] = useState('');
@@ -59,7 +63,13 @@ const PostingForm = () => {
 
       console.log('Article created:', result);
       alert('Article created successfully');
-      window.location.href = '/profile/seller';
+
+      if (user?.id) {
+        router.push(`/profile/seller/${user.id}`);
+      } else {
+        router.push('/login');
+      }
+      //  window.location.href = `/profile/seller/`;
 
       //Reset Form
       setTitle('');
