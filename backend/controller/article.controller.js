@@ -3,6 +3,7 @@ import Article from "../schemas/article.schema.js";
 import Bid from "../schemas/bids.schema.js";
 import { uploadFileToFirebase } from "../services/firebaseupload.js";
 import { scheduleOrRescheduleFinalize } from "../jobs/scheduleFinalize.js";
+import { notify } from "../services/notification.service.js";
 
 function normalizeArticle(article) {
   return {
@@ -153,32 +154,67 @@ export const createArticle = async (req, res) => {
 export const buyNow = async (req, res) => {
   try {
     const buyer = req.user;
+    const buyerId = buyer?._id || buyer?.id;
     const { id } = req.params;
 
-    const article = await Article.findById(id);
+    const article = await Article.findById(id).populate("author");
     if (!article) {
       return res
         .status(404)
         .json({ success: false, message: "Article not found" });
     }
 
-    // mark as bought
-    article.winner = buyer._id;
-    article.status = "awaiting_contract"; // example status
+    // ✅ Update article as instantly won
+    article.winner = buyerId;
+    article.status = "awaiting_contract";
+    article.highest_bid = article.buy_now;
     await article.save();
 
-    // optional: add a "buy now" bid
-    const bidRecord = await Bid.findOne({ refId: article._id });
-    if (bidRecord) {
-      bidRecord.bids.push({
-        ref_user: buyer._id,
-        amount: article.buy_now,
-        timestamp: new Date(),
-      });
-      await bidRecord.save();
+    // ✅ Optional: record a "Buy Now" bid in the Bid doc
+    const now = new Date();
+    let bidRecord = await Bid.findOne({ refId: article._id });
+    const buyNowBid = {
+      ref_user: buyerId,
+      amount: article.buy_now,
+      timestamp: now,
+    };
+    if (!bidRecord) {
+      bidRecord = new Bid({ refId: article._id, bids: [buyNowBid] });
+    } else {
+      bidRecord.bids.push(buyNowBid);
     }
+    await bidRecord.save();
 
-    // ✅ sanitize Decimal128 → Number
+    // 🔔 Notifications
+    // 1️⃣ Notify Buyer — you won instantly (same as auction win)
+    await notify(buyerId, {
+      type: "win",
+      title: "🎉 You won instantly!",
+      message: `You purchased “${article.title}” for ฿${Number(
+        article.buy_now
+      )}. Please sign the contract to proceed.`,
+      target: {
+        kind: "article",
+        id: article._id,
+        url: `/dashboard/buyer/articles/${article._id}`,
+      },
+    });
+
+    // 2️⃣ Notify Seller — your article was bought
+    await notify(article.author._id || article.author.id, {
+      type: "winner_found",
+      title: "🏆 Your article was bought",
+      message: `“${article.title}” was purchased for ฿${Number(
+        article.buy_now
+      )}. Wait for the buyer to sign the contract.`,
+      target: {
+        kind: "article",
+        id: article._id,
+        url: `/dashboard/seller/articles/${article._id}`,
+      },
+    });
+
+    // ✅ Prepare clean response (convert Decimal128 → number)
     const responseArticle = {
       ...article.toObject(),
       highest_bid: parseFloat(article.highest_bid?.toString() || "0"),

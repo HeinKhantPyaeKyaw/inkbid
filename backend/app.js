@@ -10,7 +10,7 @@ import reviewRouter from './routes/reviews.routes.js';
 import sellerProfileRouter from './routes/seller-profile.routes.js';
 import buyerRouter from './routes/buyer.routes.js';
 import sellerDashboardRouter from './routes/seller-dashboard.routes.js';
-
+import notificationRouter from "./routes/notification.routes.js";
 const app = express();
 app.use(
   cors({
@@ -30,6 +30,8 @@ app.use('/api/v1/reviews', reviewRouter);
 app.use('/api/v1/seller-profile', sellerProfileRouter);
 app.use('/api/v1/buyer', buyerRouter);
 app.use('/api/v1/seller-dashboard', sellerDashboardRouter);
+app.use("/api/v1/notifications", notificationRouter);
+
 app.use(errorMiddleware);
 
 export default app;

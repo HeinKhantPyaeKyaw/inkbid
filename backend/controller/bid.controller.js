@@ -1,6 +1,7 @@
 import Bid from "../schemas/bids.schema.js";
 import Article from "../schemas/article.schema.js";
 import redisClient from "../config/redis.js";
+import {notify} from "../services/notification.service.js";
 
 export const placeBid = async (req, res) => {
   try {
@@ -52,6 +53,28 @@ export const placeBid = async (req, res) => {
       });
     }
 
+    // ✅ Notify the previous highest bidder (if any)
+    if (bidRecord && bidRecord.bids.length > 0) {
+      const lastBid = bidRecord.bids[bidRecord.bids.length - 1];
+      const prevBidderId = lastBid.ref_user;
+      if (String(prevBidderId) !== String(bidder._id)) {
+        try {
+          await notify(prevBidderId, {
+            type: "outbid",
+            title: "You were outbid!",
+            message: `Someone outbid you on “${article.title}”.`,
+            target: {
+              kind: "article",
+              id: article._id,
+              url: `/articles/${article._id}`,
+            },
+          });
+        } catch (notifyErr) {
+          console.error("Outbid notification failed:", notifyErr.message);
+        }
+      }
+    }
+
     // create new bid
     const newBid = { ref_user: bidder.id, amount, timestamp: new Date() };
 
@@ -62,6 +85,22 @@ export const placeBid = async (req, res) => {
     }
 
     await bidRecord.save();
+
+    // ✅ Send notification to seller (article author)
+    try {
+      await notify(article.author, {
+        type: "bid",
+        title: "New bid on your article",
+        message: `${bidder.name} bid ฿${amount} on “${article.title}”`,
+        target: {
+          kind: "article",
+          id: article._id,
+          url: `/articles/${article._id}`,
+        },
+      });
+    } catch (notifyErr) {
+      console.error("Notification failed:", notifyErr.message);
+    }
 
     // update highest_bid in Article
     article.highest_bid = amount;
