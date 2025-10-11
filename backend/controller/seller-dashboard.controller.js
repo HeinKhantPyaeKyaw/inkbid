@@ -71,7 +71,13 @@ const fetchPaginatedArticles = async ({
   const skip = (page - 1) * limit;
 
   const [items, total] = await Promise.all([
-    Article.find(q).sort(sort).skip(skip).limit(limit).lean(),
+    Article.find(q)
+      .populate("author", "name email")  // ✅ include seller
+      .populate("winner", "name email")  // ✅ include buyer
+      .sort(sort)
+      .skip(skip)
+      .limit(limit)
+      .lean(),
     Article.countDocuments(q),
   ]);
 
@@ -90,7 +96,8 @@ const fetchPaginatedArticles = async ({
   const rows = items.map((a) => ({
     _id: a._id,
     title: a.title,
-    author: a.author,
+    author: a.author,          // ✅ seller info
+    winner: a.winner || null,  // ✅ buyer info
     status: a.status,
     date: a.date,
     ends_in: a.ends_in,
@@ -109,6 +116,7 @@ const fetchPaginatedArticles = async ({
     totalPages: Math.max(1, Math.ceil(total / limit)),
   };
 };
+
 
 // GET /seller-dashboard/articles?Page=1&limit=10&sort=-date
 export const getSellerArticles = async (req, res) => {

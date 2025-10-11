@@ -34,7 +34,10 @@ interface SellerArticleApi {
   current_bid: number;
   ends_in: string;
   status: string;
+  author: { _id: string; name: string; email: string };
+  winner?: { _id: string; name: string; email: string } | null;
 }
+
 
 interface SellerInventoryApi {
   _id: string;
@@ -74,6 +77,12 @@ export const SellerDashboard = () => {
             current_bid: item.current_bid,
             ends_in: item.ends_in,
             status: item.status,
+            author: item.author
+              ? { _id: item.author._id, name: item.author.name }
+              : { _id: "", name: "Unknown Seller" },
+            winner: item.winner
+              ? { _id: item.winner._id, name: item.winner.name }
+              : null,
           }))
         );
 

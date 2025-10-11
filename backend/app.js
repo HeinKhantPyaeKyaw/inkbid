@@ -12,6 +12,8 @@ import sellerProfileRouter from './routes/seller-profile.routes.js';
 import sellerDashboardRouter from './routes/seller-dashboard.routes.js';
 import notificationRouter from "./routes/notification.routes.js";
 import userRouter from './routes/user.routes.js';
+import contractRouter from './routes/contract.routes.js';
+
 const app = express();
 app.use(
   cors({
@@ -32,7 +34,7 @@ app.use('/api/v1/seller-profile', sellerProfileRouter);
 app.use('/api/v1/buyer', buyerRouter);
 app.use('/api/v1/seller-dashboard', sellerDashboardRouter);
 app.use("/api/v1/notifications", notificationRouter);
-
+app.use('/api/v1/contracts', contractRouter);
 app.use('/api/v1/', portfolioRouter);
 app.use(errorMiddleware);
 

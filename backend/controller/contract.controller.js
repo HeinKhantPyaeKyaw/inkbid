@@ -1,38 +1,51 @@
+// controller/contract.controller.js
 import Article from "../schemas/article.schema.js";
 import Contract from "../schemas/contract.schema.js";
 import User from "../schemas/user.schema.js";
+import { notify } from "../services/notification.service.js";
 
-export const signContract = async (req, res) => {
+export const sellerSignContract = async (req, res) => {
   try {
     const { articleId } = req.params;
-    const user = req.user;
-    const userId = user?._id || user?.id;
+    const seller = req.user;
+    const sellerId = seller?._id || seller?.id;
 
+    // Fetch article with author + winner populated
     const article = await Article.findById(articleId).populate("author winner");
-    if (!article) return res.status(404).json({ error: "Article not found" });
-
-    // Determine signer role
-    const isBuyer = String(article.winner) === String(userId);
-    const isSeller =
-      String(article.author._id || article.author) === String(userId);
-
-    if (!isBuyer && !isSeller) {
+    if (!article) {
       return res
-        .status(403)
-        .json({ error: "Not authorized to sign this contract" });
+        .status(404)
+        .json({ success: false, message: "Article not found" });
     }
 
-    // Try to find an existing contract
+    // Validate seller identity
+    if (String(article.author._id || article.author) !== String(sellerId)) {
+      return res
+        .status(403)
+        .json({
+          success: false,
+          message: "Not authorized to sign this contract",
+        });
+    }
+
+    // Find or create a contract for this article
     let contract = await Contract.findOne({ article: articleId });
 
+    // Track whether buyer had already signed before this call
+    let buyerHadSignedBefore = false;
+
     if (!contract) {
-      // First signer creates contract
+      // Seller signs first → create contract (incomplete)
       const buyer = await User.findById(article.winner);
-      const seller = article.author;
+      if (!buyer) {
+        return res
+          .status(404)
+          .json({ success: false, message: "Buyer not found" });
+      }
 
       contract = new Contract({
-        buyer: article.winner,
-        author: article.author._id,
+        buyer: buyer._id,
+        author: sellerId,
         article: articleId,
         articleTitle: article.title,
         buyerName: buyer.name,
@@ -45,17 +58,31 @@ export const signContract = async (req, res) => {
         )} THB.
           Seller agrees to deliver ownership rights upon full payment.
           Contract period: ${article.duration || 30} days.
-          Both parties are bound by InkBid regulations.
+          Both parties are bound by InkBid's terms of service.
         `,
+        sellerSigned: true,
+        status: "incomplete",
       });
+    } else {
+      // Contract exists → update seller signature
+      buyerHadSignedBefore = !!contract.buyerSigned;
+
+      if (contract.sellerSigned) {
+        return res.status(409).json({
+          success: false,
+          message: "You have already signed this contract",
+        });
+      }
+
+      contract.sellerSigned = true;
     }
 
-    // Update signature flags
-    if (isBuyer) contract.buyerSigned = true;
-    if (isSeller) contract.sellerSigned = true;
-
-    // Update status
+    // Transition status if both signatures are present now
+    let justCompleted = false;
     if (contract.buyerSigned && contract.sellerSigned) {
+      if (contract.status !== "complete") {
+        justCompleted = true; // ⇦ becomes complete in THIS call
+      }
       contract.status = "complete";
       article.status = "awaiting_payment";
       await article.save();
@@ -65,18 +92,32 @@ export const signContract = async (req, res) => {
 
     await contract.save();
 
-    return res.status(200).json({
+    // 🔔 NOTIFICATION: if buyer signed first and seller just completed it now → tell buyer to pay
+    if (justCompleted && buyerHadSignedBefore) {
+      const buyerId =
+        article.winner?._id || article.winner?.id || article.winner;
+      await notify(buyerId, {
+        type: "payment_due",
+        title: "💳 Seller signed the contract",
+        message: `Seller has signed for “${article.title}”. Please complete your payment.`,
+        target: {
+          kind: "article",
+          id: article._id,
+          url: `/dashboard/buyer/articles/${article._id}`,
+        },
+      });
+    }
+
+    res.status(200).json({
       success: true,
       message:
         contract.status === "complete"
-          ? "Both parties signed. Contract complete."
-          : `${
-              isBuyer ? "Buyer" : "Seller"
-            } signed. Waiting for the other party.`,
+          ? "Both parties have signed. Contract complete."
+          : "Seller signed successfully. Waiting for buyer to sign.",
       contract,
     });
   } catch (err) {
-    console.error("Error signing contract:", err);
-    res.status(500).json({ error: "Server error" });
+    console.error("Error in sellerSignContract:", err);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };

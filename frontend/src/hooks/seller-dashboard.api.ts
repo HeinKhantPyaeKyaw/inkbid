@@ -2,6 +2,7 @@
 import axios from "axios";
 
 const API_BASE = "http://localhost:5500/api/v1/seller-dashboard";
+const API_BASE2 = "http://localhost:5500/api/v1/contracts";
 
 export async function getSellerSummary() {
   const { data } = await axios.get(`${API_BASE}/summary`, {
@@ -55,4 +56,15 @@ export async function getSellerAnalytics(
     totalBids: number;
     totalIncome: number;
   };
+}
+
+export async function sellerSignContractAPI(articleId: string) {
+  const { data } = await axios.patch(
+    `${API_BASE2}/${articleId}/sign`,
+    {},
+    {
+      withCredentials: true, // to include cookies
+    }
+  );
+  return data;
 }
