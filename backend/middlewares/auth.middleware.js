@@ -27,6 +27,7 @@ export const verifyAuth = async (req, res, next) => {
       uid: decodedToken.uid,
     };
 
+    // req.user = { ...user.toObject(), uid: decodedToken.uid };
 
     // ALlow the request to continue
     next();

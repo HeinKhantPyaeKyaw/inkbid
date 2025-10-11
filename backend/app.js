@@ -9,7 +9,6 @@ import buyerRouter from './routes/buyer.routes.js';
 import portfolioRouter from './routes/portfolio.routes.js';
 import reviewRouter from './routes/reviews.routes.js';
 import sellerProfileRouter from './routes/seller-profile.routes.js';
-import buyerRouter from './routes/buyer.routes.js';
 import sellerDashboardRouter from './routes/seller-dashboard.routes.js';
 import notificationRouter from "./routes/notification.routes.js";
 import userRouter from './routes/user.routes.js';
