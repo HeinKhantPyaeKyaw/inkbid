@@ -50,7 +50,7 @@ export const NavbarSecondary = () => {
     {
       label: 'Dashboard',
       icon: faSheetPlastic,
-      href: '/dashboard',
+      href: '/dashboard/buyer-dashboard',
       indent: 2,
     },
     { label: 'Settings', icon: faCog, href: '/settings', indent: 3 },

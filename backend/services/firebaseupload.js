@@ -21,3 +21,7 @@ export const uploadFileToFirebase = async (file, folder) => {
     stream.end(file.buffer);
   });
 };
+
+export const uploadProfilePicture = async (file) => {
+  return uploadFileToFirebase(file, 'profiles');
+};

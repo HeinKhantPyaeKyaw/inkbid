@@ -35,7 +35,7 @@ export default function LoginPage() {
   useEffect(() => {
     if (!user) return;
     if (user.role === 'seller') {
-      router.push('/create-post');
+      router.push(`/profile/seller/${user.id}`);
     } else {
       router.push('/content-listing');
     }

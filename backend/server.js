@@ -7,14 +7,14 @@ import connectToDatabase from "./database/mongodb.js";
 import redisClient from "./config/redis.js";
 
 const server = http.createServer(app);
-
+let io;
 try {
   // 1) Connect to MongoDB BEFORE anything else touches models
   await connectToDatabase();
   console.log("✅ MongoDB connected");
 
   // 2) Socket.IO + Redis (pub/sub for live bid updates)
-  const io = new Server(server, { cors: { origin: "*" } });
+  io = new Server(server, { cors: { origin: "*" } });
 
   const sub = redisClient.duplicate(); // node-redis v4 duplicate
   await sub.connect();
@@ -30,6 +30,15 @@ try {
 
   io.on("connection", (socket) => {
     console.log("🟢 User connected:", socket.id);
+
+    // client calls: socket.emit('register', userId)
+    socket.on("register", (userId) => {
+      if (userId) {
+        socket.join(String(userId)); // personal room
+        console.log(`socket joined room ${userId}`);
+      }
+    });
+
     socket.on("disconnect", () =>
       console.log("🔴 User disconnected:", socket.id)
     );
@@ -91,3 +100,5 @@ try {
   console.error("❌ Fatal startup error:", err);
   process.exit(1);
 }
+
+export { io };

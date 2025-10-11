@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import {
   Chart as ChartJS,
@@ -22,74 +23,68 @@ ChartJS.register(
   Legend
 );
 
+type Props = {
+  bidsSeries: { label: string; count: number }[];
+  viewsSeries: { label: string; count: number }[];
+};
 
-export const EngagementChart = () => {
+export const EngagementChart: React.FC<Props> = ({
+  bidsSeries,
+  viewsSeries,
+}) => {
+  const labels =
+    bidsSeries.length > 0
+      ? bidsSeries.map((p) => p.label)
+      : viewsSeries.map((p) => p.label);
+
   const data = {
-    labels: ["Jan", "Feb", "Mar", "Apr", "May"],
+    labels,
     datasets: [
       {
-        label: "Series A",
-        data: [0, 35, 25, 50, 110], // gold line
+        label: "Bids",
+        data: bidsSeries.map((p) => p.count),
         borderColor: "#E0C58F",
         backgroundColor: "#E0C58F",
         fill: false,
         pointRadius: 0,
+        tension: 0.3,
       },
       {
-        label: "Series B",
-        data: [0, 50, 10, 35, 90], // dark blue line
+        label: "Views",
+        data: viewsSeries.map((p) => p.count),
         borderColor: "#3C507D",
         backgroundColor: "#3C507D",
         fill: false,
         pointRadius: 0,
+        tension: 0.3,
       },
     ],
   };
 
   const options = {
     responsive: true,
-    plugins: {
-      legend: {
-        display: false, // hide legend like your mockup
-      },
-    },
+    plugins: { legend: { display: false } },
     scales: {
       y: {
         beginAtZero: true,
         ticks: {
-          stepSize: 25,
           color: "#fff",
-          font: {
-            size: 14,
-            family: "montserrat",
-            weight: "bold" as const,
-          },
+          font: { size: 14, family: "montserrat", weight: "bold" as const },
           padding: 8,
         },
-        grid: {
-          color: "#fff",
-          drawTicks: false,
-        },
+        grid: { color: "#fff", drawTicks: false },
       },
       x: {
         ticks: {
           color: "#fff",
-          font: {
-            size: 14,
-            family: "montserrat",
-            weight: "bold" as const,
-          },
+          font: { size: 14, family: "montserrat", weight: "bold" as const },
           padding: 8,
         },
-        grid: {
-          display: false,
-          drawTicks: false,
-        },
+        grid: { display: false, drawTicks: false },
       },
     },
   };
 
-  // Shadow plugin
   const lineShadowPlugin = {
     id: "lineShadow",
     beforeDatasetsDraw(chart: any) {
@@ -98,14 +93,14 @@ export const EngagementChart = () => {
         const meta = chart.getDatasetMeta(i);
         if (!meta.hidden && meta.type === "line") {
           ctx.save();
-          ctx.shadowColor = "rgba(0,0,0,0.2)"; 
-          ctx.shadowBlur = 1; 
+          ctx.shadowColor = "rgba(0,0,0,0.2)";
+          ctx.shadowBlur = 1;
           ctx.shadowOffsetX = 1;
           ctx.shadowOffsetY = 15;
           ctx.strokeStyle = dataset.borderColor;
           ctx.lineWidth = dataset.borderWidth || 2;
           ctx.beginPath();
-          meta.dataset.draw(ctx); 
+          meta.dataset.draw(ctx);
           ctx.restore();
         }
       });
@@ -113,7 +108,7 @@ export const EngagementChart = () => {
   };
 
   return (
-    <div className=" p-6 rounded-xl">
+    <div className="p-6 rounded-xl">
       <Line data={data} options={options} plugins={[lineShadowPlugin]} />
     </div>
   );

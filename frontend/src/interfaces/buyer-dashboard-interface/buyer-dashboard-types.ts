@@ -7,7 +7,7 @@ export interface InfoCardProps {
 }
 
 export interface ArticleTableItems {
-  id: number;
+  id: string;
   title: string;
   yourBid: number;
   currentBid: number;
@@ -16,7 +16,7 @@ export interface ArticleTableItems {
 }
 
 export interface InventoryTableItems {
-  id: number;
+  id: string;
   title: string;
   purchasedDate: string; // ? DateTime
   contractPeriod: string; // ? DateTime
@@ -30,3 +30,22 @@ export interface BuyerDashboardPaginationProps {
   onClickPreviousPage: () => void;
   onClickNextPage: () => void;
 }
+
+export type RawArticle = {
+  _id?: string;
+  title?: string;
+  yourBid?: number;
+  currentBid?: number;
+  timeRemaining?: { $numberDecimal?: string } | number | string;
+  status?: string;
+};
+
+export type RawInventory = {
+  _id?: string;
+  article: {
+    title: string;
+  };
+  purchasedDate?: string;
+  contractPeriod?: string;
+  contractStatus?: string;
+};

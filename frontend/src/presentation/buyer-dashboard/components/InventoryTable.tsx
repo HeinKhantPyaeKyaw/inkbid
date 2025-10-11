@@ -1,9 +1,11 @@
 'use client';
 
+import { useBuyerDashboardAPI } from '@/hooks/buyer-dashboard-hooks/buyer-dashboard.api';
 import { InventoryTableItems } from '@/interfaces/buyer-dashboard-interface/buyer-dashboard-types';
 import { InventoryTableStatus } from '@/interfaces/buyer-dashboard-interface/status-types';
 import { useMemo, useState } from 'react';
-import { SlOptions } from 'react-icons/sl';
+import { GrArticle } from 'react-icons/gr';
+import { TbContract } from 'react-icons/tb';
 import Pagination from './Pagination';
 
 const TableHead = [
@@ -20,45 +22,33 @@ interface InventoryTableProps {
 
 const InventoryTable = ({ data }: InventoryTableProps) => {
   const [rowsLimit] = useState(5);
-  const [totalPages] = useState(Math.ceil(data?.length / rowsLimit));
-  const [rowsToShow, setRowsToShow] = useState(data.slice(0, rowsLimit));
-  const [customPagination, setCustomPagination] = useState<(number | null)[]>(
-    [],
-  );
   const [currentPage, setCurrentPage] = useState(0);
 
+  const [loadingAction, setLoadingAction] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const { downloadArticleAPI, downloadContractAPI } = useBuyerDashboardAPI();
+
+  const rowsToShow = useMemo(() => {
+    const startIndex = currentPage * rowsLimit;
+    return data.slice(startIndex, startIndex + rowsLimit);
+  }, [data, currentPage, rowsLimit]);
+
+  const totalPages = Math.ceil(data.length / rowsLimit);
+
   const nextPage = () => {
-    const startIndex = rowsLimit * (currentPage + 1);
-    const endIndex = startIndex + rowsLimit;
-    const newArray = data.slice(startIndex, endIndex);
-    setRowsToShow(newArray);
-    setCurrentPage(currentPage + 1);
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages - 1));
   };
 
   const changePage = (value: number) => {
-    const startIndex = value * rowsLimit;
-    const endIndex = startIndex + rowsLimit;
-    const newArray = data.slice(startIndex, endIndex);
-    setRowsToShow(newArray);
-    setCurrentPage(value);
-  };
-
-  const previouspage = () => {
-    const startIndex = (currentPage - 1) * rowsLimit;
-    const endIndex = startIndex + rowsLimit;
-    const newArray = data.slice(startIndex, endIndex);
-    setRowsToShow(newArray);
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-    } else {
-      setCurrentPage(0);
+    if (value >= 0 && value < totalPages) {
+      setCurrentPage(value);
     }
   };
 
-  // FIXME: I'm not sure to use useMemo or useEffect
-  useMemo(() => {
-    setCustomPagination(Array(Math.ceil(data.length / rowsLimit)).fill(null));
-  }, []);
+  const previousPage = () => {
+    setCurrentPage((prev) => Math.max(prev - 1, 0));
+  };
 
   const getStatusDecoration = (status: string) => {
     switch (status) {
@@ -66,6 +56,82 @@ const InventoryTable = ({ data }: InventoryTableProps) => {
         return 'bg-[#EDFEF6] text-[#28674A] py-1.5 rounded-full';
       case InventoryTableStatus.EXPIRED:
         return 'bg-[#FFF3F4] text-[#90302C] py-1.5 rounded-full';
+      default:
+        return 'bg-gray-100 text-gray-500 py-1.5 rounded-full';
+    }
+  };
+
+  // Rendering Action Buttons
+  const renderActionButtons = (item: InventoryTableItems) => {
+    const isLoading = loadingAction === item.id;
+    if (item.contractStatus === InventoryTableStatus.ACTIVE) {
+      return (
+        <div className="flex gap-3 justify-center items-center">
+          <button
+            onClick={async () => {
+              setLoadingAction(item.id);
+              setError(null);
+              try {
+                const file = await downloadContractAPI(item.id);
+                console.log('Download Contract blob: ', file);
+              } catch (err) {
+                console.error('Failed to download contract', err);
+                setError('Failed to download contract. Please try again');
+              } finally {
+                setLoadingAction(null);
+              }
+            }}
+            className="flex-col justify-center items-center cursor-pointer hover:text-primary active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary transition-all"
+            aria-label={`Download contract for ${item.title}`}
+            disabled={isLoading}
+          >
+            <TbContract className="text-black" />
+            <p className="font-Montserrat font-bold text-sm text-black">
+              {isLoading ? 'Downloading...' : 'Contract'}
+            </p>
+          </button>
+          <button
+            onClick={async () => {
+              setLoadingAction(item.id);
+              setError(null);
+              try {
+                const file = await downloadArticleAPI(item.id);
+                console.log('Download article blob: ', file);
+              } catch (err) {
+                console.error('Failed to download ', err);
+                setError('Failed to download article. Please try again.');
+              } finally {
+                setLoadingAction(null);
+              }
+            }}
+            className="flex-col justify-center items-center cursor-pointer hover:text-primary active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary transition"
+            aria-label={`Download article ${item.title}`}
+            disabled={isLoading}
+          >
+            <GrArticle className="text-black" />
+            <p className="font-Montserrat font-bold text-sm text-black">
+              {isLoading ? 'Downloading...' : 'Article'}
+            </p>
+          </button>
+        </div>
+      );
+    } else {
+      return (
+        <div className="flex gap-3 justify-center items-center">
+          <button className="flex-col justify-center items-center disabled cursor-not-allowed">
+            <TbContract className="text-gray-400" />
+            <p className="font-Montserrat font-bold text-sm text-gray-400">
+              Contract
+            </p>
+          </button>
+          <button className="flex-col justify-center items-center disabled cursor-not-allowed">
+            <GrArticle className="text-gray-400" />
+            <p className="font-Montserrat font-bold text-sm text-gray-400">
+              Article
+            </p>
+          </button>
+        </div>
+      );
     }
   };
 
@@ -76,8 +142,10 @@ const InventoryTable = ({ data }: InventoryTableProps) => {
         <p className="font-Montserrat text-lg text-primary-font">
           Keep track of purchased articles and other information.
         </p>
+        {/* Show Error if exists */}
+        {error && <p className="text-red-500 mt-2">{error}</p>}
       </div>
-      <table className="table-auto w-full">
+      <table className="table-auto w-full focus-within:shadow-md transition-shadow">
         <thead>
           <tr className="bg-tertiary">
             {TableHead.map((head) => (
@@ -98,10 +166,10 @@ const InventoryTable = ({ data }: InventoryTableProps) => {
                 className="border-b-1 border-[#5c5c5c] font-Montserrat "
               >
                 <td className="px-8 py-1.5">{item.title}</td>
-                <td className="px-8 py-1.5 min-w-[220px]  font-medium">
+                <td className="px-8 py-1.5 min-w-[220px] text-xl font-bold ">
                   {item.purchasedDate}
                 </td>
-                <td className="px-8 py-1.5 min-w-[220px]  font-medium">
+                <td className="px-8 py-1.5 min-w-[220px] text-xl font-bold">
                   {item.contractPeriod}
                 </td>
                 <td className="text-center">
@@ -110,11 +178,7 @@ const InventoryTable = ({ data }: InventoryTableProps) => {
                   </p>
                 </td>
                 <td className="m-auto text-5xl text-[#5c5c5c]">
-                  <div className="flex justify-center items-center">
-                    <button onClick={() => console.log('Clicked!')}>
-                      <SlOptions />
-                    </button>
-                  </div>
+                  {renderActionButtons(item)}
                 </td>
               </tr>
             );
@@ -136,7 +200,7 @@ const InventoryTable = ({ data }: InventoryTableProps) => {
           totalPages={totalPages}
           onPageChange={changePage}
           onClickNextPage={nextPage}
-          onClickPreviousPage={previouspage}
+          onClickPreviousPage={previousPage}
         />
       </div>
     </div>
