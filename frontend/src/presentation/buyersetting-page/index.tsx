@@ -1,11 +1,13 @@
-"use client";
-import { useState, useEffect, useRef } from "react";
-import { FaUserCircle } from "react-icons/fa";
-import { FiTrash2 } from "react-icons/fi";
-import { LuImagePlus } from "react-icons/lu";
-import axios from "axios";
-import { useAuth } from "@/context/auth/AuthContext";
-import { usePathname, useRouter } from "next/navigation";
+'use client';
+import { useState, useEffect, useRef } from 'react';
+import { FaUserCircle } from 'react-icons/fa';
+import { FiTrash2 } from 'react-icons/fi';
+import { LuImagePlus } from 'react-icons/lu';
+import axios from 'axios';
+import { useAuth } from '@/context/auth/AuthContext';
+import { usePathname, useRouter } from 'next/navigation';
+import { updateUserProfileAPI } from '@/hooks/userProfile.api';
+import { SellerProfileUpdateData } from '@/interfaces/seller-profile-interface/seller-profile-types';
 interface UserData {
   firstName: string;
   lastName: string;
@@ -16,57 +18,53 @@ interface UserData {
 }
 
 export default function BuyerSettingsPage() {
-  const { user, loading } = useAuth();
+  const { user, loading, setUser } = useAuth();
   const router = useRouter();
   const path = usePathname();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showRetype, setShowRetype] = useState(false);
-  const [newPassword, setNewPassword] = useState("");
+  const [newPassword, setNewPassword] = useState('');
 
   // 👇 Start with null image
   const [profileImage, setProfileImage] = useState<string | null>(null);
 
   const [form, setForm] = useState<UserData>({
-    firstName: "",
-    lastName: "",
+    firstName: '',
+    lastName: '',
     organization: null,
-    email: "",
-    password: "",
+    email: '',
+    password: '',
     paypal: null,
   });
 
   const [isEditing, setIsEditing] = useState(false);
   const [errors, setErrors] = useState({
-    firstName: "",
-    lastName: "",
-    organization: "",
-    paypal: "",
+    firstName: '',
+    lastName: '',
+    organization: '',
+    paypal: '',
   });
 
   useEffect(() => {
     if (!loading && user) {
-      if (path.includes("/buyer") && user?.role !== "buyer") {
-        router.push("/sellersetting");
+      if (path.includes('/buyer') && user?.role !== 'buyer') {
+        router.push('/sellersetting');
       }
       setForm({
-        firstName: user.name?.split(" ")[0] || "",
-        lastName: user.name?.split(" ")[1] || "",
-        organization: user.organization || "",
-        paypal: user.paypalEmail || "",
-        email: user.email || "",
-        password: "********", // Placeholder for security
+        firstName: user.name?.split(' ')[0] || '',
+        lastName: user.name?.split(' ')[1] || '',
+        organization: user.organization || '',
+        paypal: user.paypalEmail || '',
+        email: user.email || '',
+        password: '********', // Placeholder for security
       });
 
       //  Only set image if exists
-      if (user.profileImage && user.profileImage.trim() !== "") {
-        setProfileImage(user.profileImage);
-      } else {
-        setProfileImage(null);
-      }
+      setProfileImage(user.img_url || null);
     } else if (!loading && !user) {
-      router.push("/login");
+      router.push('/login');
     }
-  }, [user, loading]);
+  }, [user, loading, path, router]);
 
   const isValidEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -74,104 +72,95 @@ export default function BuyerSettingsPage() {
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const editableFields = ["organization", "paypal", "firstName", "lastName"];
+    const editableFields = ['organization', 'paypal', 'firstName', 'lastName'];
     if (editableFields.includes(e.target.name) && isEditing) {
       setForm({ ...form, [e.target.name]: e.target.value });
-      setErrors({ ...errors, [e.target.name]: "" });
+      setErrors({ ...errors, [e.target.name]: '' });
     }
   };
 
   const handleConfirm = async () => {
     try {
       const newErrors = {
-        firstName: !form.firstName.trim() ? "First name is required" : "",
-        lastName: !form.lastName.trim() ? "Last name is required" : "",
+        firstName: !form.firstName.trim() ? 'First name is required' : '',
+        lastName: !form.lastName.trim() ? 'Last name is required' : '',
         organization: !form.organization?.trim()
-          ? "Organization is required"
-          : "",
+          ? 'Organization is required'
+          : '',
         paypal: form.paypal
           ? !isValidEmail(form.paypal)
-            ? "Please enter a valid PayPal email"
-            : ""
-          : "PayPal email is required",
+            ? 'Please enter a valid PayPal email'
+            : ''
+          : 'PayPal email is required',
       };
 
-      if (Object.values(newErrors).some((error) => error !== "")) {
+      if (Object.values(newErrors).some((error) => error !== '')) {
         setErrors(newErrors);
         return;
       }
 
-      await axios.put(
-        "http://localhost:5500/api/v1/seller-profile/update",
-        {
-          role: "seller",
-          name: form.firstName + " " + form.lastName,
-          organization: form.organization,
-          paypalEmail: form.paypal,
-        },
-        { withCredentials: true }
-      );
+      const payload: SellerProfileUpdateData = {
+        role: 'buyer',
+        firstName: form.firstName,
+        lastName: form.lastName,
+        name: `${form.firstName} ${form.lastName}`,
+        organization: form.organization || '',
+        paypalEmail: form.paypal || '',
+      };
+
+      const updatedProfile = await updateUserProfileAPI(payload);
+
+      setUser(updatedProfile);
 
       setIsEditing(false);
-      setErrors({ firstName: "", lastName: "", organization: "", paypal: "" });
-      alert("Profile updated successfully!");
+      setErrors({ firstName: '', lastName: '', organization: '', paypal: '' });
+      alert('Profile updated successfully!');
     } catch (error) {
-      console.error("Error updating user:", error);
-      alert("Failed to update profile");
+      console.error('Error updating user:', error);
+      alert('Failed to update profile');
     }
   };
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const imageUrl = URL.createObjectURL(file);
-      setProfileImage(imageUrl);
+    if (!file) return;
 
+    try {
       const formData = new FormData();
-      formData.append("profileImage", file);
+      formData.append('role', 'buyer');
+      formData.append('profileImage', file);
 
-      try {
-        const res = await fetch(
-          "http://localhost:5500/api/v1/seller-profile/update",
-          {
-            method: "PUT",
-            body: formData,
-            credentials: "include",
-          }
-        );
+      const updatedProfile = await updateUserProfileAPI(formData);
 
-        if (!res.ok) throw new Error("Upload failed");
-        const data = await res.json();
-        console.log("✅ Upload success:", data);
+      setProfileImage(updatedProfile.profileImage);
+      setUser(updatedProfile);
 
-        if (data.imageUrl) {
-          setProfileImage(data.imageUrl);
-        }
-      } catch (err) {
-        console.error("❌ Upload error:", err);
-      }
+      alert('Profile image updated sccessfully');
+    } catch (error) {
+      console.error('Upload error: ', error);
+      alert('Failed to upload image');
     }
   };
 
   const handlePasswordChange = async () => {
     if (!newPassword.trim()) {
-      alert("Please enter a new password");
+      alert('Please enter a new password');
       return;
     }
 
     try {
       await axios.put(
-        "http://localhost:5500/api/v1/auth/update-password",
+        'http://localhost:5500/api/v1/auth/update-password',
         { newPassword },
-        { withCredentials: true }
+        { withCredentials: true },
       );
-      alert("Password updated successfully!");
+      alert('Password updated successfully!');
       setShowRetype(false);
-      setNewPassword("");
-      router.push("/login");
+      setNewPassword('');
+      router.push('/login');
     } catch (error) {
-      console.error("Error updating password:", error);
-      alert("Failed to update password");
+      console.error('Error updating password:', error);
+      alert('Failed to update password');
     }
   };
 
@@ -222,7 +211,7 @@ export default function BuyerSettingsPage() {
             onClick={() => fileInputRef.current?.click()}
           >
             <LuImagePlus className="w-4 h-4" />
-            {profileImage ? "Change" : "Upload"}
+            {profileImage ? 'Change' : 'Upload'}
           </button>
           {profileImage && (
             <button
@@ -245,8 +234,8 @@ export default function BuyerSettingsPage() {
               onChange={handleChange}
               readOnly={!isEditing}
               className={`w-full border rounded px-3 py-2 ${
-                !isEditing ? "bg-gray-100 cursor-not-allowed" : ""
-              } ${errors.firstName ? "border-red-500" : ""}`}
+                !isEditing ? 'bg-gray-100 cursor-not-allowed' : ''
+              } ${errors.firstName ? 'border-red-500' : ''}`}
             />
             {errors.firstName && (
               <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>
@@ -260,8 +249,8 @@ export default function BuyerSettingsPage() {
               onChange={handleChange}
               readOnly={!isEditing}
               className={`w-full border rounded px-3 py-2 ${
-                !isEditing ? "bg-gray-100 cursor-not-allowed" : ""
-              } ${errors.lastName ? "border-red-500" : ""}`}
+                !isEditing ? 'bg-gray-100 cursor-not-allowed' : ''
+              } ${errors.lastName ? 'border-red-500' : ''}`}
             />
             {errors.lastName && (
               <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>
@@ -271,11 +260,11 @@ export default function BuyerSettingsPage() {
             <label className="block font-medium mb-1">Organization</label>
             <input
               name="organization"
-              value={form.organization || ""}
+              value={form.organization || ''}
               onChange={handleChange}
               placeholder="Enter your organization"
               className={`w-full border rounded px-3 py-2 ${
-                errors.organization ? "border-red-500" : ""
+                errors.organization ? 'border-red-500' : ''
               }`}
             />
             {errors.organization && (
@@ -341,7 +330,7 @@ export default function BuyerSettingsPage() {
                     className="px-4 py-1 rounded bg-gray-200 hover:bg-gray-300"
                     onClick={() => {
                       setShowRetype(false);
-                      setNewPassword("");
+                      setNewPassword('');
                     }}
                   >
                     Cancel
@@ -360,12 +349,12 @@ export default function BuyerSettingsPage() {
           <label className="block font-medium mb-1">Paypal Email</label>
           <input
             name="paypal"
-            value={form.paypal || ""}
+            value={form.paypal || ''}
             onChange={handleChange}
             type="email"
             placeholder="Enter your PayPal email"
             className={`w-full border rounded px-3 py-2 ${
-              errors.paypal ? "border-red-500" : ""
+              errors.paypal ? 'border-red-500' : ''
             }`}
           />
           {errors.paypal && (
@@ -388,7 +377,7 @@ export default function BuyerSettingsPage() {
             }
           }}
         >
-          {isEditing ? "Cancel" : "Update"}
+          {isEditing ? 'Cancel' : 'Update'}
         </button>
 
         {isEditing && (

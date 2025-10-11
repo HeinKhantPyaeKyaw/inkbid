@@ -3,15 +3,15 @@ import axios from 'axios';
 
 const API_BASE_URL = 'http://localhost:5500/api/v1/seller-profile';
 
-export const getSellerProfileAPI = async (sellerId: string) => {
-  const res = await axios.get(`${API_BASE_URL}/${sellerId}`, {
+export const getUserProfileAPI = async (userId: string) => {
+  const res = await axios.get(`${API_BASE_URL}/${userId}`, {
     withCredentials: true,
   });
 
   return res.data.profile;
 };
 
-export const updateSellerProfileAPI = async (
+export const updateUserProfileAPI = async (
   data: SellerProfileUpdateData | FormData,
 ) => {
   try {
@@ -28,7 +28,7 @@ export const updateSellerProfileAPI = async (
       // If it's not already FormData, append fields manually
       if (!(data instanceof FormData)) {
         Object.entries(data).forEach(([key, value]) => {
-          if (value !== undefined || value !== null) {
+          if (value !== undefined && value !== null) {
             formData.append(key, value as string | Blob);
           }
         });
@@ -44,7 +44,7 @@ export const updateSellerProfileAPI = async (
     });
     return res.data.profile;
   } catch (error) {
-    console.error('Error updating seller profile', error);
+    console.error('Error updating user profile', error);
     throw error;
   }
 };

@@ -1,15 +1,13 @@
 'use client';
 
 import { useAuth } from '@/context/auth/AuthContext';
-import { updateSellerProfileAPI } from '@/hooks/sellerProfile.api';
+import { updateUserProfileAPI } from '@/hooks/userProfile.api';
 import { SellerProfileUpdateData } from '@/interfaces/seller-profile-interface/seller-profile-types';
-import axios from 'axios';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { FaRegUserCircle } from 'react-icons/fa';
 import { FiTrash2 } from 'react-icons/fi';
 import { LuImagePlus } from 'react-icons/lu';
-import { NavbarPrimary } from '../components/navbar/navbar_primary';
 
 interface SellerForm {
   firstName: string;
@@ -108,7 +106,7 @@ export default function SellerSettingPage() {
         writingStyle: form.writingStyle || '',
       };
 
-      const updatedProfile = await updateSellerProfileAPI(payload);
+      const updatedProfile = await updateUserProfileAPI(payload);
 
       setUser(updatedProfile);
 
@@ -136,7 +134,7 @@ export default function SellerSettingPage() {
       formData.append('role', 'seller');
       formData.append('profileImage', file);
 
-      const updatedProfile = await updateSellerProfileAPI(formData);
+      const updatedProfile = await updateUserProfileAPI(formData);
 
       setProfileImage(updatedProfile.profileImage);
       setUser(updatedProfile);
@@ -315,44 +313,3 @@ export default function SellerSettingPage() {
     </main>
   );
 }
-
-// await axios.put(
-//   'http://localhost:5500/api/v1/seller-profile/update',
-//   {
-//     role: 'seller',
-//     name: form.firstName + ' ' + form.lastName,
-//     specialization: form.specialization,
-//     bio: form.bio,
-//     writingStyle: form.writingStyle,
-//   },
-//   { withCredentials: true },
-// );
-
-// if (file) {
-//   const imageUrl = URL.createObjectURL(file);
-//   setProfileImage(imageUrl);
-
-//   const formData = new FormData();
-//   formData.append('profileImage', file);
-
-//   try {
-//     const res = await fetch(
-//       'http://localhost:5500/api/v1/seller-profile/update',
-//       {
-//         method: 'PUT',
-//         body: formData,
-//         credentials: 'include',
-//       },
-//     );
-
-//     if (!res.ok) throw new Error('Upload failed');
-//     const data = await res.json();
-//     console.log('✅ Upload success:', data);
-
-//     if (data.imageUrl) {
-//       setProfileImage(data.imageUrl);
-//     }
-//   } catch (err) {
-//     console.error('❌ Upload error:', err);
-//   }
-// }
