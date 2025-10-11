@@ -1,13 +1,15 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useRef } from "react";
-import { NavbarPrimary } from "../components/navbar/navbar_primary";
-import { FiTrash2 } from "react-icons/fi";
-import { LuImagePlus } from "react-icons/lu";
-import { FaRegUserCircle } from "react-icons/fa";
-import axios from "axios";
-import { useAuth } from "@/context/auth/AuthContext";
-import { usePathname, useRouter } from "next/navigation";
+import { useAuth } from '@/context/auth/AuthContext';
+import { updateSellerProfileAPI } from '@/hooks/sellerProfile.api';
+import { SellerProfileUpdateData } from '@/interfaces/seller-profile-interface/seller-profile-types';
+import axios from 'axios';
+import { usePathname, useRouter } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
+import { FaRegUserCircle } from 'react-icons/fa';
+import { FiTrash2 } from 'react-icons/fi';
+import { LuImagePlus } from 'react-icons/lu';
+import { NavbarPrimary } from '../components/navbar/navbar_primary';
 
 interface SellerForm {
   firstName: string;
@@ -18,7 +20,7 @@ interface SellerForm {
 }
 
 export default function SellerSettingPage() {
-  const { user, loading } = useAuth();
+  const { user, loading, setUser } = useAuth();
   const router = useRouter();
   const path = usePathname();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -28,15 +30,15 @@ export default function SellerSettingPage() {
 
   const [isEditing, setIsEditing] = useState(false);
   const [errors, setErrors] = useState({
-    firstName: "",
-    lastName: "",
-    bio: "",
-    specialization: "",
-    writingStyle: "",
+    firstName: '',
+    lastName: '',
+    bio: '',
+    specialization: '',
+    writingStyle: '',
   });
   const [form, setForm] = useState<SellerForm>({
-    firstName: "",
-    lastName: "",
+    firstName: '',
+    lastName: '',
     bio: null,
     specialization: null,
     writingStyle: null,
@@ -44,119 +46,104 @@ export default function SellerSettingPage() {
 
   useEffect(() => {
     if (!loading && user) {
-      if (path.includes("/seller") && user?.role !== "seller") {
-        router.push("/buyersetting");
+      if (path.includes('/seller') && user?.role !== 'seller') {
+        router.push('/buyersetting');
       }
       setForm({
-        firstName: user.name?.split(" ")[0] || "",
-        lastName: user.name?.split(" ")[1] || "",
-        bio: user.bio || "",
-        specialization: user.specialization || "",
-        writingStyle: user.writingStyle || "",
+        firstName: user.name?.split(' ')[0] || '',
+        lastName: user.name?.split(' ')[1] || '',
+        bio: user.bio || '',
+        specialization: user.specialization || '',
+        writingStyle: user.writingStyle || '',
       });
 
-      //  Only set image if exists
-      if (user.profileImage && user.profileImage.trim() !== "") {
-        setProfileImage(user.profileImage);
-      } else {
-        setProfileImage(null);
-      }
+      setProfileImage(user.img_url || null);
     } else if (!loading && !user) {
-      router.push("/login");
+      router.push('/login');
     }
-  }, [user, loading]);
+  }, [user, loading, path, router]);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const editableFields = [
-      "bio",
-      "specialization",
-      "writingStyle",
-      "firstName",
-      "lastName",
+      'bio',
+      'specialization',
+      'writingStyle',
+      'firstName',
+      'lastName',
     ];
     if (editableFields.includes(e.target.name) && isEditing) {
       setForm({ ...form, [e.target.name]: e.target.value });
-      setErrors({ ...errors, [e.target.name]: "" });
+      setErrors({ ...errors, [e.target.name]: '' });
     }
   };
 
   const handleConfirm = async () => {
     try {
       const newErrors = {
-        firstName: !form.firstName.trim() ? "First name is required" : "",
-        lastName: !form.lastName.trim() ? "Last name is required" : "",
-        bio: !form.bio?.trim() ? "Bio is required" : "",
+        firstName: !form.firstName.trim() ? 'First name is required' : '',
+        lastName: !form.lastName.trim() ? 'Last name is required' : '',
+        bio: !form.bio?.trim() ? 'Bio is required' : '',
         specialization: !form.specialization?.trim()
-          ? "Specialization is required"
-          : "",
+          ? 'Specialization is required'
+          : '',
         writingStyle: !form.writingStyle?.trim()
-          ? "Writing style is required"
-          : "",
+          ? 'Writing style is required'
+          : '',
       };
 
-      if (Object.values(newErrors).some((error) => error !== "")) {
+      if (Object.values(newErrors).some((error) => error !== '')) {
         setErrors(newErrors);
         return;
       }
 
-      await axios.put(
-        "http://localhost:5500/api/v1/seller-profile/update",
-        {
-          role: "seller",
-          name: form.firstName + " " + form.lastName,
-          specialization: form.specialization,
-          bio: form.bio,
-          writingStyle: form.writingStyle,
-        },
-        { withCredentials: true }
-      );
+      const payload: SellerProfileUpdateData = {
+        role: 'seller',
+        firstName: form.firstName,
+        lastName: form.lastName,
+        name: `${form.firstName} ${form.lastName}`,
+        bio: form.bio || '',
+        specialization: form.specialization || '',
+        writingStyle: form.writingStyle || '',
+      };
+
+      const updatedProfile = await updateSellerProfileAPI(payload);
+
+      setUser(updatedProfile);
 
       setIsEditing(false);
       setErrors({
-        firstName: "",
-        lastName: "",
-        bio: "",
-        specialization: "",
-        writingStyle: "",
+        firstName: '',
+        lastName: '',
+        bio: '',
+        specialization: '',
+        writingStyle: '',
       });
-      alert("Updated successfully!");
+      alert('Updated successfully!');
     } catch (error) {
-      console.error("Error updating:", error);
-      alert("Update failed");
+      console.error('Error updating:', error);
+      alert('Update failed');
     }
   };
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const imageUrl = URL.createObjectURL(file);
-      setProfileImage(imageUrl);
+    if (!file) return;
 
+    try {
       const formData = new FormData();
-      formData.append("profileImage", file);
+      formData.append('role', 'seller');
+      formData.append('profileImage', file);
 
-      try {
-        const res = await fetch(
-          "http://localhost:5500/api/v1/seller-profile/update",
-          {
-            method: "PUT",
-            body: formData,
-            credentials: "include",
-          }
-        );
+      const updatedProfile = await updateSellerProfileAPI(formData);
 
-        if (!res.ok) throw new Error("Upload failed");
-        const data = await res.json();
-        console.log("✅ Upload success:", data);
-
-        if (data.imageUrl) {
-          setProfileImage(data.imageUrl);
-        }
-      } catch (err) {
-        console.error("❌ Upload error:", err);
-      }
+      setProfileImage(updatedProfile.profileImage);
+      setUser(updatedProfile);
+      alert('Profile image updated');
+    } catch (error) {
+      console.error('Upload error: ', error);
+      alert('Upload failed');
     }
   };
 
@@ -199,7 +186,7 @@ export default function SellerSettingPage() {
               onClick={() => fileInputRef.current?.click()}
             >
               <LuImagePlus className="w-4 h-4" />
-              {profileImage ? "Change" : "Upload"}
+              {profileImage ? 'Change' : 'Upload'}
             </button>
             {profileImage && (
               <button
@@ -223,9 +210,9 @@ export default function SellerSettingPage() {
               onChange={handleChange}
               readOnly={!isEditing}
               className={`w-full border ${
-                errors.firstName ? "border-red-500" : "border-gray-300"
+                errors.firstName ? 'border-red-500' : 'border-gray-300'
               } px-3 py-2 rounded ${
-                !isEditing ? "bg-gray-100 cursor-not-allowed" : ""
+                !isEditing ? 'bg-gray-100 cursor-not-allowed' : ''
               }`}
               type="text"
             />
@@ -241,9 +228,9 @@ export default function SellerSettingPage() {
               onChange={handleChange}
               readOnly={!isEditing}
               className={`w-full border ${
-                errors.lastName ? "border-red-500" : "border-gray-300"
+                errors.lastName ? 'border-red-500' : 'border-gray-300'
               } px-3 py-2 rounded ${
-                !isEditing ? "bg-gray-100 cursor-not-allowed" : ""
+                !isEditing ? 'bg-gray-100 cursor-not-allowed' : ''
               }`}
               type="text"
             />
@@ -257,12 +244,12 @@ export default function SellerSettingPage() {
           <label className="block text-sm font-medium mb-1">Bio</label>
           <textarea
             name="bio"
-            value={form.bio || ""}
+            value={form.bio || ''}
             onChange={handleChange}
             placeholder="Enter your bio..."
             rows={5}
             className={`w-full border ${
-              errors.bio ? "border-red-500" : "border-gray-300"
+              errors.bio ? 'border-red-500' : 'border-gray-300'
             } px-3 py-2 rounded resize-none`}
           />
           {errors.bio && (
@@ -276,11 +263,11 @@ export default function SellerSettingPage() {
           </label>
           <input
             name="specialization"
-            value={form.specialization || ""}
+            value={form.specialization || ''}
             onChange={handleChange}
             placeholder="Enter your specialization..."
             className={`w-full border ${
-              errors.specialization ? "border-red-500" : "border-gray-300"
+              errors.specialization ? 'border-red-500' : 'border-gray-300'
             } px-3 py-2 rounded`}
             type="text"
           />
@@ -295,11 +282,11 @@ export default function SellerSettingPage() {
           </label>
           <input
             name="writingStyle"
-            value={form.writingStyle || ""}
+            value={form.writingStyle || ''}
             onChange={handleChange}
             placeholder="Enter your writing style..."
             className={`w-full border ${
-              errors.writingStyle ? "border-red-500" : "border-gray-300"
+              errors.writingStyle ? 'border-red-500' : 'border-gray-300'
             } px-3 py-2 rounded`}
             type="text"
           />
@@ -313,7 +300,7 @@ export default function SellerSettingPage() {
             className="bg-blue-900 text-white font-medium px-6 py-2 rounded hover:opacity-90"
             onClick={() => setIsEditing(!isEditing)}
           >
-            {isEditing ? "Cancel" : "Update"}
+            {isEditing ? 'Cancel' : 'Update'}
           </button>
           {isEditing && (
             <button
@@ -328,3 +315,44 @@ export default function SellerSettingPage() {
     </main>
   );
 }
+
+// await axios.put(
+//   'http://localhost:5500/api/v1/seller-profile/update',
+//   {
+//     role: 'seller',
+//     name: form.firstName + ' ' + form.lastName,
+//     specialization: form.specialization,
+//     bio: form.bio,
+//     writingStyle: form.writingStyle,
+//   },
+//   { withCredentials: true },
+// );
+
+// if (file) {
+//   const imageUrl = URL.createObjectURL(file);
+//   setProfileImage(imageUrl);
+
+//   const formData = new FormData();
+//   formData.append('profileImage', file);
+
+//   try {
+//     const res = await fetch(
+//       'http://localhost:5500/api/v1/seller-profile/update',
+//       {
+//         method: 'PUT',
+//         body: formData,
+//         credentials: 'include',
+//       },
+//     );
+
+//     if (!res.ok) throw new Error('Upload failed');
+//     const data = await res.json();
+//     console.log('✅ Upload success:', data);
+
+//     if (data.imageUrl) {
+//       setProfileImage(data.imageUrl);
+//     }
+//   } catch (err) {
+//     console.error('❌ Upload error:', err);
+//   }
+// }

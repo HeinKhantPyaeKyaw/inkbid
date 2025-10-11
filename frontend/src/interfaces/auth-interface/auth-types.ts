@@ -3,8 +3,9 @@ export interface UserProfile {
   id: string;
   email: string;
   name: string;
-  role: "buyer" | "seller";
+  role: 'buyer' | 'seller';
   profileImage?: string;
+  img_url?: string;
   organization?: string;
   bio?: string;
   paypalEmail?: string;
@@ -18,4 +19,5 @@ export interface AuthContextType {
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  setUser: React.Dispatch<React.SetStateAction<UserProfile | null>>;
 }
