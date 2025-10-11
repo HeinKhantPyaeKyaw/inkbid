@@ -31,6 +31,14 @@ const buyerInventorySchema = new mongoose.Schema(
       enum: ['pending', 'paid', 'failed'],
       default: 'paid',
     },
+    contractUrl: {
+      type: String,
+      default: null,
+    },
+    articleUrl: {
+      type: String,
+      default: null,
+    },
   },
   { timestamps: true },
 );

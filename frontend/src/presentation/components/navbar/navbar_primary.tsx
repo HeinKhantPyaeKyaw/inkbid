@@ -44,7 +44,7 @@ export const NavbarPrimary = ({ user, userId }: INavBarPrimaryProps) => {
           {
             label: 'Log Out',
             icon: faRightFromBracket,
-            href: '/logout',
+            // href: '/logout',
             action: handleLogout,
             indent: 3,
           },
@@ -66,12 +66,12 @@ export const NavbarPrimary = ({ user, userId }: INavBarPrimaryProps) => {
           {
             label: 'Log Out',
             icon: faRightFromBracket,
-            href: '/logout',
+            // href: '/logout',
             action: handleLogout,
             indent: 3,
           },
         ]
-      : pathname.startsWith('/dashboard/buyer-dashboard')
+      : pathname.startsWith('/dashboard')
       ? [
           {
             label: 'Product',
@@ -83,7 +83,7 @@ export const NavbarPrimary = ({ user, userId }: INavBarPrimaryProps) => {
           {
             label: 'Log Out',
             icon: faRightFromBracket,
-            href: '/logout',
+            // href: '/logout',
             action: handleLogout,
             indent: 3,
           },
@@ -105,7 +105,7 @@ export const NavbarPrimary = ({ user, userId }: INavBarPrimaryProps) => {
           {
             label: 'Log Out',
             icon: faRightFromBracket,
-            href: '/logout',
+            // href: '/logout',
             action: handleLogout,
             indent: 4,
           },
@@ -276,27 +276,49 @@ export const NavbarPrimary = ({ user, userId }: INavBarPrimaryProps) => {
           {showDropdown && (
             <div className="absolute right-0 mt-3 w-48 rounded-lg z-50 py-2">
               {user === 'buyer'
-                ? dropdownItemsBuyer.map((item) => (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className={`flex items-center gap-3 pl-8 px-4 mb-4 rounded-full border-2 border-primary bg-white py-2 hover:bg-gray-100 transition ${
-                        item.indent === 1
-                          ? 'mr-2 ml-4'
-                          : item.indent === 2
-                          ? 'mr-8'
-                          : item.indent === 3
-                          ? 'mr-10 ml-2'
-                          : 'mr-0 ml-12' // fallback for indent 4
-                      }`}
-                    >
-                      <FontAwesomeIcon
-                        icon={item.icon}
-                        className="text-gray-600"
-                      />
-                      <span className="text-gray-800">{item.label}</span>
-                    </Link>
-                  ))
+                ? dropdownItemsBuyer.map((item, index) =>
+                    item.action ? (
+                      <button
+                        key={index}
+                        onClick={item.action}
+                        className={`flex items-center gap-3 pl-8 px-4 mb-4 rounded-full border-2 border-primary bg-white py-2 hover:bg-gray-100 transition ${
+                          item.indent === 1
+                            ? 'mr-2 ml-4'
+                            : item.indent === 2
+                            ? 'mr-8'
+                            : item.indent === 3
+                            ? 'mr-10 ml-2'
+                            : 'mr-0 ml-12'
+                        }`}
+                      >
+                        <FontAwesomeIcon
+                          icon={item.icon}
+                          className="text-gray-600"
+                        />
+                        <span className="text-gray-800">{item.label}</span>
+                      </button>
+                    ) : (
+                      <Link
+                        key={item.href || index} // fallback key to avoid duplicate warning
+                        href={item.href!} // '!' tells TS it’s not undefined here
+                        className={`flex items-center gap-3 pl-8 px-4 mb-4 rounded-full border-2 border-primary bg-white py-2 hover:bg-gray-100 transition ${
+                          item.indent === 1
+                            ? 'mr-2 ml-4'
+                            : item.indent === 2
+                            ? 'mr-8'
+                            : item.indent === 3
+                            ? 'mr-10 ml-2'
+                            : 'mr-0 ml-12'
+                        }`}
+                      >
+                        <FontAwesomeIcon
+                          icon={item.icon}
+                          className="text-gray-600"
+                        />
+                        <span className="text-gray-800">{item.label}</span>
+                      </Link>
+                    ),
+                  )
                 : dropdownItemsSeller.map((item) =>
                     item.action ? (
                       <button

@@ -2,8 +2,10 @@ import mongoose from 'mongoose';
 import Article from '../schemas/article.schema.js';
 import Bid from '../schemas/bids.schema.js';
 import BuyerInventory from '../schemas/buyer-inventory.schema.js';
-import User from '../schemas/user.schema.js';
 import Contract from '../schemas/contract.schema.js';
+import User from '../schemas/user.schema.js';
+import { uploadPDFToFirebase } from '../utils/firebase/uploadToFirebase.js';
+import { generateContractPDF } from '../utils/pdf/contractGenerator.js';
 
 // Normalize Decimal128 values to plain JS numbers
 function normalizeArticle(article) {
@@ -83,6 +85,9 @@ export const getBuyerArticles = async (req, res) => {
         currentBid: Number(article.highest_bid ?? 0),
         timeRemaining: timeRemaining,
         status: article.status,
+        author: {
+          name: article.author.name || 'Unknown',
+        },
       };
     });
 
@@ -241,13 +246,41 @@ export const proceedPayment = async (req, res) => {
       buyer: buyerId,
       article: articleId,
       status: 'awaiting_payment',
+    }).populate('buyer author');
+
+    if (!existingContract) {
+      return res
+        .status(404)
+        .json({ success: false, error: 'Contract not found' });
+    }
+
+    existingContract.status = 'finalized';
+    existingContract.purchasedDate = new Date();
+
+    const pdfBuffer = await generateContractPDF({
+      articleTitle: article.title,
+      buyerName: existingContract.buyer.name,
+      authorName: existingContract.author.name,
+      finalPrice: article.highest_bid,
+      contractPeriod: existingContract.contractPeriod,
+      agreementDate: existingContract.agreementDate,
+      purchasedDate: existingContract.purchasedDate,
+      terms: existingContract.terms,
     });
 
-    if (existingContract) {
-      existingContract.status = 'finalized';
-      existingContract.purchasedDate = new Date();
-      await existingContract.save();
-    }
+    const pdfUrl = await uploadPDFToFirebase(
+      pdfBuffer,
+      `contract-${article.id}-${buyerId}`,
+    );
+
+    existingContract.contractUrl = pdfUrl;
+    await existingContract.save();
+
+    // if (existingContract) {
+    //   existingContract.status = 'finalized';
+    //   existingContract.purchasedDate = new Date();
+    //   await existingContract.save();
+    // }
 
     const period = existingContract.contractPeriod || '30 Days';
     const newInventory = new BuyerInventory({
@@ -257,6 +290,8 @@ export const proceedPayment = async (req, res) => {
       contractPeriod: period, // FIXME: Contract Duration might be added later. article.duration is not right.
       contractStatus: 'active',
       paymentStatus: 'paid',
+      contractUrl: pdfUrl,
+      articleUrl: article.article_url || null,
     });
 
     await newInventory.save();
@@ -269,7 +304,11 @@ export const proceedPayment = async (req, res) => {
       success: true,
       message: 'Payment processed, article moved to inventory',
       inventory: populatedInventory,
-      contract: existingContract || null,
+      contract: {
+        id: existingContract._id,
+        url: existingContract.contractUrl,
+        status: existingContract.status,
+      },
     });
   } catch (err) {
     console.error('Error processing payment: ', err);
@@ -277,22 +316,62 @@ export const proceedPayment = async (req, res) => {
   }
 };
 
+// --------------------- Download Contract --------------------------
+
 export const downloadContract = async (req, res) => {
   try {
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', 'attachment; filename=contract.pdf');
-    res.send(Buffer.from('%PDF-1.4 ...mock contract...'));
+    const { buyerId, inventoryId } = req.params;
+
+    const inventory = await BuyerInventory.findOne({
+      _id: inventoryId,
+      buyer: buyerId,
+    }).lean();
+
+    if (!inventory) {
+      return res
+        .status(404)
+        .json({ success: false, error: 'Inventory not found' });
+    }
+
+    if (!inventory.contractUrl) {
+      return res
+        .status(404)
+        .json({ success: false, error: 'No contract file found' });
+    }
+
+    // return res.redirect(inventory.contractUrl);
+    return res.status(200).json({ success: true, url: inventory.contractUrl });
   } catch (err) {
     console.error('Error downloading contract: ', err);
     return res.status(500).json({ success: false, error: 'Server error' });
   }
 };
 
+// --------------------- Download Article ------------------------------
+
 export const downloadArticle = async (req, res) => {
   try {
-    res.setHeader('Content-type', 'application/pdf');
-    res.setHeader('Content-disposition', 'attachment; filename=article.pdf');
-    res.send(Buffer.from('%PDF-1.4 ...mock article...'));
+    const { buyerId, inventoryId } = req.params;
+
+    const inventory = await BuyerInventory.findOne({
+      _id: inventoryId,
+      buyer: buyerId,
+    }).lean();
+
+    if (!inventory) {
+      return res
+        .status(404)
+        .json({ success: false, error: 'Inventory not found' });
+    }
+
+    if (!inventory.articleUrl) {
+      return res
+        .status(404)
+        .json({ success: false, error: 'No article file found' });
+    }
+
+    // return res.redirect(inventory.articleUrl);
+    return res.status(200).json({ success: true, url: inventory.articleUrl });
   } catch (err) {
     console.error('Error downloading article: ', err);
     return res.status(500).json({ success: false, error: 'Server error' });

@@ -33,7 +33,13 @@ def normalize_szegedai(raw_result: dict) -> dict:
     """
     Convert SzegedAI HTML-like result into {ai_score, human_score}.
     """
-    result_str = raw_result.get("result", "")
+    result_raw = raw_result.get("result", "")
+
+  # ✅ Handle tuple outputs from Gradio
+    if isinstance(result_raw, tuple):
+        result_str = " ".join(str(item) for item in result_raw if item)
+    else:
+        result_str = str(result_raw)
 
     # Extract percentage number (e.g., 95.70)
     match = re.search(r"(\d+\.?\d*)%", result_str)

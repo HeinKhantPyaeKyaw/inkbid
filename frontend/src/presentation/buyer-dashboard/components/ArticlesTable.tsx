@@ -1,7 +1,9 @@
 'use client';
+import { useAuth } from '@/context/auth/AuthContext';
 import { useBuyerDashboardAPI } from '@/hooks/buyer-dashboard-hooks/buyer-dashboard.api';
 import {
   ArticleTableItems,
+  ContractArticle,
   InventoryTableItems,
 } from '@/interfaces/buyer-dashboard-interface/buyer-dashboard-types';
 import {
@@ -9,7 +11,9 @@ import {
   InventoryTableStatus,
 } from '@/interfaces/buyer-dashboard-interface/status-types';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { toast } from 'react-hot-toast';
 import { SlOptions } from 'react-icons/sl';
+import ContractModal from './ContractModal';
 import Pagination from './Pagination';
 
 const TableHead = [
@@ -45,6 +49,17 @@ const ArticleTable = ({
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // State to track selected article and modal visibility
+  const [selectedArticle, setSelectedArticle] =
+    useState<ContractArticle | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // To track modal's "Agree" button is loading
+  const [signing, setSigning] = useState(false);
+
+  const { user } = useAuth();
+  const buyerName = user?.name ?? 'Buyer';
+
   const { signContractAPI, proceedPaymentAPI } = useBuyerDashboardAPI();
 
   const rowsToShow = useMemo(() => {
@@ -74,23 +89,50 @@ const ArticleTable = ({
 
   // Action Button{Sign Contract & Proceed with payment}
   const handleSignContract = async (id: string) => {
-    setLoadingAction(id);
-    setError(null);
+    const foundArticle = data.find((item) => item.id === id);
+
+    if (!foundArticle) return;
+    const articleForContract: ContractArticle = {
+      _id: foundArticle.id,
+      title: foundArticle.title,
+      highest_bid: foundArticle.currentBid,
+      author: { name: foundArticle.author.name },
+    };
+    setSelectedArticle(articleForContract);
+    setIsModalOpen(true);
+    setOpenDropdown(null);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedArticle(null);
+  };
+
+  // Handle "Agree" button click
+  const handleAgreeContract = async () => {
+    if (!selectedArticle) return;
+    setSigning(true);
+
     try {
-      await signContractAPI(id);
+      const res = await signContractAPI(selectedArticle._id);
+      console.log('Contract signed response: ', res);
+
       setArticlesTableData((prev) =>
-        prev.map((article) =>
-          article.id === id
-            ? { ...article, bidStatus: ArticleTableStatus.PENDING }
-            : article,
+        prev.map((a) =>
+          a.id === selectedArticle._id
+            ? { ...a, bidStatus: ArticleTableStatus.PENDING }
+            : a,
         ),
       );
+
+      toast.success('Contract Signed successfully');
+      setIsModalOpen(false);
+      setSelectedArticle(null);
     } catch (err) {
-      console.error('Failed to sign contract', err);
-      setError('Failed to sign contract. Please try again.');
+      console.error('Error signing contract: ', err);
+      toast.error('Failed to sign contract. Please try again.');
     } finally {
-      setLoadingAction(null);
-      setOpenDropdown(null);
+      setSigning(false);
     }
   };
 
@@ -285,6 +327,16 @@ const ArticleTable = ({
           })}
         </tbody>
       </table>
+
+      {/* ------------------------ Contract Modal ------------------------ */}
+      <ContractModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        article={selectedArticle}
+        buyerName={buyerName}
+        onAgree={handleAgreeContract}
+      />
+
       <div className="w-full flex justify-between items-center my-4 px-5">
         <div className="font-Montserrat text-lg">
           <p>
