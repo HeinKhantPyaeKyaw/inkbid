@@ -20,7 +20,14 @@ export const verifyAuth = async (req, res, next) => {
     }
 
     // Attach user info to the request
-    req.user = { ...user.toObject(), uid: decodedToken.uid };
+    req.user = {
+      ...(user.toObject ? user.toObject() : user),
+      _id: user._id, // keeps the raw ObjectId
+      id: String(user._id), // 👈 virtual string getter replacement
+      uid: decodedToken.uid,
+    };
+
+    // req.user = { ...user.toObject(), uid: decodedToken.uid };
 
     // ALlow the request to continue
     next();

@@ -1,8 +1,10 @@
-import mongoose from 'mongoose';
-import Article from '../schemas/article.schema.js';
-import Bid from '../schemas/bids.schema.js';
-import User from '../schemas/user.schema.js';
-import { uploadFileToFirebase } from '../services/firebaseupload.js';
+import mongoose from "mongoose";
+import Article from "../schemas/article.schema.js";
+import Bid from "../schemas/bids.schema.js";
+import { uploadFileToFirebase } from "../services/firebaseupload.js";
+import { scheduleOrRescheduleFinalize } from "../jobs/scheduleFinalize.js";
+import { notify } from "../services/notification.service.js";
+
 function normalizeArticle(article) {
   return {
     ...article,
@@ -22,10 +24,8 @@ function normalizeBid(bid) {
 export const getAllArticlesWithBids = async (req, res) => {
   try {
     const articles = await Article.find({
-      $and: [
-        { winner: { $exists: false } }, // no winner
-        { status: { $ne: 'awaiting_contract' } }, // not awaiting contract
-      ],
+      status: "in_progress",
+      $or: [{ winner: { $exists: false } }, { winner: null }],
     })
       .populate('author', 'name img_url rating') // ✅ get author info
       .lean();
@@ -62,15 +62,15 @@ export const getArticleWithBids = async (req, res) => {
     const { id } = req.params;
 
     const article = await Article.findById(id)
-      .populate('author', 'name img_url rating') // ✅ populate seller info
+      .populate("author", "name img_url rating") // ✅ populate seller info
       .lean();
 
     if (!article) {
-      return res.status(404).json({ error: 'Article not found' });
+      return res.status(404).json({ error: "Article not found" });
     }
 
     const bids = await Bid.findOne({ refId: article._id })
-      .populate('bids.ref_user', 'name email role')
+      .populate("bids.ref_user", "name email role")
       .lean();
 
     const topBids = bids
@@ -85,8 +85,8 @@ export const getArticleWithBids = async (req, res) => {
       bids: topBids,
     });
   } catch (err) {
-    console.error('Error fetching article with bids:', err);
-    res.status(500).json({ error: 'Server error' });
+    console.error("Error fetching article with bids:", err);
+    res.status(500).json({ error: "Server error" });
   }
 };
 
@@ -98,13 +98,13 @@ export const createArticle = async (req, res) => {
 
     // Validate the required fields
     if (!title || !synopsis || !category || !duration || !minimumBid) {
-      return res.status(400).json({ error: 'Missing required field.' });
+      return res.status(400).json({ error: "Missing required field." });
     }
 
     // Compute deadline
     const now = new Date();
     const deadline = new Date(
-      now.getTime() + Number(duration) * 24 * 60 * 60 * 1000,
+      now.getTime() + Number(duration) * 24 * 60 * 60 * 1000
     );
 
     // G real author ID from auth middleware
@@ -114,8 +114,8 @@ export const createArticle = async (req, res) => {
     const imageFile = req.files?.image ? req.files.image[0] : null;
     const articleFile = req.files?.article ? req.files.article[0] : null;
 
-    const imageUrl = await uploadFileToFirebase(imageFile, 'articles/imgs');
-    const articleUrl = await uploadFileToFirebase(articleFile, 'articles/pdfs');
+    const imageUrl = await uploadFileToFirebase(imageFile, "articles/imgs");
+    const articleUrl = await uploadFileToFirebase(articleFile, "articles/pdfs");
 
     // Create a new article object
     const newArticle = new Article({
@@ -125,7 +125,7 @@ export const createArticle = async (req, res) => {
       author: authorID,
       duration: mongoose.Types.Decimal128.fromString(duration.toString()),
       min_bid: mongoose.Types.Decimal128.fromString(minimumBid.toString()),
-      highest_bid: mongoose.Types.Decimal128.fromString('0.0'),
+      highest_bid: mongoose.Types.Decimal128.fromString("0.0"),
       ends_in: deadline,
       buy_now: buynowPrice
         ? mongoose.Types.Decimal128.fromString(buynowPrice.toString())
@@ -138,46 +138,83 @@ export const createArticle = async (req, res) => {
     // Save article to MongoDB
     await newArticle.save();
 
-    // Respond with success + saved article
+    // Enqueue or re-enqueue the finalize job right away
+    await scheduleOrRescheduleFinalize(newArticle);
+
     res.status(201).json({
-      message: 'Article created successfully',
+      message: "Article created successfully",
       article: newArticle,
     });
   } catch (err) {
-    console.error('Error creating article:', err);
-    res.status(500).json({ error: 'Server Error' });
+    console.error("Error creating article:", err);
+    res.status(500).json({ error: "Server Error" });
   }
 };
 
 export const buyNow = async (req, res) => {
   try {
     const buyer = req.user;
+    const buyerId = buyer?._id || buyer?.id;
     const { id } = req.params;
 
-    const article = await Article.findById(id);
+    const article = await Article.findById(id).populate("author");
     if (!article) {
       return res
         .status(404)
         .json({ success: false, message: 'Article not found' });
     }
 
-    // mark as bought
-    article.winner = buyer._id;
-    article.status = 'awaiting_contract'; // example status
+    // ✅ Update article as instantly won
+    article.winner = buyerId;
+    article.status = "awaiting_contract";
+    article.highest_bid = article.buy_now;
     await article.save();
 
-    // optional: add a "buy now" bid
-    const bidRecord = await Bid.findOne({ refId: article._id });
-    if (bidRecord) {
-      bidRecord.bids.push({
-        ref_user: buyer._id,
-        amount: article.buy_now,
-        timestamp: new Date(),
-      });
-      await bidRecord.save();
+    // ✅ Optional: record a "Buy Now" bid in the Bid doc
+    const now = new Date();
+    let bidRecord = await Bid.findOne({ refId: article._id });
+    const buyNowBid = {
+      ref_user: buyerId,
+      amount: article.buy_now,
+      timestamp: now,
+    };
+    if (!bidRecord) {
+      bidRecord = new Bid({ refId: article._id, bids: [buyNowBid] });
+    } else {
+      bidRecord.bids.push(buyNowBid);
     }
+    await bidRecord.save();
 
-    // ✅ sanitize Decimal128 → Number
+    // 🔔 Notifications
+    // 1️⃣ Notify Buyer — you won instantly (same as auction win)
+    await notify(buyerId, {
+      type: "win",
+      title: "🎉 You won instantly!",
+      message: `You purchased “${article.title}” for ฿${Number(
+        article.buy_now
+      )}. Please sign the contract to proceed.`,
+      target: {
+        kind: "article",
+        id: article._id,
+        url: `/dashboard/buyer/articles/${article._id}`,
+      },
+    });
+
+    // 2️⃣ Notify Seller — your article was bought
+    await notify(article.author._id || article.author.id, {
+      type: "winner_found",
+      title: "🏆 Your article was bought",
+      message: `“${article.title}” was purchased for ฿${Number(
+        article.buy_now
+      )}. Wait for the buyer to sign the contract.`,
+      target: {
+        kind: "article",
+        id: article._id,
+        url: `/dashboard/seller/articles/${article._id}`,
+      },
+    });
+
+    // ✅ Prepare clean response (convert Decimal128 → number)
     const responseArticle = {
       ...article.toObject(),
       highest_bid: parseFloat(article.highest_bid?.toString() || '0'),
@@ -194,4 +231,40 @@ export const buyNow = async (req, res) => {
     console.error('Error in buyNow:', err);
     return res.status(500).json({ success: false, message: 'Server error' });
   }
+};
+
+export const finalizeAuction = async (articleId) => {
+  const now = new Date();
+  const article = await Article.findById(articleId);
+  if (!article) return;
+
+  // already finalized / not in progress
+  if (article.status && article.status !== "in_progress") return;
+
+  // not yet expired
+  if (now < new Date(article.ends_in)) return;
+
+  // pick highest bid
+  const bidDoc = await Bid.findOne({ refId: article._id }).lean();
+  let highest = null;
+
+  if (bidDoc?.bids?.length) {
+    highest = [...bidDoc.bids].sort(
+      (a, b) => Number(b.amount) - Number(a.amount)
+    )[0];
+  }
+
+  if (highest) {
+    article.winner = highest.ref_user; // ObjectId of buyer
+    article.status = "awaiting_contract";
+    article.highest_bid = highest.amount;
+  } else {
+    article.status = "cancelled"; // or "expired_without_bids"
+  }
+
+  await article.save();
+
+  // optional: notify clients
+  // import { io } from "../server.js";
+  // io.emit("auctionFinalized", { articleId, status: article.status, winner: article.winner });
 };

@@ -176,7 +176,7 @@ export const NavbarPrimary = ({
         {
           label: 'Dashboard',
           icon: faChartLine,
-          href: '/dashboard',
+          href: '/dashboard/seller',
           indent: 2,
         },
         { label: 'Settings', icon: faCog, href: '/sellersetting', indent: 3 },

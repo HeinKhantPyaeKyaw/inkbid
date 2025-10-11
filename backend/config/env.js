@@ -8,4 +8,5 @@ export const {
   FIREBASE_PROJECT_ID,
   FIREBASE_CLIENT_EMAIL,
   FIREBASE_PRIVATE_KEY,
+  REDIS_URL,
 } = process.env;

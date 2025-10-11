@@ -10,6 +10,7 @@ import { IContent } from '../../../interfaces/content_detail/content_detail.doma
 import { NavbarPrimary } from '../../components/navbar/navbar_primary';
 import { ErrorToast } from '../components/ErrorToast';
 import { SuccessToast } from '../components/SuccessToast';
+import { useAuth } from '@/context/auth/AuthContext';
 
 export const ContentDetail = () => {
   // STATE
@@ -74,16 +75,17 @@ export const ContentDetail = () => {
   // COUNTDOWN
   const countdown = useCountdown(articleDetail?.ends_in || '');
   const parseCountdown = (countdownStr: string) => {
-    if (countdownStr === 'Expired')
-      return { days: '00', hours: '00', mins: '00' };
-    const parts = countdownStr.split(' ');
+    if (countdownStr === "Expired")
+      return { days: "00", hours: "00", mins: "00", secs: "00" };
+    const parts = countdownStr.split(" ");
     return {
-      days: parts[0] || '00',
-      hours: parts[2] || '00',
-      mins: parts[4] || '00',
+      days: parts[0] || "00",
+      hours: parts[2] || "00",
+      mins: parts[4] || "00",
+      secs: parts[6] || "00",
     };
   };
-  const { days, hours, mins } = parseCountdown(countdown);
+  const { days, hours, mins, secs } = parseCountdown(countdown);
 
   // PLACE BID
   const handlePlaceBid = async () => {
@@ -148,13 +150,15 @@ export const ContentDetail = () => {
     }
   };
 
+  const {user} = useAuth();
+
   //-------
   // RENDER
   //-------
 
   return (
     <div className="min-h-screen bg-secondary">
-      <NavbarPrimary user={'buyer'} />
+      <NavbarPrimary user={user?.role} userId={user?.id} />
 
       <div className="container mx-auto px-6 py-8 max-w-7xl">
         {/* IMAGE */}
@@ -345,6 +349,15 @@ export const ContentDetail = () => {
                     </div>
                     <div className="text-sm text-gray-600 font-Montserrat">
                       Mins
+                    </div>
+                  </div>
+                  <div className="text-2xl font-bold text-gray-400">:</div>
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-primary font-Forum">
+                      {secs}
+                    </div>
+                    <div className="text-sm text-gray-600 font-Montserrat">
+                      Secs
                     </div>
                   </div>
                 </div>
