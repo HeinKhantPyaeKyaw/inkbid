@@ -1,4 +1,5 @@
 'use client';
+import { useAuth } from '@/context/auth/AuthContext';
 import { useArticles } from '@/hooks/buyer-dashboard-hooks/useArticles';
 import { useInventory } from '@/hooks/buyer-dashboard-hooks/useInventory';
 import {
@@ -32,6 +33,7 @@ const BuyerDashboard = () => {
     setInventory,
   } = useInventory();
 
+  const { user } = useAuth();
   const isLoading = articlesLoading || inventoryLoading;
 
   /* ------------------------------------------------
@@ -95,7 +97,7 @@ const BuyerDashboard = () => {
 
   return (
     <div className="h-full bg-secondary">
-      <NavbarPrimary />
+      <NavbarPrimary user={user?.role} userId={user?.id} />
       <AnimatePresence mode="wait">
         {isLoading ? (
           <motion.div

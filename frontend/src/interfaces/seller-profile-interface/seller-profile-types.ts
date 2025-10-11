@@ -9,6 +9,19 @@ export interface SellerInfo {
   img_url?: string;
 }
 
+export interface SellerProfileUpdateData {
+  role?: 'seller' | 'buyer';
+  firstName?: string;
+  lastName?: string;
+  name?: string;
+  bio?: string;
+  specialization?: string;
+  writingStyle?: string;
+  organization?: string;
+  paypalEmail?: string;
+  profileImage?: File; // 🟩 For image uploads
+}
+
 export interface SellerProfileCarouselProps {
   header: string;
   body: string;

@@ -42,6 +42,14 @@ const userSchema = new mongoose.Schema(
       enum: ['buyer', 'seller'],
       default: 'buyer',
     },
+    paypalEmail: {
+      type: String,
+      required: false,
+      unique: true,
+      trim: true,
+      match: [/^\S+@\S+\.\S+$/],
+    },
+    organization: { type: String, required: false, trim: true, maxLength: 100 },
     rating: { type: Number, min: 0, max: 5, default: 0 }, // from $numberDouble
     img_url: { type: String, required: false, trim: true },
     specialization: { type: String, required: false, trim: true, default: '' },

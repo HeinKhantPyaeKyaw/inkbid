@@ -5,7 +5,6 @@ import { uploadProfilePicture } from '../services/firebaseupload.js';
 export const updateProfile = async (req, res) => {
   try {
     const userId = req.user._id;
-    const { bio, specialization, writingStyle } = req.body;
 
     let imageUrl = null;
 
@@ -13,11 +12,41 @@ export const updateProfile = async (req, res) => {
       imageUrl = await uploadProfilePicture(req.file);
     }
 
-    const updateFields = {
-      bio,
-      specialization,
-      writingStyle,
-    };
+    let updateFields = {};
+
+    if (req.body.role === 'seller') {
+      const firstName =
+        req.body.firstName || req.body.name?.split(' ')[0] || '';
+
+      const lastName = req.body.lastName || req.body.name?.split(' ')[1] || '';
+
+      const fullName = `${firstName} ${lastName}`.trim();
+
+      updateFields = {
+        firstName,
+        lastName,
+        name: fullName,
+        bio: req.body.bio,
+        specialization: req.body.specialization,
+        writingStyle: req.body.writingStyle,
+        paypalEmail: req.body.paypalEmail,
+      };
+    } else {
+      const firstName =
+        req.body.firstName || req.body.name?.split(' ')[0] || '';
+
+      const lastName = req.body.lastName || req.body.name?.split(' ')[1] || '';
+
+      const fullName = `${firstName} ${lastName}`.trim();
+
+      updateFields = {
+        firstName,
+        lastName,
+        name: fullName,
+        organization: req.body.organization,
+        paypalEmail: req.body.paypalEmail,
+      };
+    }
 
     if (imageUrl) {
       updateFields.img_url = imageUrl;
