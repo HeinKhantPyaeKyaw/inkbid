@@ -37,6 +37,8 @@ interface SellerArticleApi {
   status: string;
   author: { _id: string; name: string; email: string };
   winner?: { _id: string; name: string; email: string } | null;
+  buyerSigned?: boolean;
+  sellerSigned?: boolean;
 }
 
 interface SellerInventoryApi {
@@ -81,6 +83,9 @@ export const SellerDashboard = () => {
           winner: item.winner
             ? { _id: item.winner._id, name: item.winner.name }
             : null,
+          // ✅ include these two new fields from backend
+          buyerSigned: item.buyerSigned ?? false,
+          sellerSigned: item.sellerSigned ?? false,
         }))
       );
 

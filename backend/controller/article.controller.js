@@ -11,6 +11,8 @@ function normalizeArticle(article) {
     highest_bid: Number(article.highest_bid ?? 0),
     min_bid: Number(article.min_bid ?? 0),
     buy_now: Number(article.buy_now ?? 0),
+    buyerSigned: article.buyerSigned ?? false,
+    sellerSigned: article.sellerSigned ?? false,
   };
 }
 

@@ -96,8 +96,8 @@ const fetchPaginatedArticles = async ({
   const rows = items.map((a) => ({
     _id: a._id,
     title: a.title,
-    author: a.author,          // ✅ seller info
-    winner: a.winner || null,  // ✅ buyer info
+    author: a.author,
+    winner: a.winner || null,
     status: a.status,
     date: a.date,
     ends_in: a.ends_in,
@@ -106,6 +106,9 @@ const fetchPaginatedArticles = async ({
     current_bid: maxBidMap.get(String(a._id)) ?? toNum(a.highest_bid),
     buy_now: toNum(a.buy_now),
     img_url: a.img_url,
+    // ✅ include new fields
+    buyerSigned: a.buyerSigned ?? false,
+    sellerSigned: a.sellerSigned ?? false,
   }));
 
   return {
