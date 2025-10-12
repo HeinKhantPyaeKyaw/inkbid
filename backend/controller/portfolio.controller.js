@@ -1,19 +1,35 @@
-import { uploadFileToFirebase } from "../services/firebaseupload.js";
-import Portfolio from "../schemas/portfolio.schema.js";
+import Portfolio from '../schemas/portfolio.schema.js';
+import { uploadFileToFirebase } from '../services/firebaseupload.js';
 
 export const getAllPortfolio = async (req, res) => {
-  console.log("portfolio controller called");
+  console.log('portfolio controller called');
   try {
-    const results = await Portfolio.find({});
+    const { sellerId } = req.query;
+    console.log(req.query);
 
-    if (!results) {
-      return res.status(404).json({ error: "No portfolios found" });
+    let filter = {};
+
+    if (req.user && req.user.role === 'seller') {
+      console.log(req.user.id);
+      filter = { writer: req.user._id };
+    } else if (sellerId) {
+      filter = { writer: sellerId };
+    } else {
+      res.status(403).json({ error: 'Not authorized to see portfolios' });
+    }
+
+    const results = await Portfolio.find(filter)
+      .populate('writer', 'name email')
+      .sort({ createdAt: -1 });
+
+    if (!results || results.length === 0) {
+      return res.status(404).json({ error: 'No portfolios found' });
     }
 
     res.status(200).json(results);
   } catch (err) {
-    console.error("Error fetching portfolio:", err);
-    res.status(500).json({ error: "Server error" });
+    console.error('Error fetching portfolio:', err);
+    res.status(500).json({ error: 'Server error' });
   }
 };
 
@@ -24,13 +40,13 @@ export const createPortfolio = async (req, res) => {
 
     // Validate the required fields
     if (!title || !synopsis || !article || !publishMedium || !pdf) {
-      return res.status(400).json({ error: "Missing required field." });
+      return res.status(400).json({ error: 'Missing required field.' });
     }
 
     // G real author ID from auth middleware
     const authorID = req.user.id;
 
-    const pdfUrl = await uploadFileToFirebase(pdf, "portfolio/pdfs");
+    const pdfUrl = await uploadFileToFirebase(pdf, 'portfolio/pdfs');
 
     // Create a new article object
     const newPortfolio = new Portfolio({
@@ -48,12 +64,12 @@ export const createPortfolio = async (req, res) => {
     await newPortfolio.save();
 
     res.status(201).json({
-      message: "Portfolio created successfully",
+      message: 'Portfolio created successfully',
       article: newPortfolio,
     });
   } catch (err) {
-    console.error("Error creating portfolio:", err);
-    res.status(500).json({ error: "Server Error" });
+    console.error('Error creating portfolio:', err);
+    res.status(500).json({ error: 'Server Error' });
   }
 };
 
@@ -62,11 +78,11 @@ export const deletePortfolio = async (req, res) => {
     const portfolioId = req.params.id;
     const deletedPortfolio = await Portfolio.findByIdAndDelete(portfolioId);
     if (!deletedPortfolio) {
-      return res.status(404).json({ error: "Portfolio not found" });
+      return res.status(404).json({ error: 'Portfolio not found' });
     }
-    res.status(200).json({ message: "Portfolio deleted successfully" });
+    res.status(200).json({ message: 'Portfolio deleted successfully' });
   } catch (err) {
-    console.error("Error deleting portfolio:", err);
-    res.status(500).json({ error: "Server Error" });
+    console.error('Error deleting portfolio:', err);
+    res.status(500).json({ error: 'Server Error' });
   }
 };

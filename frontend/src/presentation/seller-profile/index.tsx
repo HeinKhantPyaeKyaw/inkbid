@@ -17,8 +17,6 @@ import SellerProfileCarousel from './components/SellerProfileCarousel';
 import WritingReviewSection from './components/WritingReviewSection';
 import { CarouselData, ReviewCardData } from './model';
 
-// FIXME: To fix seller info as user login. To implement setSellerInfo and setCarouselData.
-
 const SellerProfile = () => {
   const { user } = useAuth();
   const params = useParams();

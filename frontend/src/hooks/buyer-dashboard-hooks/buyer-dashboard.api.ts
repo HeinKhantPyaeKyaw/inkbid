@@ -5,6 +5,7 @@ import {
   RawArticle,
   RawInventory,
 } from '@/interfaces/buyer-dashboard-interface/buyer-dashboard-types';
+import { ArticleTableStatus } from '@/interfaces/buyer-dashboard-interface/status-types';
 import axios from 'axios';
 import { useCallback } from 'react';
 
@@ -45,14 +46,18 @@ export const useBuyerDashboardAPI = () => {
           yourBid: Number(item.yourBid ?? 0),
           currentBid: Number(item.currentBid ?? 0),
           timeRemaining: item.timeRemaining,
+          buyerSigned: item.buyerSigned ?? false,
+          sellerSigned: item.sellerSigned ?? false,
           bidStatus:
             item.status === 'in_progress'
-              ? 'In Progress'
+              ? ArticleTableStatus.INPROGRESS
               : item.status === 'awaiting_contract'
-              ? 'Won'
+              ? item.buyerSigned && !item.sellerSigned
+                ? ArticleTableStatus.WAITING
+                : ArticleTableStatus.WON
               : item.status === 'awaiting_payment'
-              ? 'Pending'
-              : 'Lost',
+              ? ArticleTableStatus.PENDING
+              : ArticleTableStatus.LOST,
           author: {
             name: item.author.name,
           },
@@ -195,3 +200,8 @@ export const useBuyerDashboardAPI = () => {
 //     throw error;
 //   }
 // };
+
+// ? 'Won'
+// : item.status === 'awaiting_payment'
+// ? 'Pending'
+// : 'Lost',

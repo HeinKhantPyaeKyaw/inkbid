@@ -118,12 +118,30 @@ const ArticleTable = ({
       const res = await buyerSignContractAPI(selectedArticle._id);
       console.log('Buyer contract signed: ', res);
 
+      // setArticlesTableData((prev) =>
+      //   prev.map((a) =>
+      //     a.id === selectedArticle._id
+      //       ? { ...a, bidStatus: ArticleTableStatus.PENDING }
+      //       : a,
+      //   ),
+      // );
       setArticlesTableData((prev) =>
-        prev.map((a) =>
-          a.id === selectedArticle._id
-            ? { ...a, bidStatus: ArticleTableStatus.PENDING }
-            : a,
-        ),
+        prev.map((a) => {
+          if (a.id !== selectedArticle._id) return a;
+
+          // Check actual backend response
+          const contract = res.contract;
+          if (contract?.buyerSigned && !contract?.sellerSigned) {
+            // Buyer signed first — waiting for seller
+            return { ...a, bidStatus: ArticleTableStatus.WAITING };
+          } else if (contract?.buyerSigned && contract?.sellerSigned) {
+            // Both signed — payment next
+            return { ...a, bidStatus: ArticleTableStatus.PENDING };
+          } else {
+            // Default fallback
+            return { ...a, bidStatus: a.bidStatus };
+          }
+        }),
       );
 
       toast.success(res.message || 'Contract signed successfully.');
@@ -212,6 +230,8 @@ const ArticleTable = ({
         return 'bg-[#F1F5FF] text-[#2D5BC2] py-1.5 rounded-full';
       case ArticleTableStatus.WON:
         return 'bg-[#EDFEF6] text-[#28674A] py-1.5 rounded-full';
+      case ArticleTableStatus.WAITING:
+        return 'bg-[#FFF6EA] text-[#A1661F] py-1.5 rounded-ful';
       case ArticleTableStatus.LOST:
         return 'bg-[#FFF3F4] text-[#90302C] py-1.5 rounded-full';
       case ArticleTableStatus.PENDING:
@@ -254,6 +274,12 @@ const ArticleTable = ({
                 </button>
               </div>
             )}
+          </div>
+        );
+      case ArticleTableStatus.WAITING:
+        return (
+          <div className="flex items-center justify-center text-[#A1661F]/80 text-sm font-medium italic">
+            Waiting for seller&apos;s signature
           </div>
         );
       case ArticleTableStatus.PENDING:
