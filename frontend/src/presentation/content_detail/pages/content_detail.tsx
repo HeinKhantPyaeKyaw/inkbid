@@ -363,9 +363,10 @@ export const ContentDetail = () => {
                 </div>
               </div>
 
-              {/* Bidding Actions */}
+              {user?.role === 'buyer' && (
+              // Bidding
               <div className="space-y-4">
-                {/* Quick Bids */}
+                {/* Quick Bid */}
                 <div className="flex gap-2 justify-center">
                   {[5.0, 2.0, 1.5].map((m) => (
                     <button
@@ -416,6 +417,7 @@ export const ContentDetail = () => {
                   </div>
                 </div>
               </div>
+              )}
             </div>
           </div>
         </div>

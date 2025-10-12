@@ -57,54 +57,55 @@ export const SellerDashboard = () => {
   const [error, setError] = useState<string | null>(null);
 
   // fetch data once when page loads
+  const fetchAll = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [articleRes, inventoryRes, summaryRes] = await Promise.all([
+        getSellerArticles({ page: 1, limit: 20 }),
+        getSellerInventory({ page: 1, limit: 20 }),
+        getSellerSummary(),
+      ]);
+
+      setArticles(
+        ((articleRes.items as SellerArticleApi[]) ?? []).map((item) => ({
+          id: item._id,
+          title: item.title,
+          buy_now: item.buy_now,
+          current_bid: item.current_bid,
+          ends_in: item.ends_in,
+          status: item.status,
+          author: item.author
+            ? { _id: item.author._id, name: item.author.name }
+            : { _id: "", name: "Unknown Seller" },
+          winner: item.winner
+            ? { _id: item.winner._id, name: item.winner.name }
+            : null,
+        }))
+      );
+
+      setInventory(
+        ((inventoryRes.items as SellerInventoryApi[]) ?? []).map((item) => ({
+          id: item._id,
+          title: item.title,
+          purchased_date: item.purchased_date,
+          contract_period: item.contract_period,
+          status: item.status,
+        }))
+      );
+
+      setSummary(summaryRes);
+    } catch (err) {
+      console.error("Seller dashboard load failed:", err);
+      setError("Failed to load data (check login or network)");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // fetch on mount
   useEffect(() => {
-    (async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const [articleRes, inventoryRes, summaryRes] = await Promise.all([
-          getSellerArticles({ page: 1, limit: 20 }),
-          getSellerInventory({ page: 1, limit: 20 }),
-          getSellerSummary(),
-        ]);
-
-        // backend gives paginated objects → we just want items
-        setArticles(
-          ((articleRes.items as SellerArticleApi[]) ?? []).map((item) => ({
-            id: item._id,
-            title: item.title,
-            buy_now: item.buy_now,
-            current_bid: item.current_bid,
-            ends_in: item.ends_in,
-            status: item.status,
-            author: item.author
-              ? { _id: item.author._id, name: item.author.name }
-              : { _id: '', name: 'Unknown Seller' },
-            winner: item.winner
-              ? { _id: item.winner._id, name: item.winner.name }
-              : null,
-          })),
-        );
-
-        setInventory(
-          ((inventoryRes.items as SellerInventoryApi[]) ?? []).map((item) => ({
-            id: item._id,
-            title: item.title,
-            purchased_date: item.purchased_date,
-            contract_period: item.contract_period,
-            status: item.status,
-          })),
-        );
-
-        setSummary(summaryRes);
-      } catch (err) {
-        console.error('Seller dashboard load failed:', err);
-        setError('Failed to load data (check login or network)');
-      } finally {
-        setLoading(false);
-      }
-    })();
+    fetchAll();
   }, []);
 
   return (
@@ -118,34 +119,35 @@ export const SellerDashboard = () => {
         {/* <EngagementSection /> */}
         <div className="grid grid-cols-4 gap-4 mt-4">
           <StatCard
-            title={'Total Article Bids In-Progress'}
-            value={summary?.in_progress || '-'}
+            title={"Total Article Bids In-Progress"}
+            value={summary?.in_progress || "-"}
             icon={faGavel}
           />
           <StatCard
-            title={'Total Articles Sold'}
-            value={summary?.completed || '-'}
+            title={"Total Articles Sold"}
+            value={summary?.completed || "-"}
             icon={faBoxArchive}
           />
           <StatCard
-            title={'Total Bids Awaiting Action'}
-            value={summary?.awaiting_contract || '-'}
+            title={"Total Bids Awaiting Action"}
+            value={summary?.awaiting_contract || "-"}
             icon={faEllipsis}
           />
           <StatCard
-            title={'Total Expired Contracts'}
-            value={summary?.expired || '-'}
+            title={"Total Expired Contracts"}
+            value={summary?.expired || "-"}
             icon={faTriangleExclamation}
           />
         </div>
         <ArticleTable
           items={articles}
-          onActionClick={(row) => console.log('Action for:', row)}
+          onActionClick={(row) => console.log("Action for:", row)}
+          onRefresh={fetchAll} // ✅ pass refetch down
         />
         <div className="h-[2px] w-[80%] bg-black my-[16px] self-center" />
         <InventoryTable
           items={inventory}
-          onActionClick={(row) => console.log('Action for:', row)}
+          onActionClick={(row) => console.log("Action for:", row)}
         />
       </div>
     </>
