@@ -27,13 +27,13 @@ export const getAllArticlesWithBids = async (req, res) => {
       status: "in_progress",
       $or: [{ winner: { $exists: false } }, { winner: null }],
     })
-      .populate("author", "name img_url rating") // ✅ get author info
+      .populate('author', 'name img_url rating') // ✅ get author info
       .lean();
 
     const results = await Promise.all(
       articles.map(async (article) => {
         const bids = await Bid.findOne({ refId: article._id })
-          .populate("bids.ref_user", "name email role")
+          .populate('bids.ref_user', 'name email role')
           .lean();
 
         const topBids = bids
@@ -47,13 +47,13 @@ export const getAllArticlesWithBids = async (req, res) => {
           ...normalizeArticle(article),
           bids: topBids,
         };
-      })
+      }),
     );
 
     res.status(200).json(results);
   } catch (err) {
-    console.error("Error fetching articles with bids:", err);
-    res.status(500).json({ error: "Server error" });
+    console.error('Error fetching articles with bids:', err);
+    res.status(500).json({ error: 'Server error' });
   }
 };
 
@@ -108,7 +108,7 @@ export const createArticle = async (req, res) => {
     );
 
     // G real author ID from auth middleware
-    const authorID = req.user.id;
+    const authorID = req.user._id;
 
     // Handle file uploads
     const imageFile = req.files?.image ? req.files.image[0] : null;
@@ -161,7 +161,7 @@ export const buyNow = async (req, res) => {
     if (!article) {
       return res
         .status(404)
-        .json({ success: false, message: "Article not found" });
+        .json({ success: false, message: 'Article not found' });
     }
 
     // ✅ Update article as instantly won
@@ -217,19 +217,19 @@ export const buyNow = async (req, res) => {
     // ✅ Prepare clean response (convert Decimal128 → number)
     const responseArticle = {
       ...article.toObject(),
-      highest_bid: parseFloat(article.highest_bid?.toString() || "0"),
-      min_bid: parseFloat(article.min_bid?.toString() || "0"),
-      buy_now: parseFloat(article.buy_now?.toString() || "0"),
+      highest_bid: parseFloat(article.highest_bid?.toString() || '0'),
+      min_bid: parseFloat(article.min_bid?.toString() || '0'),
+      buy_now: parseFloat(article.buy_now?.toString() || '0'),
     };
 
     return res.status(200).json({
       success: true,
-      message: "Article bought successfully",
+      message: 'Article bought successfully',
       article: responseArticle,
     });
   } catch (err) {
-    console.error("Error in buyNow:", err);
-    return res.status(500).json({ success: false, message: "Server error" });
+    console.error('Error in buyNow:', err);
+    return res.status(500).json({ success: false, message: 'Server error' });
   }
 };
 

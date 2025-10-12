@@ -10,6 +10,7 @@ import { IContent } from '../../../interfaces/content_detail/content_detail.doma
 import { NavbarPrimary } from '../../components/navbar/navbar_primary';
 import { ErrorToast } from '../components/ErrorToast';
 import { SuccessToast } from '../components/SuccessToast';
+import { useAuth } from '@/context/auth/AuthContext';
 
 export const ContentDetail = () => {
   // STATE
@@ -149,13 +150,15 @@ export const ContentDetail = () => {
     }
   };
 
+  const {user} = useAuth();
+
   //-------
   // RENDER
   //-------
 
   return (
     <div className="min-h-screen bg-secondary">
-      <NavbarPrimary user={'buyer'} />
+      <NavbarPrimary user={user?.role} userId={user?.id} />
 
       <div className="container mx-auto px-6 py-8 max-w-7xl">
         {/* IMAGE */}

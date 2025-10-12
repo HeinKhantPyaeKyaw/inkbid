@@ -44,7 +44,7 @@ export const NavbarSecondary = () => {
     {
       label: 'Product',
       icon: faScroll,
-      href: '/content',
+      href: '/',
       indent: 1,
     },
     {
@@ -53,7 +53,7 @@ export const NavbarSecondary = () => {
       href: '/dashboard/buyer-dashboard',
       indent: 2,
     },
-    { label: 'Settings', icon: faCog, href: '/settings', indent: 3 },
+    { label: 'Settings', icon: faCog, href: '/buyersetting', indent: 3 },
     {
       label: 'Log Out',
       icon: faRightFromBracket,

@@ -1,27 +1,29 @@
-import { Router } from 'express';
+import { Router } from "express";
 import {
   getMe,
   login,
   logout,
+  updatePassword,
   register,
-} from '../controller/auth.controller.js';
-import { verifyAuth } from '../middlewares/auth.middleware.js';
+} from "../controller/auth.controller.js";
+import { verifyAuth } from "../middlewares/auth.middleware.js";
 
 const authRouter = Router();
-authRouter.post('/register', register);
-authRouter.post('/login', login);
+authRouter.post("/register", register);
+authRouter.post("/login", login);
 
 // Test route with protected
-authRouter.get('/protected', verifyAuth, (req, res) => {
+authRouter.get("/protected", verifyAuth, (req, res) => {
   res.json({
-    message: 'You are logged in!',
+    message: "You are logged in!",
     user: req.user, // comes from middleware
   });
 });
 
-authRouter.get('/me', verifyAuth, getMe);
+authRouter.get("/me", verifyAuth, getMe);
+authRouter.put("/update-password", verifyAuth, updatePassword);
 
 // Placeholder for log-out route
-authRouter.post('/log-out', logout);
+authRouter.post("/log-out", logout);
 
 export default authRouter;

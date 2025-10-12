@@ -1,21 +1,18 @@
-// notification.service.js
 import Notification from "../schemas/notification.schema.js";
+import { getIO } from "../socket.js"; // ✅ use getIO, not initIO
 
-export async function notify(userId, payload) {
-  const notif = await Notification.create({
-    ref_user: userId,
-    ...payload,
-  });
-
+export const notify = async (userId, payload) => {
   try {
-    // Lazy import to avoid circular dependency
-    const { io } = await import("../server.js");
-    if (io) {
-      io.to(String(userId)).emit("notification", notif);
-    }
-  } catch (err) {
-    console.warn("⚠️ Socket emit skipped:", err.message);
-  }
+    const notif = await Notification.create({
+      ref_user: userId,
+      ...payload,
+    });
 
-  return notif;
-}
+    console.log("📢 Emitting to room:", String(userId));
+
+    const io = getIO(); // ✅ retrieve the existing io instance
+    io.to(String(userId)).emit("notification", notif); // ✅ emit correctly
+  } catch (err) {
+    console.error("❌ notify() error:", err);
+  }
+};

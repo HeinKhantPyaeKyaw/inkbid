@@ -5,6 +5,7 @@ import app from "./app.js";
 import { PORT } from "./config/env.js";
 import connectToDatabase from "./database/mongodb.js";
 import redisClient from "./config/redis.js";
+import { initIO } from "./socket.js";
 
 const server = http.createServer(app);
 let io;
@@ -14,7 +15,8 @@ try {
   console.log("✅ MongoDB connected");
 
   // 2) Socket.IO + Redis (pub/sub for live bid updates)
-  io = new Server(server, { cors: { origin: "*" } });
+  const io = initIO(server);
+
 
   const sub = redisClient.duplicate(); // node-redis v4 duplicate
   await sub.connect();
