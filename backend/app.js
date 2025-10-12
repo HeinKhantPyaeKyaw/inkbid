@@ -13,6 +13,7 @@ import sellerDashboardRouter from './routes/seller-dashboard.routes.js';
 import notificationRouter from "./routes/notification.routes.js";
 import userRouter from './routes/user.routes.js';
 import contractRouter from './routes/contract.routes.js';
+import notificationRoutes from "./routes/notification.routes.js";
 
 const app = express();
 app.use(
@@ -37,5 +38,6 @@ app.use("/api/v1/notifications", notificationRouter);
 app.use('/api/v1/contracts', contractRouter);
 app.use('/api/v1/', portfolioRouter);
 app.use(errorMiddleware);
+app.use("/api/v1/notifications", notificationRoutes);
 
 export default app;
