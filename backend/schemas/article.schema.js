@@ -7,7 +7,7 @@ const articleSchema = new mongoose.Schema(
     date: { type: Date, required: true }, // stored as MongoDB Date
     author: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      ref: "User",
       required: true,
     }, // seller reference
     duration: { type: mongoose.Schema.Types.Decimal128, required: true },
@@ -21,26 +21,38 @@ const articleSchema = new mongoose.Schema(
       default: 0.0,
     }, // from $numberDecimal
     buy_now: { type: mongoose.Schema.Types.Decimal128 },
-    winner: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // buyer reference
+    winner: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // buyer reference
     tag: {
       genre: [
         {
-          code: { type: mongoose.Schema.Types.ObjectId, ref: 'Genre' }, // genre reference
+          code: { type: mongoose.Schema.Types.ObjectId, ref: "Genre" }, // genre reference
           keyword: { type: String, trim: true },
         },
       ],
       writing_style: [
         {
-          code: { type: mongoose.Schema.Types.ObjectId, ref: 'WritingStyle' }, // writing style reference
+          code: { type: mongoose.Schema.Types.ObjectId, ref: "WritingStyle" }, // writing style reference
           keyword: { type: String, trim: true },
         },
       ],
     },
     img_url: { type: String, required: false, trim: true },
-    proprietor: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // final owner (after payment)
-    status: { type: String, enum: ['in_progress', 'awaiting_contract', 'awaiting_payment', 'completed', 'cancelled'], default: 'in_progress' },
+    proprietor: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // final owner (after payment)
+    status: {
+      type: String,
+      enum: [
+        "in_progress",
+        "awaiting_contract",
+        "awaiting_payment",
+        "completed",
+        "cancelled",
+      ],
+      default: "in_progress",
+    },
+    buyerSigned: { type: Boolean, default: false },
+    sellerSigned: { type: Boolean, default: false },
   },
-  { timestamps: true },
+  { timestamps: true }
 );
 
 const Article = mongoose.model('Article', articleSchema, 'Articles');
