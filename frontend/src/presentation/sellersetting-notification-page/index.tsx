@@ -1,29 +1,16 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
-import { FaBell, FaCog, FaLock, FaUser } from "react-icons/fa";
 import { FaTrash } from "react-icons/fa";
+import { io } from "socket.io-client";
+import { useAuth } from "@/context/auth/AuthContext";
+import {
+  getNotifications,
+  markNotificationRead,
+} from "@/hooks/notification.api"; // ✅ imported API functions
 
-const Sidebar = styled.div`
-  width: 250px;
-  background-color: #f4f4f4;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-`;
-
-const SidebarItem = styled.div`
-  padding: 10px 0;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  font-size: 16px;
-  &:hover {
-    background-color: #ddd;
-  }
-`;
-
+// ================== styled-components ==================
 const Content = styled.div`
   flex-grow: 1;
   padding: 20px;
@@ -58,79 +45,115 @@ const DeleteButton = styled.button`
   cursor: pointer;
 `;
 
+// ================== Interfaces ==================
 interface Notification {
-  date: string;
+  _id: string;
+  title: string;
   message: string;
+  type: string;
+  createdAt: string;
+  read: boolean;
 }
 
-const notifications: Notification[] = [
-  {
-    date: "Today",
-    message:
-      "We're pleased to inform you that you have successfully won the bid for 'The Haunting of...'",
-  },
-  {
-    date: "Today",
-    message:
-      'Your recent bid on the article "The Haunting of Beverly Hills" has been outbid.',
-  },
-  {
-    date: "Today",
-    message:
-      'Your recent bid on the article "The Haunting of Beverly Hills" has been outbid.',
-  },
-  {
-    date: "Yesterday",
-    message: 'Awaiting action for your article "Tumbling Rocks decline".',
-  },
-  {
-    date: "18-Apr-2025",
-    message:
-      'Congratulations! The article "Peacocks on docks" has been purchased, you can find it in your portfolio.',
-  },
-];
-
+// ================== Main Component ==================
 const SettingsPage: React.FC = () => {
-  const [selectedTab, setSelectedTab] = useState("Notification");
+  const [notificationList, setNotificationList] = useState<Notification[]>([]);
   const [selectId, setSelectId] = useState<number | null>(null);
-  const [notificationList, setNotificationList] = useState(notifications);
   const [showModal, setShowModal] = useState(false);
+  const { user } = useAuth();
+
+  // ✅ Get userId only once when user changes
+  const userId = user?.id ?? null;
+
+  // ✅ Fetch notifications once
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const data = await getNotifications();
+        setNotificationList(data.items ?? data); // handle both object or array
+      } catch (err) {
+        console.error("Failed to fetch notifications:", err);
+      }
+    };
+    fetchData();
+  }, []);
+
+  // ✅ Setup socket listener once userId is known
+  useEffect(() => {
+    if (!userId) return; // wait until userId is ready
+
+    const socket = io("http://localhost:5500", { withCredentials: true });
+
+    socket.emit("register", userId);
+    console.log("🟢 Socket registered:", userId);
+
+    socket.on("notification", (data: Notification) => {
+      console.log("📬 New Notification received:", data);
+      setNotificationList((prev) => [data, ...prev]);
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [userId]);
+
+  // ✅ Mark as read when clicked
+  const handleClickNotification = async (index: number) => {
+    const notif = notificationList[index];
+    setSelectId(index);
+    setShowModal(true);
+
+    if (!notif.read) {
+      try {
+        await markNotificationRead(notif._id);
+        setNotificationList((prev) =>
+          prev.map((n, i) => (i === index ? { ...n, read: true } : n))
+        );
+      } catch (err) {
+        console.error("Failed to mark as read:", err);
+      }
+    }
+  };
+
+  // ✅ Local-only delete for UI
+  const handleDelete = (index: number) => {
+    setNotificationList(notificationList.filter((_, i) => i !== index));
+  };
 
   return (
     <Content>
-      <h2>{selectedTab}</h2>
+      <h2>Notifications</h2>
 
-      {selectedTab === "Notification" && (
-        <NotificationList>
-          {notificationList.map((notification, index) => (
+      <NotificationList>
+        {notificationList.length === 0 ? (
+          <div>No notifications available.</div>
+        ) : (
+          notificationList.map((notification, index) => (
             <NotificationItem
-              onClick={() => {
-                setShowModal(true);
-                setSelectId(index);
-              }}
-              key={index}
-              className="flex items-center justify-between"
+              key={notification._id}
+              onClick={() => handleClickNotification(index)}
+              className={`flex items-center justify-between ${
+                notification.read ? "opacity-70" : "opacity-100"
+              }`}
             >
               <div>
-                <NotificationDate>{notification.date}</NotificationDate>
+                <NotificationDate>
+                  {new Date(notification.createdAt).toLocaleString()}
+                </NotificationDate>
                 <NotificationMessage>
-                  {notification.message}
+                  <b>{notification.title}</b> — {notification.message}
                 </NotificationMessage>
               </div>
-              <DeleteButton
-                onClick={() =>
-                  setNotificationList(
-                    notificationList.filter((_, i) => i !== index)
-                  )
-                }
-              >
+              <DeleteButton onClick={() => handleDelete(index)}>
                 <FaTrash />
               </DeleteButton>
             </NotificationItem>
-          ))}
-        </NotificationList>
-      )}
-      {showModal && (
+          ))
+        )}
+      </NotificationList>
+
+      {/* Modal */}
+      {showModal && selectId !== null && (
         <div className="fixed inset-0 bg-gray-500/80 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md relative">
             <button
@@ -140,7 +163,15 @@ const SettingsPage: React.FC = () => {
               &times;
             </button>
             <div className="mb-3">
-              {selectId !== null && notificationList[selectId].message}
+              <h3 className="text-lg font-semibold mb-2">
+                {notificationList[selectId].title}
+              </h3>
+              <p>{notificationList[selectId].message}</p>
+              <p className="text-xs text-gray-400 mt-3">
+                {new Date(
+                  notificationList[selectId].createdAt
+                ).toLocaleString()}
+              </p>
             </div>
           </div>
         </div>

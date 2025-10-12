@@ -95,7 +95,7 @@ export const sellerSignContract = async (req, res) => {
       const buyerId =
         article.winner?._id || article.winner?.id || article.winner;
       await notify(buyerId, {
-        type: 'payment_due',
+        type: 'contract',
         title: '💳 Seller signed the contract',
         message: `Seller has signed for “${article.title}”. Please complete your payment.`,
         target: {

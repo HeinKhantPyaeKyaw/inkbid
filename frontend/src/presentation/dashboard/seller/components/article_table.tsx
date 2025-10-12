@@ -19,7 +19,11 @@ export type ArticleRow = {
 };
 
 
-type Props = { items: ArticleRow[]; onActionClick?: (row: ArticleRow) => void };
+type Props = {
+  items: ArticleRow[];
+  onActionClick?: (row: ArticleRow) => void;
+  onRefresh?: () => void | Promise<void>; // ✅ add
+};
 
 // backend → ui mapping
 const statusMap = {
@@ -39,7 +43,7 @@ const statusStyles = {
 const money = (n: number) =>
   new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(n);
 
-export function ArticleTable({ items }: Props) {
+export function ArticleTable({ items, onActionClick, onRefresh }: Props) {
   const router = useRouter();
   const [currentPage, setCurrentPage] = React.useState(0);
   const rowsPerPage = 10;
@@ -62,10 +66,8 @@ export function ArticleTable({ items }: Props) {
     if (row.status === "awaiting_contract") {
       setSelectedArticle(row);
       setIsModalOpen(true);
-    } else if (row.status === "awaiting_payment") {
-      router.push(`/seller/payments/${row.id}`);
     } else {
-      router.push(`/seller/articles/${row.id}`);
+      router.push(`/content/${row.id}`);
     }
     setActiveRowId(null);
   };
@@ -77,6 +79,7 @@ export function ArticleTable({ items }: Props) {
       await sellerSignContractAPI(selectedArticle.id);
       toast.success("Contract signed successfully");
       setIsModalOpen(false);
+      await onRefresh?.();
     } catch (err) {
       console.error("Sign contract failed:", err);
       toast.error("Failed to sign contract. Please try again.");
@@ -148,8 +151,6 @@ export function ArticleTable({ items }: Props) {
                         >
                           {row.status === "awaiting_contract"
                             ? "Sign Contract"
-                            : row.status === "awaiting_payment"
-                            ? "Make Payment"
                             : "View Details"}
                         </button>
                       </div>
