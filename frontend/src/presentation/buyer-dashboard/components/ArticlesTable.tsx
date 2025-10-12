@@ -60,7 +60,7 @@ const ArticleTable = ({
   const { user } = useAuth();
   const buyerName = user?.name ?? 'Buyer';
 
-  const { signContractAPI, proceedPaymentAPI } = useBuyerDashboardAPI();
+  const { buyerSignContractAPI, proceedPaymentAPI } = useBuyerDashboardAPI();
 
   const rowsToShow = useMemo(() => {
     const startIndex = currentPage * rowsLimit;
@@ -114,8 +114,8 @@ const ArticleTable = ({
     setSigning(true);
 
     try {
-      const res = await signContractAPI(selectedArticle._id);
-      console.log('Contract signed response: ', res);
+      const res = await buyerSignContractAPI(selectedArticle._id);
+      console.log('Buyer contract signed: ', res);
 
       setArticlesTableData((prev) =>
         prev.map((a) =>
@@ -125,11 +125,11 @@ const ArticleTable = ({
         ),
       );
 
-      toast.success('Contract Signed successfully');
+      toast.success(res.message || 'Contract signed successfully.');
       setIsModalOpen(false);
       setSelectedArticle(null);
-    } catch (err) {
-      console.error('Error signing contract: ', err);
+    } catch (error) {
+      console.error('Error signing contract: ', error);
       toast.error('Failed to sign contract. Please try again.');
     } finally {
       setSigning(false);
@@ -335,6 +335,7 @@ const ArticleTable = ({
         article={selectedArticle}
         buyerName={buyerName}
         onAgree={handleAgreeContract}
+        signing={signing}
       />
 
       <div className="w-full flex justify-between items-center my-4 px-5">
@@ -360,3 +361,30 @@ const ArticleTable = ({
 };
 
 export default ArticleTable;
+
+// const handleAgreeContract = async () => {
+//   if (!selectedArticle) return;
+//   setSigning(true);
+
+//   try {
+//     const res = await signContractAPI(selectedArticle._id);
+//     console.log('Contract signed response: ', res);
+
+//     setArticlesTableData((prev) =>
+//       prev.map((a) =>
+//         a.id === selectedArticle._id
+//           ? { ...a, bidStatus: ArticleTableStatus.PENDING }
+//           : a,
+//       ),
+//     );
+
+//     toast.success('Contract Signed successfully');
+//     setIsModalOpen(false);
+//     setSelectedArticle(null);
+//   } catch (err) {
+//     console.error('Error signing contract: ', err);
+//     toast.error('Failed to sign contract. Please try again.');
+//   } finally {
+//     setSigning(false);
+//   }
+// };

@@ -92,16 +92,16 @@ export const useBuyerDashboardAPI = () => {
   // -------------------------Stub Functions for Action Buttons---------------------------
 
   //Mark contract as signed for a given article
-  const signContractAPI = async (articleId: string) => {
+  const buyerSignContractAPI = async (articleId: string) => {
     try {
-      const res = await axios.post(
-        `${API_BASE_URL}/${buyerId}/articles/${articleId}/contract`,
+      const res = await axios.patch(
+        `http://localhost:5500/api/v1/contracts/${articleId}/sign`,
         {},
         { withCredentials: true },
       );
       return res.data;
     } catch (error) {
-      console.error('Error signing contract: ', error);
+      console.error('Error signing buyer contract: ', error);
       throw error;
     }
   };
@@ -164,9 +164,23 @@ export const useBuyerDashboardAPI = () => {
   return {
     fetchArticlesData,
     fetchInventoryData,
-    signContractAPI,
+    buyerSignContractAPI,
     proceedPaymentAPI,
     downloadContractAPI,
     downloadArticleAPI,
   };
 };
+
+// const signContractAPI = async (articleId: string) => {
+//   try {
+//     const res = await axios.post(
+//       `${API_BASE_URL}/${buyerId}/articles/${articleId}/contract`,
+//       {},
+//       { withCredentials: true },
+//     );
+//     return res.data;
+//   } catch (error) {
+//     console.error('Error signing contract: ', error);
+//     throw error;
+//   }
+// };

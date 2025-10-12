@@ -120,21 +120,27 @@ export const NavbarPrimary = ({
   })();
 
   const dropdownItemsSeller = (() => {
-    if (pathname.startsWith('/dashboard')) {
+    if (pathname.startsWith('/dashboard/seller')) {
       return [
+        {
+          label: 'Create Post',
+          icon: faPlus,
+          href: '/create-post',
+          indent: 1,
+        },
         {
           label: 'Profile',
           icon: faUser,
           href: `/profile/seller/${userId}`,
-          indent: 1,
+          indent: 2,
         },
-        { label: 'Settings', icon: faCog, href: '/settings', indent: 2 },
+        { label: 'Settings', icon: faCog, href: '/sellersetting', indent: 3 },
         {
           label: 'Log Out',
           icon: faRightFromBracket,
           href: '/logout',
           action: handleLogout,
-          indent: 3,
+          indent: 4,
         },
       ];
     } else if (pathname.startsWith('/sellersetting')) {
@@ -154,7 +160,7 @@ export const NavbarPrimary = ({
         {
           label: 'Dashboard',
           icon: faChartLine,
-          href: '/dashboard',
+          href: '/dashboard/seller',
           indent: 3,
         },
         {
@@ -193,7 +199,7 @@ export const NavbarPrimary = ({
         {
           label: 'Dashboard',
           icon: faChartLine,
-          href: '/dashboard',
+          href: '/dashboard/seller',
           indent: 1,
         },
         {

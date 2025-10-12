@@ -2,7 +2,7 @@
 
 import { useAuth } from '@/context/auth/AuthContext';
 import { getSellerReviews } from '@/hooks/review.api';
-import { getSellerProfileAPI } from '@/hooks/sellerProfile.api';
+import { getUserProfileAPI } from '@/hooks/userProfile.api';
 import {
   GetReviewsResponse,
   ReviewCardProps,
@@ -46,7 +46,7 @@ const SellerProfile = () => {
 
     const fetchSellerProfile = async () => {
       try {
-        const sellerProfile = await getSellerProfileAPI(sellerId);
+        const sellerProfile = await getUserProfileAPI(sellerId);
         console.log('Seller Profile: ', sellerProfile);
 
         setSellerInfo(sellerProfile);

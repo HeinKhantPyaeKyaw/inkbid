@@ -90,6 +90,8 @@ export const login = async (req, res) => {
         specialization: profile.specialization,
         writingStyle: profile.writingStyle,
         img_url: profile.img_url,
+        organization: profile.organization,
+        paypalEmail: profile.paypalEmail,
         createdAt: profile.createdAt,
       },
     });
@@ -110,8 +112,6 @@ export const getMe = async (req, res) => {
     if (!profile) {
       return res.status(404).json({ message: 'User not found' });
     }
-
-    console.log(profile);
 
     res.json({
       user: {
