@@ -51,6 +51,8 @@ const articleSchema = new mongoose.Schema(
     },
     buyerSigned: { type: Boolean, default: false },
     sellerSigned: { type: Boolean, default: false },
+    final_price: { type: Number, default: 0 },
+    fees: { type: Number, default: 0 },
   },
   { timestamps: true }
 );

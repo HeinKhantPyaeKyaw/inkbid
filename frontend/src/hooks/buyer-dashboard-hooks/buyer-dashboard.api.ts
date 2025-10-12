@@ -9,6 +9,17 @@ import axios from 'axios';
 import { useCallback } from 'react';
 
 const API_BASE_URL = 'http://localhost:5500/api/v1/buyer';
+const STRIPE_API_URL = 'http://localhost:5500/api/v1/payment';
+
+export async function createStripeCheckoutSession(articleId: string) {
+  const { data } = await axios.post(
+    `${STRIPE_API_URL}/create-session`,
+    { articleId },
+    { withCredentials: true }
+  );
+  // expects: { url: string }
+  return data as { url: string };
+}
 
 export const useBuyerDashboardAPI = () => {
   const { user } = useAuth();

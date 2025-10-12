@@ -14,6 +14,7 @@ import notificationRouter from "./routes/notification.routes.js";
 import userRouter from './routes/user.routes.js';
 import contractRouter from './routes/contract.routes.js';
 import notificationRoutes from "./routes/notification.routes.js";
+import paymentRoutes from "./routes/payment.routes.js";
 
 const app = express();
 app.use(
@@ -22,10 +23,11 @@ app.use(
     credentials: true,
   }),
 );
+app.use("/api/v1/payment/webhook", paymentRoutes);
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-
+app.use("/api/v1/payment", paymentRoutes);
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/', articleRouter);

@@ -83,6 +83,8 @@ export const sellerSignContract = async (req, res) => {
       }
       contract.status = "complete";
       article.status = "awaiting_payment";
+      article.final_price = article.highest_bid; // ✅ set final price
+      article.fees = Number((article.final_price * 0.15).toFixed(2)); // ✅ set fees (15%)
       await article.save();
     } else {
       contract.status = "incomplete";
@@ -193,6 +195,8 @@ export const buyerSignContract = async (req, res) => {
       }
       contract.status = "complete";
       article.status = "awaiting_payment";
+      article.final_price = article.highest_bid; // ✅ set final price
+      article.fees = Number((article.final_price * 0.15).toFixed(2)); // ✅ set fees (15%)
       await article.save();
     } else {
       contract.status = "incomplete";

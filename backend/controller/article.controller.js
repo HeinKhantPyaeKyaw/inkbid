@@ -13,6 +13,8 @@ function normalizeArticle(article) {
     buy_now: Number(article.buy_now ?? 0),
     buyerSigned: article.buyerSigned ?? false,
     sellerSigned: article.sellerSigned ?? false,
+    final_price: Number(article.final_price ?? 0),
+    fees: Number(article.fees ?? 0),
   };
 }
 
