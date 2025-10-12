@@ -3,6 +3,7 @@ export enum ArticleTableStatus {
   WON = 'Won',
   LOST = 'Lost',
   PENDING = 'Pending',
+  WAITING = 'Waiting',
 }
 
 export enum InventoryTableStatus {

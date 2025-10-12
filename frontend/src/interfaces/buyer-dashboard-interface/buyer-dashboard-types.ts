@@ -16,6 +16,8 @@ export interface ArticleTableItems {
   author: {
     name: string;
   };
+  buyerSigned?: boolean;
+  sellerSigned?: boolean;
 }
 
 export interface InventoryTableItems {
@@ -53,6 +55,8 @@ export type RawArticle = {
   author: {
     name: string;
   };
+  buyerSigned: boolean;
+  sellerSigned: boolean;
 };
 
 export type RawInventory = {
