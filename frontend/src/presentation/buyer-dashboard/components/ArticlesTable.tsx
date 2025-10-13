@@ -60,7 +60,12 @@ const ArticleTable = ({
   const { user } = useAuth();
   const buyerName = user?.name ?? 'Buyer';
 
-  const { buyerSignContractAPI, proceedPaymentAPI } = useBuyerDashboardAPI();
+  const {
+    buyerSignContractAPI,
+    proceedPaymentAPI,
+    createPayPalOrderAPI,
+    capturePayPalOrderAPI,
+  } = useBuyerDashboardAPI();
 
   const rowsToShow = useMemo(() => {
     const startIndex = currentPage * rowsLimit;
@@ -117,13 +122,6 @@ const ArticleTable = ({
       const res = await buyerSignContractAPI(selectedArticle._id);
       console.log('Buyer contract signed: ', res);
 
-      // setArticlesTableData((prev) =>
-      //   prev.map((a) =>
-      //     a.id === selectedArticle._id
-      //       ? { ...a, bidStatus: ArticleTableStatus.PENDING }
-      //       : a,
-      //   ),
-      // );
       setArticlesTableData((prev) =>
         prev.map((a) => {
           if (a.id !== selectedArticle._id) return a;
@@ -154,18 +152,34 @@ const ArticleTable = ({
     }
   };
 
-  const handleProceedPayment = async (id: string) => {
-    setLoadingAction(id);
+  // ✅ Updated PayPal version of handleProceedPayment
+  const handleProceedPayment = async (articleId: string, amount: number) => {
+    setLoadingAction(articleId);
     setError(null);
     try {
-      const res = await proceedPaymentAPI(id);
+      // 1️⃣ Create PayPal order
+      const orderData = await createPayPalOrderAPI(amount, 'THB');
+      console.log('✅ PayPal order created:', orderData);
 
-      const newItem = res.inventory;
-      console.log('New inventory from backend: ', newItem);
+      const approvalLink = orderData.links?.find(
+        (link: any) => link.rel === 'approve',
+      )?.href;
 
-      setArticlesTableData((prev) =>
-        prev.filter((article) => article.id !== id),
-      );
+      if (!approvalLink) throw new Error('No PayPal approval link found');
+
+      // ✅ Step 2: Store articleId for later capture
+      localStorage.setItem('currentArticleId', articleId);
+
+      // ✅ Step 3: Redirect user to PayPal approval page directly
+      window.location.href = approvalLink;
+
+      // 3️⃣ Capture after approval (simulate or handle after return)
+      const captureRes = await capturePayPalOrderAPI(orderData.id, articleId);
+      console.log('✅ Payment captured:', captureRes);
+
+      // 4️⃣ Move article → inventory in UI
+      const newItem = captureRes.inventory;
+      setArticlesTableData((prev) => prev.filter((a) => a.id !== articleId));
       setInventoryTableData((prev) => [
         ...prev,
         {
@@ -173,17 +187,16 @@ const ArticleTable = ({
           title: String(newItem.article.title ?? 'Untitled'),
           purchasedDate: new Date(newItem.purchasedDate).toLocaleDateString(),
           contractPeriod: String(newItem.contractPeriod ?? '30 Days'),
-          contractStatus: String(
-            newItem.contractStatus
-              ? newItem.contractStatus.charAt(0).toUpperCase() +
-                  newItem.contractStatus.slice(1).toLowerCase()
-              : 'Active',
-          ),
+          contractStatus:
+            newItem.contractStatus?.charAt(0).toUpperCase() +
+              newItem.contractStatus.slice(1).toLowerCase() || 'Active',
         },
       ]);
+
+      toast.success('Payment completed successfully!');
     } catch (err) {
-      console.error('Failed to process payment', err);
-      setError('Payment failed. Please try again');
+      console.error('❌ Payment error:', err);
+      setError('Payment failed. Please try again.');
     } finally {
       setLoadingAction(null);
       setOpenDropdown(null);
@@ -282,7 +295,7 @@ const ArticleTable = ({
               <div className="absolute top-8 right-16 w-48 rounded-lg z-50">
                 <button
                   className="whitespace-nowrap px-8 py-2 rounded-[8px] text-lg text-primary font-Montserrat font-bold border-2 border-[#B9B9B9] bg-[#ffffff] hover:bg-gray-100 active:scale-95 cursor-pointer transition"
-                  onClick={() => handleProceedPayment(item.id)}
+                  onClick={() => handleProceedPayment(item.id, item.currentBid)} // ? amount should be current bid or your bid
                   aria-label={`Proceed with payment for article ${item.title}`}
                 >
                   Proceed with Payment

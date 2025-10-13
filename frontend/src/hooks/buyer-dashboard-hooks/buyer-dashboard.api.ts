@@ -11,6 +11,8 @@ import { useCallback } from 'react';
 
 const API_BASE_URL = 'http://localhost:5500/api/v1/buyer';
 
+const PAYPAL_API_BASE_URL = 'http://localhost:5500/api/v1/paypal'; // ✅ NEW
+
 export const useBuyerDashboardAPI = () => {
   const { user } = useAuth();
   const buyerId = user?.id;
@@ -126,6 +128,39 @@ export const useBuyerDashboardAPI = () => {
     }
   };
 
+  // ------------------------- PayPal Sandbox API ---------------------------
+  // ✅ Step 1: Create a PayPal order for a given article
+  const createPayPalOrderAPI = async (amount: number, currency = 'USD') => {
+    try {
+      const res = await axios.post(
+        `${PAYPAL_API_BASE_URL}/create-order`,
+        { amount, currency },
+        { withCredentials: true },
+      );
+      console.log('PayPal order created:', res.data);
+      return res.data;
+    } catch (error) {
+      console.error('Error creating PayPal order:', error);
+      throw error;
+    }
+  };
+
+  // ✅ Step 2: Capture the PayPal order after approval (will use later)
+  const capturePayPalOrderAPI = async (orderId: string, articleId: string) => {
+    try {
+      const res = await axios.post(
+        `${PAYPAL_API_BASE_URL}/capture-order/${orderId}`,
+        { articleId }, // 🟢 send articleId to backend
+        { withCredentials: true },
+      );
+      console.log('PayPal order captured:', res.data);
+      return res.data;
+    } catch (error) {
+      console.error('Error capturing PayPal order:', error);
+      throw error;
+    }
+  };
+
   // Download contract for an inventory item
   const downloadContractAPI = async (inventoryId: string) => {
     try {
@@ -173,6 +208,8 @@ export const useBuyerDashboardAPI = () => {
     proceedPaymentAPI,
     downloadContractAPI,
     downloadArticleAPI,
+    createPayPalOrderAPI,
+    capturePayPalOrderAPI,
   };
 };
 

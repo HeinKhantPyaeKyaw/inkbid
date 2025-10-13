@@ -14,6 +14,7 @@
   "dependencies": {
     "@bull-board/express": "^6.13.0",
     "@google-cloud/storage": "^7.17.2",
+    "@paypal/checkout-server-sdk": "^1.0.3",
     "axios": "^1.11.0",
     "bcryptjs": "^3.0.2",
     "bullmq": "^5.60.0",
