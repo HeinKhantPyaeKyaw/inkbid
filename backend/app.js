@@ -23,7 +23,11 @@ app.use(
     credentials: true,
   }),
 );
-app.use("/api/v1/payment/webhook", paymentRoutes);
+app.post(
+  "/api/v1/payment/webhook",
+  express.raw({ type: "application/json" }),
+  paymentRoutes
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());

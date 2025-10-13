@@ -54,8 +54,10 @@ export const createCheckoutSession = async (req, res) => {
       seller_receivable_thb: sellerThb,
       status: "pending",
     });
-
-    const session = await stripe.checkout.sessions.create({
+    const destination = "acct_1SHe1cGcE0uTLpEN";
+    const application_fee_amount = Math.round(feeThb * 100); // in satang
+    // 2) Build your session params WITHOUT transfer_data
+    const params = {
       mode: "payment",
       payment_method_types: ["card"],
       currency: "thb",
@@ -64,23 +66,32 @@ export const createCheckoutSession = async (req, res) => {
           quantity: 1,
           price_data: {
             currency: "thb",
-            product_data: {
-              name: `InkBid: ${article.title}`,
-            },
+            product_data: { name: `InkBid: ${article.title}` },
             unit_amount: amountThb * 100, // THB → satang
           },
         },
       ],
-      success_url: `${CLIENT_URL}/dashboard/buyer/payment-success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${CLIENT_URL}/dashboard/buyer/articles`,
+      success_url: `${CLIENT_URL}/dashboard/buyer-dashboard`,
+      cancel_url: `${CLIENT_URL}/dashboard/buyer-dashboard`,
+      payment_intent_data: {
+        // ✅ platform fee on a direct charge
+        application_fee_amount,
+        // (optional) on_behalf_of: destination,
+      },
       metadata: {
         articleId: String(article._id),
         buyerId: String(buyerId || article.winner?._id),
         sellerId: String(article.author._id),
         platformFeeThb: String(feeThb),
-        sellerReceivableThb: String(sellerThb),
+        sellerReceivableThb: String(amountThb - feeThb),
         paymentId: String(payment._id),
       },
+    };
+
+    // 3) Create the Checkout Session **on the connected account**
+    //    (this makes it a direct charge; the seller is liable)
+    const session = await stripe.checkout.sessions.create(params, {
+      stripeAccount: destination, // 👈 critical
     });
 
     // store session id to the Payment record
@@ -142,7 +153,7 @@ export const stripeWebhook = async (req, res) => {
       // 🔔 Notifications
       try {
         await notify(buyerId, {
-          type: "payment_success",
+          type: "payment",
           title: "✅ Payment successful",
           message: `You paid ฿${payment?.amount_total_thb} for “${article?.title}”.`,
           target: {
@@ -153,7 +164,7 @@ export const stripeWebhook = async (req, res) => {
         });
 
         await notify(sellerId, {
-          type: "payment_received",
+          type: "payment",
           title: "💰 Buyer completed payment",
           message: `Payment received for “${article?.title}”. Seller receivable: ฿${sellerReceivableThb}.`,
           target: {
