@@ -5,10 +5,22 @@ import {
   RawArticle,
   RawInventory,
 } from '@/interfaces/buyer-dashboard-interface/buyer-dashboard-types';
+import { ArticleTableStatus } from '@/interfaces/buyer-dashboard-interface/status-types';
 import axios from 'axios';
 import { useCallback } from 'react';
 
 const API_BASE_URL = 'http://localhost:5500/api/v1/buyer';
+const STRIPE_API_URL = 'http://localhost:5500/api/v1/payment';
+
+export async function createStripeCheckoutSession(articleId: string) {
+  const { data } = await axios.post(
+    `${STRIPE_API_URL}/create-session`,
+    { articleId },
+    { withCredentials: true }
+  );
+  // expects: { url: string }
+  return data as { url: string };
+}
 
 export const useBuyerDashboardAPI = () => {
   const { user } = useAuth();
@@ -34,14 +46,18 @@ export const useBuyerDashboardAPI = () => {
           yourBid: Number(item.yourBid ?? 0),
           currentBid: Number(item.currentBid ?? 0),
           timeRemaining: item.timeRemaining,
+          buyerSigned: item.buyerSigned ?? false,
+          sellerSigned: item.sellerSigned ?? false,
           bidStatus:
             item.status === 'in_progress'
-              ? 'In Progress'
+              ? ArticleTableStatus.INPROGRESS
               : item.status === 'awaiting_contract'
-              ? 'Won'
+              ? item.buyerSigned && !item.sellerSigned
+                ? ArticleTableStatus.WAITING
+                : ArticleTableStatus.WON
               : item.status === 'awaiting_payment'
-              ? 'Pending'
-              : 'Lost',
+              ? ArticleTableStatus.PENDING
+              : ArticleTableStatus.LOST,
           author: {
             name: item.author.name,
           },
@@ -92,16 +108,16 @@ export const useBuyerDashboardAPI = () => {
   // -------------------------Stub Functions for Action Buttons---------------------------
 
   //Mark contract as signed for a given article
-  const signContractAPI = async (articleId: string) => {
+  const buyerSignContractAPI = async (articleId: string) => {
     try {
-      const res = await axios.post(
-        `${API_BASE_URL}/${buyerId}/articles/${articleId}/contract`,
+      const res = await axios.patch(
+        `http://localhost:5500/api/v1/contracts/${articleId}/sign`,
         {},
         { withCredentials: true },
       );
       return res.data;
     } catch (error) {
-      console.error('Error signing contract: ', error);
+      console.error('Error signing buyer contract: ', error);
       throw error;
     }
   };
@@ -164,9 +180,28 @@ export const useBuyerDashboardAPI = () => {
   return {
     fetchArticlesData,
     fetchInventoryData,
-    signContractAPI,
+    buyerSignContractAPI,
     proceedPaymentAPI,
     downloadContractAPI,
     downloadArticleAPI,
   };
 };
+
+// const signContractAPI = async (articleId: string) => {
+//   try {
+//     const res = await axios.post(
+//       `${API_BASE_URL}/${buyerId}/articles/${articleId}/contract`,
+//       {},
+//       { withCredentials: true },
+//     );
+//     return res.data;
+//   } catch (error) {
+//     console.error('Error signing contract: ', error);
+//     throw error;
+//   }
+// };
+
+// ? 'Won'
+// : item.status === 'awaiting_payment'
+// ? 'Pending'
+// : 'Lost',

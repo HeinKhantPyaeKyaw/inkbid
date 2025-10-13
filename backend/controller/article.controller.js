@@ -11,6 +11,10 @@ function normalizeArticle(article) {
     highest_bid: Number(article.highest_bid ?? 0),
     min_bid: Number(article.min_bid ?? 0),
     buy_now: Number(article.buy_now ?? 0),
+    buyerSigned: article.buyerSigned ?? false,
+    sellerSigned: article.sellerSigned ?? false,
+    final_price: Number(article.final_price ?? 0),
+    fees: Number(article.fees ?? 0),
   };
 }
 
@@ -70,7 +74,7 @@ export const getArticleWithBids = async (req, res) => {
     }
 
     const bids = await Bid.findOne({ refId: article._id })
-      .populate("bids.ref_user", "name email role")
+      .populate("bids.ref_user", "name email role img_url")
       .lean();
 
     const topBids = bids
@@ -201,12 +205,12 @@ export const buyNow = async (req, res) => {
     });
 
     // 2️⃣ Notify Seller — your article was bought
-    await notify(article.author._id || article.author.id, {
-      type: "winner_found",
+    await notify(article.author, {
+      type: "bought",
       title: "🏆 Your article was bought",
       message: `“${article.title}” was purchased for ฿${Number(
         article.buy_now
-      )}. Wait for the buyer to sign the contract.`,
+      )}. Please sign the contract to proceed with the payment process.`,
       target: {
         kind: "article",
         id: article._id,

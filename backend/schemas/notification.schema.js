@@ -38,7 +38,7 @@ const NotificationSchema = new mongoose.Schema(
       url: { type: String }, // e.g. "/articles/abc123" (frontend route)
     },
 
-    is_read: { type: Boolean, default: false, index: true },
+    read: { type: Boolean, default: false, index: true },
     read_at: { type: Date },
   },
   { timestamps: true, versionKey: false, collection: "notifications" }

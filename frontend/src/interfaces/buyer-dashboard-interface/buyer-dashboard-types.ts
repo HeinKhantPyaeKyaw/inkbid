@@ -16,6 +16,8 @@ export interface ArticleTableItems {
   author: {
     name: string;
   };
+  buyerSigned?: boolean;
+  sellerSigned?: boolean;
 }
 
 export interface InventoryTableItems {
@@ -34,11 +36,13 @@ export interface BuyerDashboardPaginationProps {
   onClickNextPage: () => void;
 }
 
+export type Author = { _id?: string; name?: string };
 export interface ContractArticle {
   _id: string;
   title: string;
   highest_bid?: number;
-  author?: { name?: string };
+  current_bid?: number;
+  author: Author;
 }
 
 export type RawArticle = {
@@ -51,6 +55,8 @@ export type RawArticle = {
   author: {
     name: string;
   };
+  buyerSigned: boolean;
+  sellerSigned: boolean;
 };
 
 export type RawInventory = {
@@ -69,4 +75,5 @@ export type ContractModalProps = {
   article: ContractArticle | null;
   buyerName: string;
   onAgree?: () => void;
+  signing: boolean;
 };

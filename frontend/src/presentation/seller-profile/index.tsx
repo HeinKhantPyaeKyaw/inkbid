@@ -2,7 +2,7 @@
 
 import { useAuth } from '@/context/auth/AuthContext';
 import { getSellerReviews } from '@/hooks/review.api';
-import { getSellerProfileAPI } from '@/hooks/sellerProfile.api';
+import { getUserProfileAPI } from '@/hooks/userProfile.api';
 import {
   GetReviewsResponse,
   ReviewCardProps,
@@ -16,8 +16,6 @@ import RatingReview from './components/RatingReview';
 import SellerProfileCarousel from './components/SellerProfileCarousel';
 import WritingReviewSection from './components/WritingReviewSection';
 import { CarouselData, ReviewCardData } from './model';
-
-// FIXME: To fix seller info as user login. To implement setSellerInfo and setCarouselData.
 
 const SellerProfile = () => {
   const { user } = useAuth();
@@ -46,7 +44,7 @@ const SellerProfile = () => {
 
     const fetchSellerProfile = async () => {
       try {
-        const sellerProfile = await getSellerProfileAPI(sellerId);
+        const sellerProfile = await getUserProfileAPI(sellerId);
         console.log('Seller Profile: ', sellerProfile);
 
         setSellerInfo(sellerProfile);
