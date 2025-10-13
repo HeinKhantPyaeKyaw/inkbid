@@ -32,10 +32,13 @@ export default function PortfolioPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await axios.get("http://localhost:5500/api/v1/portfolios", {
-          withCredentials: true,
-          validateStatus: (status) => status < 500, // don't throw for 404
-        });
+        const res = await axios.get(
+          `${process.env.NEXT_PUBLIC_API_BASE}/portfolios`,
+          {
+            withCredentials: true,
+            validateStatus: (status) => status < 500, // don't throw for 404
+          }
+        );
 
         if (res.status === 200) {
           setItems(res.data || []);

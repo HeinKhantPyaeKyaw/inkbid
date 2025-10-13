@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:5500/api/v1';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE;
 
 export const createPostAPI = async (formData: FormData) => {
   try {

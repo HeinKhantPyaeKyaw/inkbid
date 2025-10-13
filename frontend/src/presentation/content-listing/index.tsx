@@ -14,31 +14,14 @@ import { IContent } from "@/interfaces/content/content.domain";
 
 export default function MarketplacePage() {
   const router = useRouter();
-  const [notifications] = useState([
-    'Your recent bid on the article "The Haunting of..."',
-    'Your recent bid on the article "The Haunting of..."',
-    'Your recent bid on the article "The Haunting of..."',
-    'Your recent bid on the article "The Haunting of..."',
-  ]);
-  const [showNoti, setShowNoti] = useState(false);
-  const [showFilter, setShowFilter] = useState(false);
-  const [showProfile, setShowProfile] = useState(false);
   const [articlesData, setArticlesData] = useState<IContent[]>([]);
-
-  const handleBellClick = () => setShowNoti((prev) => !prev);
-  const handleMenuClick = () => setShowFilter((prev) => !prev);
-  const handleProfileClick = () => setShowProfile((prev) => !prev);
-
-  const genreOptions = ['Fiction', 'Non-fiction', 'Sci-Fi', 'Romance'];
-  const styleOptions = ['Formal', 'Casual', 'Academic', 'Creative'];
-  const durationOptions = ['1 Day', '3 Days', '1 Week', '1 Month'];
 
   useEffect(() => {
     fetchArticles();
   }, []);
 
   const fetchArticles = async () => {
-    fetch('http://localhost:5500/api/v1/articles', {
+    fetch(`${process.env.NEXT_PUBLIC_API_BASE}/articles`, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
     })

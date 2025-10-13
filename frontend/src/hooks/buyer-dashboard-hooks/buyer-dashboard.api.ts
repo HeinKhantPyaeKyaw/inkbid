@@ -11,10 +11,11 @@ import { useCallback } from 'react';
 
 const API_BASE_URL = 'http://localhost:5500/api/v1/buyer';
 const STRIPE_API_URL = 'http://localhost:5500/api/v1/payment';
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE;
 
 export async function createStripeCheckoutSession(articleId: string) {
   const { data } = await axios.post(
-    `${STRIPE_API_URL}/create-session`,
+    `${BASE_URL}/payment/create-session`,
     { articleId },
     { withCredentials: true }
   );
@@ -37,7 +38,7 @@ export const useBuyerDashboardAPI = () => {
   > => {
     if (!buyerId) return [];
     try {
-      const res = await axios.get(`${API_BASE_URL}/${buyerId}/articles`, {
+      const res = await axios.get(`${BASE_URL}/buyer/${buyerId}/articles`, {
         withCredentials: true,
       });
 
@@ -79,7 +80,7 @@ export const useBuyerDashboardAPI = () => {
   > => {
     if (!buyerId) return [];
     try {
-      const res = await axios.get(`${API_BASE_URL}/${buyerId}/inventory`, {
+      const res = await axios.get(`${BASE_URL}/buyer/${buyerId}/inventory`, {
         withCredentials: true,
       });
 
@@ -113,7 +114,7 @@ export const useBuyerDashboardAPI = () => {
   const buyerSignContractAPI = async (articleId: string) => {
     try {
       const res = await axios.patch(
-        `http://localhost:5500/api/v1/contracts/${articleId}/sign`,
+        `${BASE_URL}/contracts/${articleId}/sign`,
         {},
         { withCredentials: true },
       );
@@ -128,7 +129,7 @@ export const useBuyerDashboardAPI = () => {
   const proceedPaymentAPI = async (articleId: string) => {
     try {
       const res = await axios.post(
-        `${API_BASE_URL}/${buyerId}/articles/${articleId}/payment`,
+        `${BASE_URL}/buyer/${buyerId}/articles/${articleId}/payment`,
         {},
         { withCredentials: true },
       );
@@ -144,7 +145,7 @@ export const useBuyerDashboardAPI = () => {
   const createPayPalOrderAPI = async (amount: number, currency = 'USD') => {
     try {
       const res = await axios.post(
-        `${PAYPAL_API_BASE_URL}/create-order`,
+        `${BASE_URL}/paypal/create-order`,
         { amount, currency },
         { withCredentials: true },
       );
@@ -160,7 +161,7 @@ export const useBuyerDashboardAPI = () => {
   const capturePayPalOrderAPI = async (orderId: string, articleId: string) => {
     try {
       const res = await axios.post(
-        `${PAYPAL_API_BASE_URL}/capture-order/${orderId}`,
+        `${BASE_URL}/paypal/capture-order/${orderId}`,
         { articleId }, // 🟢 send articleId to backend
         { withCredentials: true },
       );
@@ -176,7 +177,7 @@ export const useBuyerDashboardAPI = () => {
   const downloadContractAPI = async (inventoryId: string) => {
     try {
       const res = await axios.get(
-        `${API_BASE_URL}/${buyerId}/inventory/${inventoryId}/contract`,
+        `${BASE_URL}/buyer/${buyerId}/inventory/${inventoryId}/contract`,
         { withCredentials: true },
       );
 
@@ -196,7 +197,7 @@ export const useBuyerDashboardAPI = () => {
   const downloadArticleAPI = async (inventoryId: string) => {
     try {
       const res = await axios.get(
-        `${API_BASE_URL}/${buyerId}/inventory/${inventoryId}/article`,
+        `${BASE_URL}/buyer/${buyerId}/inventory/${inventoryId}/article`,
         { withCredentials: true },
       );
 

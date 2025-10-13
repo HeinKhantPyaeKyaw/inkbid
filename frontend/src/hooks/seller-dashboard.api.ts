@@ -3,9 +3,10 @@ import axios from "axios";
 
 const API_BASE = "http://localhost:5500/api/v1/seller-dashboard";
 const API_BASE2 = "http://localhost:5500/api/v1/contracts";
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE;
 
 export async function getSellerSummary() {
-  const { data } = await axios.get(`${API_BASE}/summary`, {
+  const { data } = await axios.get(`${BASE_URL}/seller-dashboard/summary`, {
     withCredentials: true,
   });
   return data as {
@@ -23,7 +24,7 @@ export async function getSellerArticles(params?: {
   limit?: number;
   sort?: string;
 }) {
-  const { data } = await axios.get(`${API_BASE}/articles`, {
+  const { data } = await axios.get(`${BASE_URL}/seller-dashboard/articles`, {
     params,
     withCredentials: true, // 🔴 sends backend auth cookie
   });
@@ -35,7 +36,7 @@ export async function getSellerInventory(params?: {
   limit?: number;
   sort?: string;
 }) {
-  const { data } = await axios.get(`${API_BASE}/inventory`, {
+  const { data } = await axios.get(`${BASE_URL}/seller-dashboard/inventory`, {
     params,
     withCredentials: true, // 🔴 sends backend auth cookie
   });
@@ -45,7 +46,7 @@ export async function getSellerInventory(params?: {
 export async function getSellerAnalytics(
   range: "week" | "month" | "year" = "week"
 ) {
-  const { data } = await axios.get(`${API_BASE}/analytics`, {
+  const { data } = await axios.get(`${BASE_URL}/seller-dashboard/analytics`, {
     params: { range },
     withCredentials: true, // ✅ ensure cookie auth is sent
   });
@@ -60,7 +61,7 @@ export async function getSellerAnalytics(
 
 export async function sellerSignContractAPI(articleId: string) {
   const { data } = await axios.patch(
-    `${API_BASE2}/${articleId}/sign`,
+    `${BASE_URL}/contracts/${articleId}/sign`,
     {},
     {
       withCredentials: true, // to include cookies

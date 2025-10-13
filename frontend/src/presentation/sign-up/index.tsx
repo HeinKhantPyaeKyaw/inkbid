@@ -37,10 +37,10 @@ export default function SignUpPage() {
     console.log(form, role);
     try {
       const response = await fetch(
-        'http://localhost:5500/api/v1/auth/register',
+        `${process.env.NEXT_PUBLIC_API_BASE}/auth/register`,
         {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             email: form.email,
             password: form.password,
@@ -48,7 +48,7 @@ export default function SignUpPage() {
             lastName: form.lastName,
             role,
           }),
-        },
+        }
       );
       if (!response.ok) {
         const errorData = await response.json();
