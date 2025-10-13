@@ -3,6 +3,10 @@ import Stripe from "stripe";
 import Article from "../schemas/article.schema.js";
 import Payment from "../schemas/payment.schema.js";
 import { notify } from "../services/notification.service.js";
+import Contract from "../schemas/contract.schema.js";
+import BuyerInventory from "../schemas/buyer-inventory.schema.js";
+import { uploadPDFToFirebase } from "../utils/firebase/uploadToFirebase.js";
+import { generateContractPDF } from "../utils/pdf/contractGenerator.js";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: "2024-06-20",
@@ -114,7 +118,7 @@ export const stripeWebhook = async (req, res) => {
 
   try {
     event = stripe.webhooks.constructEvent(
-      req.body,
+      req.body, // raw body (express.raw in app.js)
       sig,
       process.env.STRIPE_WEBHOOK_SECRET
     );
@@ -135,7 +139,7 @@ export const stripeWebhook = async (req, res) => {
         paymentId,
       } = session.metadata || {};
 
-      // Update the Payment record
+      // 1️⃣ Update Payment record
       const payment = await Payment.findById(paymentId);
       if (payment) {
         payment.status = "succeeded";
@@ -143,14 +147,73 @@ export const stripeWebhook = async (req, res) => {
         await payment.save();
       }
 
-      // Update article status → completed
-      const article = await Article.findById(articleId);
-      if (article) {
-        article.status = "completed";
-        await article.save();
+      // 2️⃣ Update article status → completed
+      const article = await Article.findById(articleId).populate("author");
+      if (!article) {
+        console.error("Article not found:", articleId);
+        return res.status(404).json({ error: "Article not found" });
+      }
+      article.status = "completed";
+      article.proprietor = buyerId;
+      await article.save();
+
+      // 3️⃣ Finalize contract
+      const contract = await Contract.findOne({
+        buyer: buyerId,
+        article: articleId,
+        status: { $in: ["complete", "awaiting_payment"] },
+      }).populate("buyer author");
+
+      if (!contract) {
+        console.error("Contract not found for article", articleId);
+        return res.status(404).json({ error: "Contract not found" });
       }
 
-      // 🔔 Notifications
+      contract.status = "finalized";
+      contract.purchasedDate = new Date();
+      contract.platformFeePercent = 15; // or load from process.env if you have it
+      contract.platformFeeAmount = parseFloat(platformFeeThb);
+      contract.sellerEarning = parseFloat(sellerReceivableThb);
+
+      // 4️⃣ Generate and upload contract PDF
+      const pdfBuffer = await generateContractPDF({
+        articleTitle: article.title,
+        buyerName: contract.buyer.name,
+        authorName: contract.author.name,
+        finalPrice: article.final_price || article.highest_bid,
+        contractPeriod: contract.contractPeriod,
+        agreementDate: contract.agreementDate,
+        purchasedDate: contract.purchasedDate,
+        terms: contract.terms,
+      });
+
+      const pdfUrl = await uploadPDFToFirebase(
+        pdfBuffer,
+        `contract-${articleId}-${buyerId}`
+      );
+      contract.contractUrl = pdfUrl;
+      await contract.save();
+
+      // 5️⃣ Add to BuyerInventory
+      const newInventory = await BuyerInventory.create({
+        buyer: buyerId,
+        article: articleId,
+        purchasedDate: new Date(),
+        contractPeriod: contract.contractPeriod || "30 Days",
+        contractStatus: "active",
+        paymentStatus: "paid",
+        contractUrl: pdfUrl,
+        articleUrl: article.article_url || null,
+        platformFeePercent: 15,
+        platformFeeAmount: parseFloat(platformFeeThb),
+        sellerEarning: parseFloat(sellerReceivableThb),
+      });
+
+      const inventory = await BuyerInventory.findById(newInventory._id)
+        .populate("article", "title img_url")
+        .lean();
+
+      // 6️⃣ Notifications
       try {
         await notify(buyerId, {
           type: "payment",
@@ -173,9 +236,11 @@ export const stripeWebhook = async (req, res) => {
             url: `/dashboard/seller/articles/${articleId}`,
           },
         });
-      } catch (e) {
-        console.error("notify error:", e);
+      } catch (notifyErr) {
+        console.error("Notification error:", notifyErr);
       }
+
+      console.log("✅ Stripe payment finalized successfully");
     }
 
     res.json({ received: true });

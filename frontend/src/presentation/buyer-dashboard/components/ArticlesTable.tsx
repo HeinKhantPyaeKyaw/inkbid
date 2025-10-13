@@ -325,7 +325,7 @@ const ArticleTable = ({
                   onClick={() => handleProceedPayment(item.id, item.currentBid)} // ? amount should be current bid or your bid
                   aria-label={`Proceed with payment for article ${item.title}`}
                 >
-                  Proceed with Payment
+                  Pay with Paypal
                 </button>
               </div>
             )}

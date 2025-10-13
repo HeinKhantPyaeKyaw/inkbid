@@ -211,7 +211,7 @@ export const buyerSignContract = async (req, res) => {
       const sellerId =
         article.author?._id || article.author?.id || article.author;
       await notify(sellerId, {
-        type: "contract_complete",
+        type: "contract",
         title: "Buyer signed the contract",
         message: `Buyer has signed for "${article.title}". Contract is now complete`,
         target: {
