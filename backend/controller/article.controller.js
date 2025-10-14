@@ -25,41 +25,97 @@ function normalizeBid(bid) {
   };
 }
 
+// backend/controller/article.controller.js
 export const getAllArticlesWithBids = async (req, res) => {
   try {
-    const articles = await Article.find({
-      status: "in_progress",
-      $or: [{ winner: { $exists: false } }, { winner: null }],
-    })
-      .populate('author', 'name img_url rating') // ✅ get author info
+    const {
+      q,
+      genre,
+      rating,
+      sort,
+      dir = "desc",
+      page = 1,
+      limit = 12,
+    } = req.query;
+
+    const query = {
+      status: "in_progress", // ✅ Only fetch in-progress articles
+    };
+
+    // 🔍 Search by title or synopsis
+    if (q) {
+      query.$or = [
+        { title: { $regex: q, $options: "i" } },
+        { synopsis: { $regex: q, $options: "i" } },
+      ];
+    }
+
+    // 🎭 Filter by genre keyword
+    if (genre) {
+      query["tag.genre.keyword"] = { $regex: new RegExp(genre, "i") };
+    }
+
+    // ⭐ Filter by seller rating
+    if (rating) {
+      const ratingNumber = parseInt(rating);
+      query["author.rating"] = { $gte: ratingNumber };
+    }
+
+    // Pagination setup
+    const skip = (Number(page) - 1) * Number(limit);
+
+    // 🧭 Query articles
+    let articles = await Article.find(query)
+      .populate("author", "name rating")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(Number(limit))
       .lean();
 
-    const results = await Promise.all(
-      articles.map(async (article) => {
-        const bids = await Bid.findOne({ refId: article._id })
-          .populate('bids.ref_user', 'name email role')
-          .lean();
+    // ✅ Double-check in case filtering or populate changes results
+    articles = articles.filter((a) => a.status === "in_progress");
 
-        const topBids = bids
-          ? bids.bids
-              .map(normalizeBid)
-              .sort((a, b) => b.amount - a.amount)
-              .slice(0, 4)
-          : [];
+    // Convert Decimal128 → Number
+    articles = articles.map((article) => ({
+      ...article,
+      highest_bid: Number(article.highest_bid ?? 0),
+      min_bid: Number(article.min_bid ?? 0),
+      buy_now: Number(article.buy_now ?? 0),
+      final_price: Number(article.final_price ?? 0),
+      fees: Number(article.fees ?? 0),
+    }));
 
-        return {
-          ...normalizeArticle(article),
-          bids: topBids,
-        };
-      }),
-    );
+    // Sorting logic (in-memory)
+    const direction = dir === "asc" ? 1 : -1;
+    if (sort === "highest_bid") {
+      articles.sort((a, b) => (a.highest_bid - b.highest_bid) * direction);
+    } else if (sort === "buy_now") {
+      articles.sort((a, b) => (a.buy_now - b.buy_now) * direction);
+    } else if (sort === "ends_in") {
+      articles.sort(
+        (a, b) => (new Date(a.ends_in) - new Date(b.ends_in)) * direction
+      );
+    }
 
-    res.status(200).json(results);
+    // Count total for pagination
+    const total = await Article.countDocuments({
+      ...query,
+      status: "in_progress", // ✅ Ensure consistent pagination
+    });
+
+    res.status(200).json({
+      page: Number(page),
+      total,
+      totalPages: Math.ceil(total / limit),
+      items: articles,
+    });
   } catch (err) {
-    console.error('Error fetching articles with bids:', err);
-    res.status(500).json({ error: 'Server error' });
+    console.error("Error fetching articles:", err);
+    res.status(500).json({ error: "Failed to load marketplace articles" });
   }
 };
+
+
 
 export const getArticleWithBids = async (req, res) => {
   try {
@@ -268,7 +324,4 @@ export const finalizeAuction = async (articleId) => {
 
   await article.save();
 
-  // optional: notify clients
-  // import { io } from "../server.js";
-  // io.emit("auctionFinalized", { articleId, status: article.status, winner: article.winner });
 };

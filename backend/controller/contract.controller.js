@@ -32,6 +32,62 @@ export const sellerSignContract = async (req, res) => {
     // Track whether buyer had already signed before this call
     let buyerHadSignedBefore = false;
 
+    const buyer = await User.findById(article.winner);
+    if (!buyer) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Buyer not found" });
+    }
+
+    const buyerName = buyer.name;
+    const sellerName = seller.name;
+    const title = article.title;
+    const price = article.highest_bid;
+    const period = 30;
+
+    const terms = `
+1. **Parties Involved**  
+   This Contract is entered into between **${buyerName}** (“Buyer”) and **${sellerName}** (“Seller”) through the InkBid platform, operated by InkBid Technologies.
+
+2. **Scope of Agreement**  
+   The Seller agrees to transfer to the Buyer the right to publicly use, display, and distribute the article titled **"${title}"** for the agreed contract period of **${period} days**.
+
+3. **Ownership and Rights**  
+   - The Seller retains full ownership of the article but grants the Buyer a non-exclusive, temporary license to publicly use the article during the contract period.  
+   - During the contract period, the Seller shall **not sell, license, modify, or reuse** the article in any form or platform.  
+   - The Buyer is prohibited from reselling, sublicensing, or modifying the article for profit without explicit written consent from the Seller.
+
+4. **Payment Terms**  
+   The Buyer agrees to pay **฿${price} THB** to the Seller through the InkBid platform.  
+   Payment must be completed within five (5) business days after both parties have signed this agreement.  
+   The platform may temporarily withhold payment for verification and fraud prevention.
+
+5. **Usage License Period**  
+   - The Buyer’s right to use the article begins upon full payment and remains valid for **${period} days**.  
+   - After the period expires, the Buyer’s license to use the article automatically terminates.  
+   - The Seller regains full exclusive rights to the article after the contract expires.
+
+6. **Delivery and Transfer**  
+   The Seller must ensure the article is accessible in its original form and shall not alter or delete its contents during the contract period.
+
+7. **Confidentiality**  
+   Both parties agree not to disclose personal, payment, or platform-related information shared in the course of this transaction.
+
+8. **Breach of Contract**  
+   - If the Buyer fails to complete payment, the contract is void.  
+   - If the Seller reuses or resells the article during the active period, InkBid reserves the right to penalize or suspend the Seller’s account.  
+   - InkBid is not liable for any dispute arising outside its platform.
+
+9. **Termination**  
+   Either party may request early termination via the InkBid platform, subject to mutual written consent. Refunds may be issued only if both parties agree.
+
+10. **Governing Law**  
+   This Agreement shall be governed by and construed in accordance with the applicable laws under which InkBid operates.
+
+11. **Acknowledgement**  
+   By signing, both parties confirm that they have read and understood all terms and conditions stated herein and agree to be legally bound by them.
+`;
+
     if (!contract) {
       // Seller signs first → create contract (incomplete)
       const buyer = await User.findById(article.winner);
@@ -50,14 +106,7 @@ export const sellerSignContract = async (req, res) => {
         authorName: seller.name,
         finalPrice: article.highest_bid,
         contractPeriod: "30 Days",
-        terms: `
-          Buyer agrees to purchase "${article.title}" for ${Number(
-          article.highest_bid
-        )} THB.
-          Seller agrees to deliver ownership rights upon full payment.
-          Contract period: ${article.duration || 30} days.
-          Both parties are bound by InkBid's terms of service.
-        `,
+        terms: terms,
         sellerSigned: true,
         status: "incomplete",
       });
@@ -73,6 +122,7 @@ export const sellerSignContract = async (req, res) => {
       }
 
       contract.sellerSigned = true;
+      contract.terms = terms;
     }
 
     // Transition status if both signatures are present now
@@ -144,17 +194,66 @@ export const buyerSignContract = async (req, res) => {
       });
     }
 
+    const seller = await User.findById(article.author);
+    if (!seller) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Seller not found" });
+    }
+
+    const buyerName = buyer.name;
+    const sellerName = seller.name;
+    const title = article.title;
+    const price = article.highest_bid;
+    const period = 30;
+
+    const terms = `
+1. **Parties Involved**  
+   This Contract is entered into between **${buyerName}** (“Buyer”) and **${sellerName}** (“Seller”) through the InkBid platform, operated by InkBid Technologies.
+
+2. **Scope of Agreement**  
+   The Seller agrees to transfer to the Buyer the right to publicly use, display, and distribute the article titled **"${title}"** for the agreed contract period of **${period} days**.
+
+3. **Ownership and Rights**  
+   - The Seller retains full ownership of the article but grants the Buyer a non-exclusive, temporary license to publicly use the article during the contract period.  
+   - During the contract period, the Seller shall **not sell, license, modify, or reuse** the article in any form or platform.  
+   - The Buyer is prohibited from reselling, sublicensing, or modifying the article for profit without explicit written consent from the Seller.
+
+4. **Payment Terms**  
+   The Buyer agrees to pay **฿${price} THB** to the Seller through the InkBid platform.  
+   Payment must be completed within five (5) business days after both parties have signed this agreement.  
+   The platform may temporarily withhold payment for verification and fraud prevention.
+
+5. **Usage License Period**  
+   - The Buyer’s right to use the article begins upon full payment and remains valid for **${period} days**.  
+   - After the period expires, the Buyer’s license to use the article automatically terminates.  
+   - The Seller regains full exclusive rights to the article after the contract expires.
+
+6. **Delivery and Transfer**  
+   The Seller must ensure the article is accessible in its original form and shall not alter or delete its contents during the contract period.
+
+7. **Confidentiality**  
+   Both parties agree not to disclose personal, payment, or platform-related information shared in the course of this transaction.
+
+8. **Breach of Contract**  
+   - If the Buyer fails to complete payment, the contract is void.  
+   - If the Seller reuses or resells the article during the active period, InkBid reserves the right to penalize or suspend the Seller’s account.  
+   - InkBid is not liable for any dispute arising outside its platform.
+
+9. **Termination**  
+   Either party may request early termination via the InkBid platform, subject to mutual written consent. Refunds may be issued only if both parties agree.
+
+10. **Governing Law**  
+   This Agreement shall be governed by and construed in accordance with the applicable laws under which InkBid operates.
+
+11. **Acknowledgement**  
+   By signing, both parties confirm that they have read and understood all terms and conditions stated herein and agree to be legally bound by them.
+`;
+
     let contract = await Contract.findOne({ article: articleId });
     let sellerHadSignedBefore = false;
 
     if (!contract) {
-      const seller = await User.findById(article.author);
-      if (!seller) {
-        return res
-          .status(404)
-          .json({ success: false, message: "Seller not found" });
-      }
-
       contract = new Contract({
         buyer: buyerId,
         author: seller._id,
@@ -164,14 +263,7 @@ export const buyerSignContract = async (req, res) => {
         authorName: seller.name,
         finalPrice: article.highest_bid,
         contractPeriod: "30 Days",
-        terms: `
-        Buyer agrees to purchase "${article.title}" for ${Number(
-          article.highest_bid
-        )} THB.
-        Seller agrees to deliver ownership rights upon full payment.
-        Contract period: ${article.duration || 30} days.
-        Both parties are bound by InkBid's terms of service.
-        `,
+        terms: terms,
         buyerSigned: true,
         status: "incomplete",
       });
@@ -186,6 +278,7 @@ export const buyerSignContract = async (req, res) => {
       }
 
       contract.buyerSigned = true;
+      contract.terms = terms;
     }
 
     let justCompleted = false;

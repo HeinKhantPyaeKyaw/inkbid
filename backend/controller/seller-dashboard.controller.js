@@ -2,6 +2,7 @@
 import mongoose from "mongoose";
 import Article from "../schemas/article.schema.js";
 import Bid from "../schemas/bids.schema.js";
+import Contract from "../schemas/contract.schema.js";
 
 const ACTIVE_STATUSES = [
   "in_progress",
@@ -174,5 +175,52 @@ export const getSellerInventory = async (req, res) => {
   } catch (err) {
     console.error("getSellerInventory error:", err);
     res.status(500).json({ error: "Server error" });
+  }
+};
+
+/* -------------------------------------------------------------------------- */
+/* 🧾 DOWNLOAD CONTRACT (for seller)                                           */
+/* -------------------------------------------------------------------------- */
+export const downloadContract = async (req, res) => {
+  try {
+    const { articleId } = req.params;
+
+    const contract = await Contract.findOne({ article: articleId });
+    if (!contract) {
+      return res.status(404).json({ success: false, message: "Contract not found" });
+    }
+
+    if (!contract.contractUrl) {
+      return res.status(404).json({ success: false, message: "Contract file not available" });
+    }
+
+    // Redirect the browser to the file URL (Firebase / GCS / etc.)
+    return res.redirect(contract.contractUrl);
+  } catch (err) {
+    console.error("Error downloading seller contract:", err);
+    res.status(500).json({ success: false, message: "Failed to download contract" });
+  }
+};
+
+/* -------------------------------------------------------------------------- */
+/* 📄 DOWNLOAD ARTICLE (for seller)                                            */
+/* -------------------------------------------------------------------------- */
+export const downloadArticle = async (req, res) => {
+  try {
+    const { articleId } = req.params;
+
+    const article = await Article.findById(articleId);
+    if (!article) {
+      return res.status(404).json({ success: false, message: "Article not found" });
+    }
+
+    if (!article.article_url) {
+      return res.status(404).json({ success: false, message: "Article file not available" });
+    }
+
+    return res.redirect(article.article_url);
+  } catch (err) {
+    console.error("Error downloading seller article:", err);
+    res.status(500).json({ success: false, message: "Failed to download article" });
   }
 };
