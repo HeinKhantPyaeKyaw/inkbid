@@ -6,7 +6,7 @@ let io;
 export const initIO = (server) => {
   io = new Server(server, {
     cors: {
-      origin: "http://localhost:3000",
+      origin: process.env.DNS || "http://localhost:3000",
       credentials: true,
     },
   });

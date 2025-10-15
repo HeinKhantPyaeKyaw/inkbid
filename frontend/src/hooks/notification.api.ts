@@ -1,7 +1,6 @@
 // src/hooks/notification.api.ts
 import axios from "axios";
 
-const API_BASE = "http://localhost:5500/api/v1/notifications";
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE;
 // 🔹 Fetch notifications (optionally unread only)
 export async function getNotifications(params?: {

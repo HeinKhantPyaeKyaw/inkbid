@@ -20,7 +20,7 @@ import paypalPaymentRouter from './routes/paypalpayment.routes.js';
 const app = express();
 app.use(
   cors({
-    origin: 'http://localhost:3000',
+    origin: process.env.DNS || 'http://localhost:3000',
     credentials: true,
   }),
 );

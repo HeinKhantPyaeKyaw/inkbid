@@ -68,7 +68,7 @@ export const NavbarPrimary = ({
   useEffect(() => {
     if (!authUserId) return;
 
-    const socket = io("http://localhost:5500", { withCredentials: true });
+    const socket = io(process.env.SOCKET_BASE, { withCredentials: true });
     socket.emit("register", authUserId);
     console.log("🟢 Navbar socket registered for", authUserId);
 

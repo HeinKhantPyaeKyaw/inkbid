@@ -75,7 +75,7 @@ export const createCheckoutSession = async (req, res) => {
           },
         },
       ],
-      success_url: `${CLIENT_URL}/dashboard/buyer-dashboard`,
+      success_url: `${CLIENT_URL}/dashboard/buyer-dashboard`, //'localhost:3000/dashboard/buyer-dashboard' if on localhost
       cancel_url: `${CLIENT_URL}/dashboard/buyer-dashboard`,
       payment_intent_data: {
         // ✅ platform fee on a direct charge
