@@ -10,7 +10,7 @@ from flask_cors import CORS
 # Create Flask app
 app = Flask(__name__)
 # CORS(app)
-CORS(app, origins=["http://localhost:3000", "http://127.0.0.1:3000"])
+CORS(app, origins=["http://ec2-54-252-208-51.ap-southeast-2.compute.amazonaws.com:3000", "http://localhost:3000", "http://127.0.0.1:3000"])
 
 # Configure upload folder
 UPLOAD_FOLDER = "uploads"
