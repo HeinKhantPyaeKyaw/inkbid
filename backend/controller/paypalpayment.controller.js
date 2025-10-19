@@ -13,6 +13,7 @@ import Contract from '../schemas/contract.schema.js';
 import User from '../schemas/user.schema.js';
 import { uploadPDFToFirebase } from '../utils/firebase/uploadToFirebase.js';
 import { generateContractPDF } from '../utils/pdf/contractGenerator.js';
+import { sendPayoutToSeller } from './paypalpayout.controller.js';
 
 /* -------------------------------------------------------------------------- */
 /* STEP 6.1 – Generate short-lived PayPal access token                        */
@@ -35,9 +36,6 @@ async function generateAccessToken() {
   return res.data.access_token;
 }
 
-/* -------------------------------------------------------------------------- */
-/* STEP 6.2 – Create PayPal Order (unchanged)                                 */
-/* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 /* STEP 6.2 – Create PayPal Order (✅ Updated with redirect URLs)             */
 /* -------------------------------------------------------------------------- */
@@ -159,7 +157,7 @@ export const capturePayPalOrder = async (req, res) => {
         .json({ success: false, message: 'Not authorized' });
 
     // ⚡️ STEP 3️⃣ ADD PLATFORM FEE DEDUCTION (USING PAYPAL CAPTURE AMOUNT)
-    const PLATFORM_FEE_PERCENT = 10; // or load from process.env.PLATFORM_FEE_PERCENT
+    const PLATFORM_FEE_PERCENT = 15; // or load from process.env.PLATFORM_FEE_PERCENT
 
     // 🟢 Extract actual paid amount from PayPal response
     const paidAmountStr =
@@ -186,6 +184,31 @@ export const capturePayPalOrder = async (req, res) => {
     );
     console.log(`💰 Platform Fee (${PLATFORM_FEE_PERCENT}%):`, platformFee);
     console.log(`💸 Seller Earning after fee:`, sellerEarning);
+    // --------------------- Payout section ---------------------
+
+    if (article?.author?.paypalEmail) {
+      console.log('Initiating payout to seller: ', article.author.paypalEmail);
+
+      try {
+        const payoutResult = await sendPayoutToSeller({
+          recipientEmail: article.author.paypalEmail,
+          amount: sellerEarning,
+          currency: paidCurrency || 'USD',
+          note: `Payout for article: ${article.title}`,
+          articleId: articleId,
+        });
+
+        if (payoutResult.success) {
+          console.log('Payout successful: ', payoutResult);
+        } else {
+          console.warn('Payout failed: ', payoutResult.message);
+        }
+      } catch (payoutError) {
+        console.error('Unexpected payout error: ', payoutError);
+      }
+    } else {
+      console.warn('NO paypalEmail found for seller - payout skipped');
+    }
 
     // ----------------------------------------------------------
 
@@ -282,141 +305,3 @@ export const capturePayPalOrder = async (req, res) => {
     });
   }
 };
-
-// export const capturePayPalOrder = async (req, res) => {
-//   try {
-//     const { orderId } = req.params;
-//     const { articleId } = req.body;
-//     const buyer = req.user;
-//     const buyerId = buyer?._id || buyer?.id;
-
-//     console.log('🔍 Capturing PayPal order ID:', orderId);
-
-//     // 1️⃣ Generate PayPal token
-//     const token = await generateAccessToken();
-
-//     /* 🟢 NEW STEP: Check if the order is APPROVED first */
-//     const orderCheck = await axios.get(
-//       `${PAYPAL_API_BASE}/v2/checkout/orders/${orderId}`,
-//       { headers: { Authorization: `Bearer ${token}` } },
-//     );
-
-//     const orderStatus = orderCheck.data.status;
-//     console.log('🔎 Current PayPal order status:', orderStatus);
-
-//     if (orderStatus !== 'APPROVED') {
-//       return res.status(400).json({
-//         success: false,
-//         message: `Order not yet approved. Current status: ${orderStatus}`,
-//       });
-//     }
-
-//     /* 🟢 Only proceed to capture if approved */
-//     const captureRes = await axios.post(
-//       `${PAYPAL_API_BASE}/v2/checkout/orders/${orderId}/capture`,
-//       {},
-//       { headers: { Authorization: `Bearer ${token}` } },
-//     );
-
-//     const capture = captureRes.data;
-//     console.log('✅ PayPal Capture Response:', capture.status);
-
-//     if (capture.status !== 'COMPLETED') {
-//       return res.status(400).json({
-//         success: false,
-//         message: 'Payment not completed on PayPal',
-//         details: capture,
-//       });
-//     }
-
-//     // 2️⃣ Find article and validate buyer
-//     const article = await Article.findById(articleId).populate('author');
-//     if (!article)
-//       return res
-//         .status(404)
-//         .json({ success: false, message: 'Article not found' });
-
-//     if (String(article.winner) !== String(buyerId))
-//       return res
-//         .status(403)
-//         .json({ success: false, message: 'Not authorized' });
-
-//     // 3️⃣ Update article status
-//     article.status = 'completed';
-//     article.proprietor = buyerId;
-//     await article.save();
-
-//     // 4️⃣ Find and finalize contract
-//     const contract = await Contract.findOne({
-//       buyer: buyerId,
-//       article: articleId,
-//       status: { $in: ['complete', 'awaiting_payment'] },
-//     }).populate('buyer author');
-
-//     if (!contract)
-//       return res
-//         .status(404)
-//         .json({ success: false, message: 'Contract not found' });
-
-//     contract.status = 'finalized';
-//     contract.purchasedDate = new Date();
-
-//     // 5️⃣ Generate contract PDF & upload
-//     const pdfBuffer = await generateContractPDF({
-//       articleTitle: article.title,
-//       buyerName: contract.buyer.name,
-//       authorName: contract.author.name,
-//       finalPrice: article.highest_bid,
-//       contractPeriod: contract.contractPeriod,
-//       agreementDate: contract.agreementDate,
-//       purchasedDate: contract.purchasedDate,
-//       terms: contract.terms,
-//     });
-
-//     const pdfUrl = await uploadPDFToFirebase(
-//       pdfBuffer,
-//       `contract-${articleId}-${buyerId}`,
-//     );
-//     contract.contractUrl = pdfUrl;
-//     await contract.save();
-
-//     // 6️⃣ Add to BuyerInventory
-//     const newInventory = await BuyerInventory.create({
-//       buyer: buyerId,
-//       article: articleId,
-//       purchasedDate: new Date(),
-//       contractPeriod: contract.contractPeriod || '30 Days',
-//       contractStatus: 'active',
-//       paymentStatus: 'paid',
-//       contractUrl: pdfUrl,
-//       articleUrl: article.article_url || null,
-//     });
-
-//     const inventory = await BuyerInventory.findById(newInventory._id)
-//       .populate('article', 'title img_url')
-//       .lean();
-
-//     // ✅ Done
-//     res.status(200).json({
-//       success: true,
-//       message: '✅ PayPal payment captured and processed successfully',
-//       paypalStatus: capture.status,
-//       inventory,
-//       contract: {
-//         id: contract._id,
-//         url: contract.contractUrl,
-//         status: contract.status,
-//       },
-//     });
-//   } catch (err) {
-//     console.error(
-//       '❌ Capture PayPal Order Error:',
-//       err.response?.data || err.message,
-//     );
-//     res.status(500).json({
-//       success: false,
-//       message: 'Failed to capture PayPal order',
-//       details: err.response?.data || null,
-//     });
-//   }
-// };
