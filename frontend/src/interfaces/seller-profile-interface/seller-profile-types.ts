@@ -22,11 +22,18 @@ export interface SellerProfileUpdateData {
   profileImage?: File; // 🟩 For image uploads
 }
 
-export interface SellerProfileCarouselProps {
-  header: string;
-  body: string;
+export interface SellerPortfolioCarouselProps {
+  _id: string;
+  title: string;
+  synopsis: string;
+  publishMedium?: string;
+  pdfUrl?: string;
 }
 
+export interface PortfolioModalProps {
+  portfolio: SellerPortfolioCarouselProps | null;
+  onClose: () => void;
+}
 export interface RatingReviewProps {
   ratings: number[];
   avgRating: number;

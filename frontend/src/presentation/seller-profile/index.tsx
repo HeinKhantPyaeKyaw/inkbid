@@ -1,19 +1,21 @@
 'use client';
 
 import { useAuth } from '@/context/auth/AuthContext';
+import { getSellerPortfoliosAPI } from '@/hooks/portfolio.api';
 import { getSellerReviews } from '@/hooks/review.api';
 import { getUserProfileAPI } from '@/hooks/userProfile.api';
 import {
   GetReviewsResponse,
   ReviewCardProps,
   SellerInfo,
+  SellerPortfolioCarouselProps,
 } from '@/interfaces/seller-profile-interface/seller-profile-types';
 import Image from 'next/image';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { NavbarPrimary } from '../components/navbar/navbar_primary';
 import RatingReview from './components/RatingReview';
-import SellerProfileCarousel from './components/SellerProfileCarousel';
+import SellerProfileCarousel from './components/SellerPortfoliosCarousel';
 import WritingReviewSection from './components/WritingReviewSection';
 import { CarouselData, ReviewCardData } from './model';
 
@@ -34,11 +36,15 @@ const SellerProfile = () => {
     },
   ] = useState(CarouselData);
 
+  const [portfolios, setPortfolios] = useState<SellerPortfolioCarouselProps[]>(
+    [],
+  );
+
   const [reviews, setReviews] = useState<ReviewCardProps[]>([]);
   const [avgRating, setAvgRating] = useState<number>(0);
   const [totalReviews, setTotalReviews] = useState<number>(0);
 
-  // TODO: To implement to load data from backend for Carousel Data with useEffect
+  //  ------------------ Fetch Seller Profile info --------------------
   useEffect(() => {
     if (!sellerId) return;
 
@@ -55,6 +61,25 @@ const SellerProfile = () => {
     fetchSellerProfile();
   }, [sellerId]);
 
+  //  ------------------ Fetch Seller Portfolios --------------------
+  useEffect(() => {
+    if (!sellerId) return;
+
+    const fetchPortfolios = async () => {
+      try {
+        const data = await getSellerPortfoliosAPI(sellerId);
+        console.log('Fetch Portfolios: ', data);
+        setPortfolios(data);
+      } catch (error) {
+        console.error('Failed to fetch portfolios: ', error);
+        setPortfolios([]);
+      }
+    };
+
+    fetchPortfolios();
+  }, [sellerId]);
+
+  //  ------------------ Fetch Seller Reviews --------------------
   useEffect(() => {
     if (!sellerId) return;
 
@@ -111,7 +136,15 @@ const SellerProfile = () => {
           </div>
         </div>
       </section>
-      <SellerProfileCarousel data={carouselData} />
+      <section>
+        {portfolios.length > 0 ? (
+          <SellerProfileCarousel data={portfolios} />
+        ) : (
+          <p className="text-white text-center font-Forum py-10">
+            This seller hasn&apos;t uploaded any portfolios yet.
+          </p>
+        )}
+      </section>
       <RatingReview
         ratings={reviews.map((r) => r.rating)}
         avgRating={avgRating}
