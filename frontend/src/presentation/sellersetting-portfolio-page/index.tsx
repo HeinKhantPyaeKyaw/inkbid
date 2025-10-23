@@ -30,7 +30,7 @@ export default function PortfolioPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await axios.get('http://localhost:5500/api/v1/portfolios', {
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE}/portfolios`, {
           withCredentials: true,
           validateStatus: (status) => status < 500, // don't throw for 404
         });
@@ -109,12 +109,12 @@ export default function PortfolioPage() {
       }
 
       const res = await axios.post(
-        'http://localhost:5500/api/v1/portfolios',
+        `${process.env.NEXT_PUBLIC_API_BASE}/portfolios`,
         formData,
         {
           withCredentials: true,
-          headers: { 'Content-Type': 'multipart/form-data' },
-        },
+          headers: { "Content-Type": "multipart/form-data" },
+        }
       );
 
       console.log('Upload response:', res.data);
