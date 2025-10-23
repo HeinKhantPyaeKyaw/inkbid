@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 const portfolioSchema = new mongoose.Schema(
   {
@@ -12,29 +12,22 @@ const portfolioSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-    article: {
-      type: String,
-      required: true,
-      trim: true,
-    },
     publishMedium: {
       type: String,
-      required: true,
       trim: true,
     },
     pdfUrl: {
       type: String,
-      required: true,
     },
     writer: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
       required: true,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
-const Portfolio = mongoose.model("Portfolio", portfolioSchema, "Portfolios");
+const Portfolio = mongoose.model('Portfolio', portfolioSchema, 'Portfolios');
 
 export default Portfolio;
