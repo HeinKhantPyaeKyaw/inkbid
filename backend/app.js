@@ -18,12 +18,45 @@ import paymentRoutes from "./routes/payment.routes.js";
 import paypalPaymentRouter from './routes/paypalpayment.routes.js';
 
 const app = express();
+
+// --- 1️⃣ Configure allowed origins ---
+const allowedOrigins = [
+  "http://localhost:3000",
+  `http://${process.env.DNS}`,
+  `https://${process.env.DNS}`,
+];
+
+// --- 2️⃣ Use CORS middleware (must be first) ---
 app.use(
   cors({
-    origin: process.env.DNS || 'http://localhost:3000',
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true); // allow mobile/postman
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      console.warn(`❌ Blocked by CORS: ${origin}`);
+      return callback(new Error("Not allowed by CORS"));
+    },
     credentials: true,
-  }),
+  })
 );
+
+// --- 3️⃣ Handle preflight manually (no path param!) ---
+app.use((req, res, next) => {
+  res.header(
+    "Access-Control-Allow-Methods",
+    "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS"
+  );
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+  );
+  if (req.method === "OPTIONS") {
+    // ✅ Respond directly without using app.options()
+    res.sendStatus(200);
+  } else {
+    next();
+  }
+});
+
 app.post(
   "/api/v1/payment/webhook",
   express.raw({ type: "application/json" }),

@@ -49,7 +49,7 @@ export default function NavbarSecondary() {
     if (!userId) return;
 
     const socket: Socket = io(
-      process.env.NEXT_PUBLIC_API_BASE?.replace("/api/v1", "") ?? "",
+      process.env.NEXT_PUBLIC_SOCKET_BASE,
       { withCredentials: true }
     );
 

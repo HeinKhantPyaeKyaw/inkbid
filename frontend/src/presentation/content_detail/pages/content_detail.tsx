@@ -22,7 +22,7 @@ export const ContentDetail = () => {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // SOCKET
-  const socket = useMemo(() => io(process.env.SOCKET_BASE), []);
+  const socket = useMemo(() => io(process.env.NEXT_PUBLIC_SOCKET_BASE), []);
 
   // FETCH ARTICLE
   useEffect(() => {

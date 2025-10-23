@@ -79,7 +79,7 @@ const BuyerSettingsPage: React.FC = () => {
   // ✅ Setup socket listener for live notifications
   useEffect(() => {
     if (!userId) return;
-    const socket = io(process.env.SOCKET_BASE, { withCredentials: true }); //fix local host to env var ec2 DNS
+    const socket = io(process.env.NEXT_PUBLLIC_SOCKET_BASE, { withCredentials: true }); //fix local host to env var ec2 DNS
 
     socket.emit("register", userId);
     console.log("🟢 Buyer socket registered:", userId);

@@ -68,12 +68,22 @@ export const NavbarPrimary = ({
   useEffect(() => {
     if (!authUserId) return;
 
-    const socket = io(process.env.SOCKET_BASE, { withCredentials: true });
-    socket.emit("register", authUserId);
-    console.log("🟢 Navbar socket registered for", authUserId);
+    const socket = io(process.env.NEXT_PUBLIC_SOCKET_BASE!, {
+      transports: ["websocket"], // skip polling
+      withCredentials: true,
+    });
+
+    socket.on("connect", () => {
+      console.log("✅ Socket connected:", socket.id);
+      socket.emit("register", authUserId);
+    });
+
+    socket.on("disconnect", () => {
+      console.log("❌ Socket disconnected");
+    });
 
     socket.on("notification", (data) => {
-      console.log("📬 New notification in navbar:", data);
+      console.log("📬 Notification:", data);
       setNotifications((prev) => [data, ...prev]);
       setHasNew(true);
     });
@@ -82,6 +92,7 @@ export const NavbarPrimary = ({
       socket.disconnect();
     };
   }, [authUserId]);
+
 
   // =============================
   // Close dropdown on outside click
