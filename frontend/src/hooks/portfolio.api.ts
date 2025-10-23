@@ -1,10 +1,8 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:5500/api/v1/portfolios';
-
 export const getSellerPortfoliosAPI = async (sellerId: string) => {
   try {
-    const res = await axios.get(`${API_BASE_URL}/${sellerId}`, {
+    const res = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE}/portfolios/${sellerId}`, {
       withCredentials: true,
     });
 

@@ -43,7 +43,7 @@ const ArticleUpload = ({
       formData.append('file', file);
 
       // Call AI(Flask) Server
-      const response = await fetch(`${process.env.AI_BASE}/predict`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_AI_BASE}/predict`, {
         //127.0.0:5000/predict
         method: 'POST',
         body: formData,
