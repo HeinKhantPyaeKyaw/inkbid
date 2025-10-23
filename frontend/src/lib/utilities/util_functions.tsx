@@ -39,3 +39,18 @@ export const useCountdown = (targetDate: string) => {
 
   return timeLeft;
 };
+
+export function calculateCountdown(endDate: string) {
+  if (!endDate) return 'N/A';
+  const end = new Date(endDate).getTime();
+  const now = Date.now();
+  const diff = end - now;
+
+  if (diff <= 0) return 'Ended';
+
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+  const mins = Math.floor((diff / (1000 * 60)) % 60);
+
+  return `${days}d ${hours}h ${mins}m`;
+}

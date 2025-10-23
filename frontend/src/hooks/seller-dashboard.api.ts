@@ -1,8 +1,6 @@
 // src/hooks/seller-dashboard.api.ts
 import axios from "axios";
 
-const API_BASE = "http://localhost:5500/api/v1/seller-dashboard";
-const API_BASE2 = "http://localhost:5500/api/v1/contracts";
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE;
 
 export async function getSellerSummary() {

@@ -82,7 +82,7 @@ const SettingsPage: React.FC = () => {
   useEffect(() => {
     if (!userId) return; // wait until userId is ready
 
-    const socket = io("http://localhost:5500", { withCredentials: true });
+    const socket = io(process.env.NEXT_PUBLIC_SOCKET_BASE, { withCredentials: true });
 
     socket.emit("register", userId);
     console.log("🟢 Socket registered:", userId);

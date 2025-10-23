@@ -58,7 +58,7 @@ export default function PortfolioPage() {
 
   const handleDelete = async (id: number | string) => {
     setItems(items.filter((item) => item._id !== id));
-    await axios.delete(`http://localhost:5500/api/v1/portfolios/${id}`, {
+    await axios.delete(`${process.env.NEXT_PUBLIC_API_BASE}/portfolios/${id}`, {
       withCredentials: true,
     });
     alert("Portfolio item deleted");
@@ -112,7 +112,7 @@ export default function PortfolioPage() {
 
     try {
       await axios.post(
-        "http://localhost:5500/api/v1/portfolios",
+        `${process.env.NEXT_PUBLIC_API_BASE}/portfolios`,
         { ...newItem, pdf: pdfFile },
         { withCredentials: true }
       );

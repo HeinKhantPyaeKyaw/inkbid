@@ -118,27 +118,41 @@ export function InventoryTable({ items, onActionClick }: Props) {
                       <div className="flex space-x-8 items-center justify-end">
                         <button
                           type="button"
-                          className="flex-col inline-flex items-center justify-center h-8 w-8 rounded-full hover:bg-black/5 transition pointer-events-auto "
+                          className="flex-col inline-flex items-center justify-center h-8 w-8 rounded-full hover:bg-black/5 transition pointer-events-auto cursor-pointer hover:scale-120"
                           aria-label={`Actions for ${row.title}`}
-                          onClick={() => onActionClick?.(row)}
+                          onClick={() =>
+                            window.open(
+                              `${process.env.NEXT_PUBLIC_API_BASE}/seller-dashboard/download/contract/${row.id}`,
+                              "_blank"
+                            )
+                          }
                         >
                           <FontAwesomeIcon
                             icon={faFileSignature}
                             className="text-[#313131] text-3xl"
                           />
-                          <p className="tracking-tighter text-[16px]">Contract</p>
+                          <p className="tracking-tighter text-[16px]">
+                            Contract
+                          </p>
                         </button>
                         <button
                           type="button"
-                          className="flex-col inline-flex items-center justify-center h-8 w-8 rounded-full hover:bg-black/5 transition pointer-events-auto "
+                          className="flex-col inline-flex items-center justify-center h-8 w-8 rounded-full hover:bg-black/5 transition pointer-events-auto cursor-pointer hover:scale-120"
                           aria-label={`Actions for ${row.title}`}
-                          onClick={() => onActionClick?.(row)}
+                          onClick={() =>
+                            window.open(
+                              `${process.env.NEXT_PUBLIC_API_BASE}/seller-dashboard/download/article/${row.id}`,
+                              "_blank"
+                            )
+                          }
                         >
                           <FontAwesomeIcon
                             icon={faFileLines}
                             className="text-[#313131] text-3xl"
                           />
-                          <p className="tracking-tighter text-[16px]">Article</p>
+                          <p className="tracking-tighter text-[16px]">
+                            Article
+                          </p>
                         </button>
                       </div>
                     ) : (

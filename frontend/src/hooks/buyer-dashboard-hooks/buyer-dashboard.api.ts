@@ -9,7 +9,6 @@ import { ArticleTableStatus } from '@/interfaces/buyer-dashboard-interface/statu
 import axios from 'axios';
 import { useCallback } from 'react';
 
-const API_BASE_URL = 'http://localhost:5500/api/v1/buyer';
 const STRIPE_API_URL = 'http://localhost:5500/api/v1/payment';
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE;
 

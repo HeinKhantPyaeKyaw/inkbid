@@ -5,6 +5,8 @@ import {
   getSellerSummary,
   getSellerArticles,
   getSellerInventory,
+  downloadContract,
+  downloadArticle,
 } from "../controller/seller-dashboard.controller.js";
 import { getSellerAnalytics } from "../controller/seller-analytics.controller.js";
 
@@ -40,6 +42,17 @@ sellerDashboardRouter.get(
   verifyAuth,
   noStore,
   getSellerAnalytics
+);
+
+sellerDashboardRouter.get(
+  "/download/contract/:articleId",
+  verifyAuth,
+  downloadContract
+);
+sellerDashboardRouter.get(
+  "/download/article/:articleId",
+  verifyAuth,
+  downloadArticle
 );
 
 export default sellerDashboardRouter;

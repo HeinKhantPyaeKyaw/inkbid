@@ -27,3 +27,8 @@ yarn-error.log*
 # OS/system files
 .DS_Store
 Thumbs.db
+
+# Docker
+.dockerignore
+Dockerfile
+docker-compose.yaml
