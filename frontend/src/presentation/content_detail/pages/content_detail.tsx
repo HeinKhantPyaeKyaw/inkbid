@@ -22,7 +22,7 @@ export const ContentDetail = () => {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // SOCKET
-  const socket = useMemo(() => io('http://localhost:5500'), []);
+  const socket = useMemo(() => io(process.env.NEXT_PUBLIC_SOCKET_BASE), []);
 
   // FETCH ARTICLE
   useEffect(() => {
@@ -90,7 +90,7 @@ export const ContentDetail = () => {
   // PLACE BID
   const handlePlaceBid = async () => {
     try {
-      const res = await fetch('http://localhost:5500/api/v1/bids', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/bids`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

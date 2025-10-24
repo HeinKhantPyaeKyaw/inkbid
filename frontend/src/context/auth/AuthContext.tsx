@@ -7,7 +7,7 @@ import {
 import axios, { AxiosError } from 'axios';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-const API_URL = 'http://localhost:5500/api/v1/auth';
+const API_URL = `${process.env.NEXT_PUBLIC_API_BASE}/auth`;
 
 // empty by default
 const AuthContext = createContext<AuthContextType | undefined>(undefined);

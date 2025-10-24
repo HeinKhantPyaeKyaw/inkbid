@@ -60,7 +60,7 @@ export default function BuyerSettingsPage() {
       }
 
       await axios.put(
-        "http://localhost:5500/api/v1/seller-profile/update",
+        `${process.env.NEXT_PUBLIC_API_BASE}/seller-profile/update`,
         {
           role: "seller",
           paypalEmail: form.paypal,
@@ -85,7 +85,7 @@ export default function BuyerSettingsPage() {
 
     try {
       await axios.put(
-        "http://localhost:5500/api/v1/auth/update-password",
+        `${process.env.NEXT_PUBLIC_API_BASE}/auth/update-password`,
         { newPassword },
         { withCredentials: true }
       );

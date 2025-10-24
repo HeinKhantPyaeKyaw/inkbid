@@ -4,7 +4,7 @@ import {
 } from '@/interfaces/seller-profile-interface/seller-profile-types';
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:5500/api/v1';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE;
 
 // Create Review API
 export const createReviewAPI = async (reviewData: {
