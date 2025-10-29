@@ -290,7 +290,7 @@ export const NavbarPrimary = ({
   return (
     <nav className="flex items-center justify-between px-6 bg-primary">
       <div className="w-32" />
-      <div className="text-[64px] tracking-wide font-Forum text-accent">
+      <div className={`text-[64px] tracking-wide font-Forum text-accent ${user === "buyer" ? "cursor-pointer" : ""}`} onClick={() => user==="buyer" && router.push("/content-listing")}>
         INKBID
       </div>
 

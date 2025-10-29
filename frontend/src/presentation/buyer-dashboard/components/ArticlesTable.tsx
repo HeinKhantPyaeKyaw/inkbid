@@ -41,7 +41,7 @@ const ArticleTable = ({
   setArticlesTableData,
   setInventoryTableData,
 }: ArticleTableProps) => {
-  const [rowsLimit] = useState(5);
+  const [rowsLimit] = useState(10);
   const [currentPage, setCurrentPage] = useState(0);
 
   // For ActionButton Dropdown

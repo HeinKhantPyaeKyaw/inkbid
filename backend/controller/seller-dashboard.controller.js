@@ -42,6 +42,30 @@ export const getSellerSummary = async (req, res) => {
     ]);
 
     const map = Object.fromEntries(byStatus.map((d) => [d._id, d.count]));
+    // Calculate total revenue from completed articles
+    const revenueAgg = await Article.aggregate([
+      {
+        $match: {
+          author: new mongoose.Types.ObjectId(sellerId),
+          status: "completed",
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalRevenue: {
+            $sum: {
+              $cond: [
+                { $ifNull: ["$final_price", false] },
+                "$final_price",
+                { $ifNull: ["$highest_bid", 0] },
+              ],
+            },
+          },
+        },
+      },
+    ]);
+    const totalRevenue = revenueAgg.length > 0 ? Number(revenueAgg[0].totalRevenue) : 0;
     res.json({
       in_progress: map.in_progress || 0,
       awaiting_contract: map.awaiting_contract || 0,
@@ -49,6 +73,7 @@ export const getSellerSummary = async (req, res) => {
       cancelled: map.cancelled || 0,
       completed: map.completed || 0,
       expired: map.expired || 0,
+      total_revenue: totalRevenue, 
     });
   } catch (err) {
     console.error("getSellerSummary error:", err);

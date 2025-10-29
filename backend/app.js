@@ -57,11 +57,11 @@ app.use((req, res, next) => {
   }
 });
 
-app.post(
-  "/api/v1/payment/webhook",
-  express.raw({ type: "application/json" }),
-  paymentRoutes
-);
+// app.post(
+//   "/api/v1/payment/webhook",
+//   express.raw({ type: "application/json" }),
+//   paymentRoutes
+// );
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
