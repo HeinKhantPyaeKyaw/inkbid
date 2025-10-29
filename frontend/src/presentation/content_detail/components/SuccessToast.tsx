@@ -13,13 +13,14 @@ export const SuccessToast: React.FC<SuccessToastProps> = ({
   onClose,
 }) => {
   useEffect(() => {
-    const timer = setTimeout(onClose, 3000); // auto close after 3s
+    const timer = setTimeout(onClose, 3000);
     return () => clearTimeout(timer);
-  }, [onClose]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <AnimatePresence>
-      {message && (
+      
         <motion.div
           className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50"
           initial={{ y: 50, opacity: 0 }}
@@ -38,7 +39,7 @@ export const SuccessToast: React.FC<SuccessToastProps> = ({
             </button>
           </div>
         </motion.div>
-      )}
+    
     </AnimatePresence>
   );
 };

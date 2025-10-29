@@ -14,6 +14,7 @@ export async function getSellerSummary() {
     cancelled: number;
     completed: number;
     expired: number;
+    total_revenue: number;
   };
 }
 

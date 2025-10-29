@@ -10,6 +10,38 @@ import Link from "next/link";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE;
 
+function CountdownTimer({ endsIn }: { endsIn: string }) {
+  const [timeLeft, setTimeLeft] = useState("");
+
+  useEffect(() => {
+    const calculateTimeLeft = () => {
+      const end = new Date(endsIn).getTime();
+      const now = Date.now();
+      const diff = end - now;
+
+      if (diff <= 0) {
+        setTimeLeft("Expired");
+        return;
+      }
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor(
+        (diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+      );
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+      setTimeLeft(`${days}d ${hours}h ${minutes}m ${seconds}s`);
+    };
+
+    calculateTimeLeft();
+    const interval = setInterval(calculateTimeLeft, 1000);
+    return () => clearInterval(interval);
+  }, [endsIn]);
+
+  return <span className="text-primary font-medium">Ends In: {timeLeft}</span>;
+}
+
 function MarketplaceContent() {
   const searchParams = useSearchParams();
   const [articles, setArticles] = useState<any[]>([]);
@@ -143,13 +175,7 @@ function MarketplaceContent() {
                     View Details
                   </Link>
                   <div className="text-sm text-gray-500">
-                    <span className="text-primary font-medium">
-                      {Array.isArray(article.tag?.genre)
-                        ? article.tag.genre
-                            .map((g: any) => g.keyword)
-                            .join(", ")
-                        : "Unspecified"}
-                    </span>
+                    <CountdownTimer endsIn={article.ends_in} />
                   </div>
                 </div>
               </div>

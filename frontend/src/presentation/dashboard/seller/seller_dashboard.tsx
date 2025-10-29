@@ -18,6 +18,9 @@ import { ArticleTable, type ArticleRow } from './components/article_table';
 import { EngagementSection } from './components/engagement_section';
 import { InventoryRow, InventoryTable } from './components/inventory.table';
 import { StatCard } from './components/stat_card';
+import { io } from "socket.io-client";
+import { toast } from "react-hot-toast";
+
 
 interface SellerSummary {
   in_progress: number;
@@ -26,6 +29,7 @@ interface SellerSummary {
   cancelled: number;
   completed: number;
   expired: number;
+  total_revenue: number;
 }
 
 interface SellerArticleApi {
@@ -57,6 +61,10 @@ export const SellerDashboard = () => {
   const [summary, setSummary] = useState<SellerSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const socket = io(process.env.NEXT_PUBLIC_SOCKET_BASE!, {
+    withCredentials: true,
+  });
 
   // fetch data once when page loads
   const fetchAll = async () => {
@@ -113,6 +121,38 @@ export const SellerDashboard = () => {
     fetchAll();
   }, []);
 
+  // ✅ Real-time listener for bid updates
+  useEffect(() => {
+    socket.on("bidUpdate", (update) => {
+      console.log("📡 Received bid update:", update);
+
+      setArticles((prev) =>
+        prev.map((article) =>
+          article.id === update.articleId
+            ? { ...article, current_bid: update.amount }
+            : article
+        )
+      );
+
+      // Optional: show toast when relevant to seller
+      toast(`💰 New bid placed on ${update.title || "an article"}`);
+    });
+
+    // Optional: listen for status changes
+    socket.on("statusUpdate", (update) => {
+      setArticles((prev) =>
+        prev.map((a) =>
+          a.id === update.articleId ? { ...a, status: update.status } : a
+        )
+      );
+    });
+
+    return () => {
+      socket.off("bidUpdate");
+      socket.off("statusUpdate");
+    };
+  }, [socket]);
+
   return (
     <>
       <NavbarPrimary user={user?.role} userId={user?.id} />
@@ -123,6 +163,11 @@ export const SellerDashboard = () => {
         </p>
         {/* <EngagementSection /> */}
         <div className="grid grid-cols-4 gap-4 mt-4">
+          <StatCard
+            title={"Total Revenue Generated"}
+            value={summary?.total_revenue || "-"}
+            icon={faTriangleExclamation}
+          />
           <StatCard
             title={"Total Article Bids In-Progress"}
             value={summary?.in_progress || "-"}
@@ -137,11 +182,6 @@ export const SellerDashboard = () => {
             title={"Total Bids Awaiting Action"}
             value={summary?.awaiting_contract || "-"}
             icon={faEllipsis}
-          />
-          <StatCard
-            title={"Total Expired Contracts"}
-            value={summary?.expired || "-"}
-            icon={faTriangleExclamation}
           />
         </div>
         <ArticleTable

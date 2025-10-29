@@ -15,9 +15,11 @@ export const StatCard = ({ title, value, icon }: StatCardProps) => {
         <div className="text-4xl font-Montserrat font-medium text-[#313131] mt-4 text-center">
           {title === "Total Bids Awaiting Action" ? (
             <span>{value} Bids</span>
-          ) : title === "Total Expired Contracts" ? (
-            <span>{value} Contracts</span>
-          ) : <span>{value} Articles</span>}
+          ) : title === "Total Revenue Generated" ? (
+            <span>฿{value}</span>
+          ) : (
+            <span>{value} Articles</span>
+          )}
         </div>
       </div>
 

@@ -114,54 +114,6 @@ export const BackgroundCarousel = () => {
                     </p>
                   </div>
                 )}
-                <div className="cursor-pointer w-[150px] hover:scale-125">
-                  <p className="font-bold font-Forum text-[20px] ">
-                    Sign Up Now
-                  </p>
-                  <div className="flex flex-col items-center justify-content w-[100px]">
-                    <div className="bg-white h-0.25 w-[100px]" />
-                    <div className="bg-white h-0.25 w-[50px] mt-1" />
-                  </div>
-                </div>
-                <div className="w-full flex flex-col items-center">
-                  <div className="flex space-x-6 absolute bottom-20 mb-10 text-xl text-[#3C3C3C] h-[80px] bg-red-0 w-[1300px] rounded-2xl bg-[#D9D9D9]/60 items-center justify-center">
-                    <div className="flex flex-col w-full px-2 pl-8">
-                      <div className="flex items-center px-2 text-[20px]">
-                        <p className="w-full">Genre</p>
-                        <FontAwesomeIcon icon={faCaretDown} />
-                      </div>
-                      <div className="w-full h-0.25 bg-[#3C3C3C] mt-1" />
-                    </div>
-                    <div className="flex flex-col w-full px-2">
-                      <div className="flex items-center px-2 text-[20px]">
-                        <p className="w-full">Writing Style</p>
-                        <FontAwesomeIcon icon={faCaretDown} />
-                      </div>
-                      <div className="w-full h-0.25 bg-[#3C3C3C] mt-1" />
-                    </div>
-                    <div className="flex flex-col w-full px-2">
-                      <div className="flex items-center px-2 text-[20px]">
-                        <p className="w-full">Date</p>
-                        <FontAwesomeIcon icon={faCaretDown} />
-                      </div>
-                      <div className="w-full h-0.25 bg-[#3C3C3C] mt-1" />
-                    </div>
-                    <div className="flex flex-col w-full px-2">
-                      <div className="flex items-center px-2 text-[20px]">
-                        <p className="w-full">Duration</p>
-                        <FontAwesomeIcon icon={faCaretDown} />
-                      </div>
-                      <div className="w-full h-0.25 bg-[#3C3C3C] mt-1" />
-                    </div>
-                    <div className=" flex items-center justify-between px-4 py-2 pr-8 hover:scale-110 transition-all duration-200">
-                      <p className="pr-2 text-2xl font-Montserrat">Browse</p>
-                      <FontAwesomeIcon
-                        icon={faArrowRight}
-                        className="text-3xl"
-                      />
-                    </div>
-                  </div>
-                </div>
               </div>
             </div>
           ))}

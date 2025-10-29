@@ -10,13 +10,14 @@ interface ErrorToastProps {
 
 export const ErrorToast: React.FC<ErrorToastProps> = ({ message, onClose }) => {
   useEffect(() => {
-    const timer = setTimeout(onClose, 4000); // auto close after 4s
+    const timer = setTimeout(onClose, 5000);
     return () => clearTimeout(timer);
-  }, [onClose]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <AnimatePresence>
-      {message && (
+      
         <motion.div
           className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50"
           initial={{ y: 50, opacity: 0 }} // start below screen
@@ -35,7 +36,7 @@ export const ErrorToast: React.FC<ErrorToastProps> = ({ message, onClose }) => {
             </button>
           </div>
         </motion.div>
-      )}
+      
     </AnimatePresence>
   );
 };
