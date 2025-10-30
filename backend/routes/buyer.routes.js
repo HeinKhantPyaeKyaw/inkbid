@@ -8,6 +8,7 @@ import {
   getBuyerInventory,
   proceedPayment,
   signContract,
+  getBuyerCompletedArticles,
 } from '../controller/buyer.controller.js';
 
 const buyerRouter = express.Router();
@@ -38,6 +39,12 @@ buyerRouter.get(
   '/:buyerId/inventory/:inventoryId/article',
   verifyAuth,
   downloadArticle,
+);
+
+buyerRouter.get(
+  '/:buyerId/completed-articles',
+  verifyAuth,
+  getBuyerCompletedArticles,
 );
 
 export default buyerRouter;

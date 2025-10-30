@@ -26,6 +26,8 @@ export interface InventoryTableItems {
   purchasedDate: string; // ? DateTime
   contractPeriod: string; // ? DateTime
   contractStatus: InventoryTableStatus | string;
+  contractUrl?: string;
+  articleUrl?: string;
 }
 
 export interface BuyerDashboardPaginationProps {

@@ -16,7 +16,7 @@ export async function createStripeCheckoutSession(articleId: string) {
   const { data } = await axios.post(
     `${BASE_URL}/payment/create-session`,
     { articleId },
-    { withCredentials: true }
+    { withCredentials: true },
   );
   // expects: { url: string }
   return data as { url: string };
@@ -74,21 +74,57 @@ export const useBuyerDashboardAPI = () => {
     }
   }, [buyerId]);
 
+  // const fetchInventoryData = useCallback(async (): Promise<
+  //   InventoryTableItems[]
+  // > => {
+  //   if (!buyerId) return [];
+  //   try {
+  //     const res = await axios.get(`${BASE_URL}/buyer/${buyerId}/inventory`, {
+  //       withCredentials: true,
+  //     });
+
+  //     console.log('Items in Inventory: ', res.data.data);
+
+  //     const mappedInventory: InventoryTableItems[] = res.data.data.map(
+  //       (item: RawInventory) => ({
+  //         id: String(item._id ?? ''),
+  //         title: String(item.article.title ?? 'Untitled'),
+  //         purchasedDate: item.purchasedDate
+  //           ? new Date(item.purchasedDate).toLocaleDateString()
+  //           : '—',
+  //         contractPeriod: String(item.contractPeriod ?? '30 Days'),
+  //         contractStatus: item.contractStatus
+  //           ? item.contractStatus.charAt(0).toUpperCase() +
+  //             item.contractStatus.slice(1).toLowerCase()
+  //           : 'Active',
+  //       }),
+  //     );
+
+  //     return mappedInventory;
+  //   } catch (error) {
+  //     console.error('Error fetching inventory data: ', error);
+  //     throw error;
+  //   }
+  // }, [buyerId]);
+
   const fetchInventoryData = useCallback(async (): Promise<
     InventoryTableItems[]
   > => {
     if (!buyerId) return [];
     try {
-      const res = await axios.get(`${BASE_URL}/buyer/${buyerId}/inventory`, {
-        withCredentials: true,
-      });
+      // 🟢 Use new endpoint instead of /inventory
+      const res = await axios.get(
+        `${BASE_URL}/buyer/${buyerId}/completed-articles`,
+        { withCredentials: true },
+      );
 
-      console.log('Items in Inventory: ', res.data.data);
+      console.log('🟢 Completed Articles (as Inventory): ', res.data.data);
 
+      // 🟢 Map new data format (from Article + Contract)
       const mappedInventory: InventoryTableItems[] = res.data.data.map(
-        (item: RawInventory) => ({
+        (item: any) => ({
           id: String(item._id ?? ''),
-          title: String(item.article.title ?? 'Untitled'),
+          title: String(item.title ?? 'Untitled'),
           purchasedDate: item.purchasedDate
             ? new Date(item.purchasedDate).toLocaleDateString()
             : '—',
@@ -97,12 +133,15 @@ export const useBuyerDashboardAPI = () => {
             ? item.contractStatus.charAt(0).toUpperCase() +
               item.contractStatus.slice(1).toLowerCase()
             : 'Active',
+          // 🟢 Added new optional fields for download buttons
+          contractUrl: item.contractUrl || null,
+          articleUrl: item.articleUrl || null,
         }),
       );
 
       return mappedInventory;
     } catch (error) {
-      console.error('Error fetching inventory data: ', error);
+      console.error('❌ Error fetching completed articles: ', error);
       throw error;
     }
   }, [buyerId]);
@@ -173,41 +212,61 @@ export const useBuyerDashboardAPI = () => {
   };
 
   // Download contract for an inventory item
-  const downloadContractAPI = async (inventoryId: string) => {
+  // const downloadContractAPI = async (inventoryId: string) => {
+  //   try {
+  //     const res = await axios.get(
+  //       `${BASE_URL}/buyer/${buyerId}/inventory/${inventoryId}/contract`,
+  //       { withCredentials: true },
+  //     );
+
+  //     const fileUrl = res.data.url;
+  //     if (!fileUrl) throw new Error('File URL missing from response');
+
+  //     window.open(fileUrl, '_blank');
+
+  //     return res.data;
+  //   } catch (error) {
+  //     console.error('Error downloading contract: ', error);
+  //     throw error;
+  //   }
+  // };
+  const downloadContractAPI = async (fileUrl?: string) => {
     try {
-      const res = await axios.get(
-        `${BASE_URL}/buyer/${buyerId}/inventory/${inventoryId}/contract`,
-        { withCredentials: true },
-      );
-
-      const fileUrl = res.data.url;
-      if (!fileUrl) throw new Error('File URL missing from response');
-
+      if (!fileUrl) throw new Error('No contract URL provided');
       window.open(fileUrl, '_blank');
-
-      return res.data;
+      return { success: true };
     } catch (error) {
-      console.error('Error downloading contract: ', error);
+      console.error('Error opening contract file:', error);
       throw error;
     }
   };
 
   // Download article for an inventory item
-  const downloadArticleAPI = async (inventoryId: string) => {
+  // const downloadArticleAPI = async (inventoryId: string) => {
+  //   try {
+  //     const res = await axios.get(
+  //       `${BASE_URL}/buyer/${buyerId}/inventory/${inventoryId}/article`,
+  //       { withCredentials: true },
+  //     );
+
+  //     const fileUrl = res.data.url;
+  //     if (!fileUrl) throw new Error('File URL missing from response');
+
+  //     window.open(fileUrl, '_blank');
+
+  //     return res.data;
+  //   } catch (error) {
+  //     console.error('Error downloading article: ', error);
+  //     throw error;
+  //   }
+  // };
+  const downloadArticleAPI = async (fileUrl?: string) => {
     try {
-      const res = await axios.get(
-        `${BASE_URL}/buyer/${buyerId}/inventory/${inventoryId}/article`,
-        { withCredentials: true },
-      );
-
-      const fileUrl = res.data.url;
-      if (!fileUrl) throw new Error('File URL missing from response');
-
+      if (!fileUrl) throw new Error('No article URL provided');
       window.open(fileUrl, '_blank');
-
-      return res.data;
+      return { success: true };
     } catch (error) {
-      console.error('Error downloading article: ', error);
+      console.error('Error opening article file:', error);
       throw error;
     }
   };
