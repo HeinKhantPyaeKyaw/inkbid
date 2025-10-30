@@ -378,16 +378,69 @@ export const downloadArticle = async (req, res) => {
   }
 };
 
-// export const getBuyerInventory = async (req, res) => {
-//   try {
-//     const { buyerId } = req.params;
-//     const inventory = await BuyerInventory.find({ buyer: buyerId })
-//       .populate('article', 'title img_url')
-//       .lean();
+// ============================================================
+// 🆕 NEW CONTROLLER: getBuyerCompletedArticles
+// Purpose: Return all completed articles (from Article + Contract)
+// ============================================================
+export const getBuyerCompletedArticles = async (req, res) => {
+  try {
+    const { buyerId } = req.params;
 
-//     return res.status(200).json({ success: true, data: inventory });
-//   } catch (err) {
-//     console.error('Error fetching buyer inventory:', err);
-//     return res.status(500).json({ success: false, error: 'Server error' });
-//   }
-// };
+    // 1️⃣ Find all completed articles that belong to this buyer
+    const completedArticles = await Article.find({
+      winner: buyerId,
+      status: 'completed',
+    })
+      .populate('author', 'name img_url')
+      .sort({ updatedAt: -1 })
+      .lean();
+
+    if (completedArticles.length === 0) {
+      return res.status(200).json({
+        success: true,
+        data: [],
+        message: 'No completed articles found.',
+      });
+    }
+
+    // 2️⃣ Find related finalized contracts for those articles
+    const articleIds = completedArticles.map((a) => a._id);
+    const contracts = await Contract.find({
+      buyer: buyerId,
+      article: { $in: articleIds },
+      status: 'finalized',
+    })
+      .select('article contractUrl')
+      .lean();
+
+    // 3️⃣ Make a quick lookup map for contract URLs
+    const contractMap = {};
+    for (const c of contracts) {
+      contractMap[String(c.article)] = c.contractUrl || null;
+    }
+
+    // 4️⃣ Merge article + contract info into one clean response
+    const result = completedArticles.map((article) => ({
+      _id: article._id,
+      title: article.title || 'Untitled',
+      purchasedDate: article.updatedAt || article.createdAt,
+      contractPeriod: '30 Days', // default fallback
+      contractStatus: 'Active', // can extend later with expiry logic
+      contractUrl: contractMap[String(article._id)] || null,
+      articleUrl: article.article_url || null,
+      author: article.author?.name || 'Unknown Seller',
+    }));
+
+    // 5️⃣ Send back the merged dataset
+    return res.status(200).json({
+      success: true,
+      data: result,
+    });
+  } catch (err) {
+    console.error('❌ Error fetching buyer completed articles:', err);
+    return res.status(500).json({
+      success: false,
+      error: 'Server error while fetching completed articles.',
+    });
+  }
+};

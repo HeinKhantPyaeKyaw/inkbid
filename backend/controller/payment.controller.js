@@ -1,18 +1,18 @@
 // controller/payment.controller.js
-import Stripe from "stripe";
-import Article from "../schemas/article.schema.js";
-import Payment from "../schemas/payment.schema.js";
-import { notify } from "../services/notification.service.js";
-import Contract from "../schemas/contract.schema.js";
-import BuyerInventory from "../schemas/buyer-inventory.schema.js";
-import { uploadPDFToFirebase } from "../utils/firebase/uploadToFirebase.js";
-import { generateContractPDF } from "../utils/pdf/contractGenerator.js";
+import Stripe from 'stripe';
+import Article from '../schemas/article.schema.js';
+import Payment from '../schemas/payment.schema.js';
+import { notify } from '../services/notification.service.js';
+import Contract from '../schemas/contract.schema.js';
+import BuyerInventory from '../schemas/buyer-inventory.schema.js';
+import { uploadPDFToFirebase } from '../utils/firebase/uploadToFirebase.js';
+import { generateContractPDF } from '../utils/pdf/contractGenerator.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: "2024-06-20",
+  apiVersion: '2024-06-20',
 });
 
-const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
+const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:3000';
 
 /**
  * POST /api/v1/payment/create-session
@@ -24,23 +24,23 @@ export const createCheckoutSession = async (req, res) => {
     const buyerId = req.user?.id;
 
     const article = await Article.findById(articleId)
-      .populate("author", "_id name email")
-      .populate("winner", "_id name email");
+      .populate('author', '_id name email')
+      .populate('winner', '_id name email');
 
-    if (!article) return res.status(404).json({ error: "Article not found" });
+    if (!article) return res.status(404).json({ error: 'Article not found' });
 
     // must be awaiting_payment to allow paying
-    if (article.status !== "awaiting_payment") {
+    if (article.status !== 'awaiting_payment') {
       return res
         .status(400)
-        .json({ error: "Article is not ready for payment." });
+        .json({ error: 'Article is not ready for payment.' });
     }
 
     const amountThb =
       article.final_price ||
       Number(article.buy_now ?? article.highest_bid ?? 0);
     if (!amountThb || amountThb <= 0) {
-      return res.status(400).json({ error: "Invalid final price." });
+      return res.status(400).json({ error: 'Invalid final price.' });
     }
 
     const feeRate = article.fee_rate ?? 0.15;
@@ -52,24 +52,24 @@ export const createCheckoutSession = async (req, res) => {
       article: article._id,
       buyer: buyerId || article.winner?._id,
       seller: article.author._id,
-      currency: "thb",
+      currency: 'thb',
       amount_total_thb: amountThb,
       platform_fee_thb: feeThb,
       seller_receivable_thb: sellerThb,
-      status: "pending",
+      status: 'pending',
     });
-    const destination = "acct_1SHe1cGcE0uTLpEN";
+    const destination = 'acct_1SHe1cGcE0uTLpEN';
     const application_fee_amount = Math.round(feeThb * 100); // in satang
     // 2) Build your session params WITHOUT transfer_data
     const params = {
-      mode: "payment",
-      payment_method_types: ["card"],
-      currency: "thb",
+      mode: 'payment',
+      payment_method_types: ['card'],
+      currency: 'thb',
       line_items: [
         {
           quantity: 1,
           price_data: {
-            currency: "thb",
+            currency: 'thb',
             product_data: { name: `InkBid: ${article.title}` },
             unit_amount: amountThb * 100, // THB → satang
           },
@@ -104,8 +104,8 @@ export const createCheckoutSession = async (req, res) => {
 
     res.json({ url: session.url });
   } catch (err) {
-    console.error("createCheckoutSession error:", err);
-    res.status(500).json({ error: "Failed to create Stripe session" });
+    console.error('createCheckoutSession error:', err);
+    res.status(500).json({ error: 'Failed to create Stripe session' });
   }
 };
 
@@ -113,22 +113,22 @@ export const createCheckoutSession = async (req, res) => {
  * POST /api/v1/payment/webhook
  */
 export const stripeWebhook = async (req, res) => {
-  const sig = req.headers["stripe-signature"];
+  const sig = req.headers['stripe-signature'];
   let event;
 
   try {
     event = stripe.webhooks.constructEvent(
       req.body, // raw body (express.raw in app.js)
       sig,
-      process.env.STRIPE_WEBHOOK_SECRET
+      process.env.STRIPE_WEBHOOK_SECRET,
     );
   } catch (err) {
-    console.error("❌ Webhook signature verification failed:", err.message);
+    console.error('❌ Webhook signature verification failed:', err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
   try {
-    if (event.type === "checkout.session.completed") {
+    if (event.type === 'checkout.session.completed') {
       const session = event.data.object;
       const {
         articleId,
@@ -142,18 +142,18 @@ export const stripeWebhook = async (req, res) => {
       // 1️⃣ Update Payment record
       const payment = await Payment.findById(paymentId);
       if (payment) {
-        payment.status = "succeeded";
+        payment.status = 'succeeded';
         payment.stripe_payment_intent_id = session.payment_intent;
         await payment.save();
       }
 
       // 2️⃣ Update article status → completed
-      const article = await Article.findById(articleId).populate("author");
+      const article = await Article.findById(articleId).populate('author');
       if (!article) {
-        console.error("Article not found:", articleId);
-        return res.status(404).json({ error: "Article not found" });
+        console.error('Article not found:', articleId);
+        return res.status(404).json({ error: 'Article not found' });
       }
-      article.status = "completed";
+      article.status = 'completed';
       article.proprietor = buyerId;
       await article.save();
 
@@ -161,15 +161,15 @@ export const stripeWebhook = async (req, res) => {
       const contract = await Contract.findOne({
         buyer: buyerId,
         article: articleId,
-        status: { $in: ["complete", "awaiting_payment"] },
-      }).populate("buyer author");
+        status: { $in: ['complete', 'awaiting_payment'] },
+      }).populate('buyer author');
 
       if (!contract) {
-        console.error("Contract not found for article", articleId);
-        return res.status(404).json({ error: "Contract not found" });
+        console.error('Contract not found for article', articleId);
+        return res.status(404).json({ error: 'Contract not found' });
       }
 
-      contract.status = "finalized";
+      contract.status = 'finalized';
       contract.purchasedDate = new Date();
       contract.platformFeePercent = 15; // or load from process.env if you have it
       contract.platformFeeAmount = parseFloat(platformFeeThb);
@@ -189,7 +189,7 @@ export const stripeWebhook = async (req, res) => {
 
       const pdfUrl = await uploadPDFToFirebase(
         pdfBuffer,
-        `contract-${articleId}-${buyerId}`
+        `contract-${articleId}-${buyerId}`,
       );
       contract.contractUrl = pdfUrl;
       await contract.save();
@@ -199,9 +199,9 @@ export const stripeWebhook = async (req, res) => {
         buyer: buyerId,
         article: articleId,
         purchasedDate: new Date(),
-        contractPeriod: contract.contractPeriod || "30 Days",
-        contractStatus: "active",
-        paymentStatus: "paid",
+        contractPeriod: contract.contractPeriod || '30 Days',
+        contractStatus: 'active',
+        paymentStatus: 'paid',
         contractUrl: pdfUrl,
         articleUrl: article.article_url || null,
         platformFeePercent: 15,
@@ -210,42 +210,42 @@ export const stripeWebhook = async (req, res) => {
       });
 
       const inventory = await BuyerInventory.findById(newInventory._id)
-        .populate("article", "title img_url")
+        .populate('article', 'title img_url')
         .lean();
 
       // 6️⃣ Notifications
       try {
         await notify(buyerId, {
-          type: "payment",
-          title: "✅ Payment successful",
+          type: 'payment',
+          title: '✅ Payment successful',
           message: `You paid ฿${payment?.amount_total_thb} for “${article?.title}”.`,
           target: {
-            kind: "article",
+            kind: 'article',
             id: articleId,
             url: `/dashboard/buyer/articles/${articleId}`,
           },
         });
 
         await notify(sellerId, {
-          type: "payment",
-          title: "💰 Buyer completed payment",
+          type: 'payment',
+          title: '💰 Buyer completed payment',
           message: `Payment received for “${article?.title}”. Seller receivable: ฿${sellerReceivableThb}.`,
           target: {
-            kind: "article",
+            kind: 'article',
             id: articleId,
             url: `/dashboard/seller/articles/${articleId}`,
           },
         });
       } catch (notifyErr) {
-        console.error("Notification error:", notifyErr);
+        console.error('Notification error:', notifyErr);
       }
 
-      console.log("✅ Stripe payment finalized successfully");
+      console.log('✅ Stripe payment finalized successfully');
     }
 
     res.json({ received: true });
   } catch (err) {
-    console.error("Webhook handler error:", err);
+    console.error('Webhook handler error:', err);
     res.status(500).end();
   }
 };

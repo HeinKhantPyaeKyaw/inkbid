@@ -59,8 +59,12 @@ export const createPayPalOrder = async (req, res) => {
         brand_name: 'InkBid',
         landing_page: 'LOGIN', // Options: LOGIN or NO_PREFERENCE
         user_action: 'PAY_NOW', // Forces the "Pay Now" button
-        return_url: process.env.PAYPAL_SUCCESS_URL || 'http://localhost:3000/paypal/success', // ✅ redirect after approval
-        cancel_url: process.env.PAYPAL_CANCEL_URL || 'http://localhost:3000/paypal/cancel', // ✅ redirect if canceled
+        return_url:
+          process.env.PAYPAL_SUCCESS_URL ||
+          'http://localhost:3000/paypal/success', // ✅ redirect after approval
+        cancel_url:
+          process.env.PAYPAL_CANCEL_URL ||
+          'http://localhost:3000/paypal/cancel', // ✅ redirect if canceled
       },
     };
 
@@ -254,6 +258,8 @@ export const capturePayPalOrder = async (req, res) => {
       `contract-${articleId}-${buyerId}`,
     );
     contract.contractUrl = pdfUrl;
+    console.log('pdfurl', pdfUrl);
+    console.log('contractURL', contract.contractUrl);
     await contract.save();
 
     // 7️⃣ Add to BuyerInventory
