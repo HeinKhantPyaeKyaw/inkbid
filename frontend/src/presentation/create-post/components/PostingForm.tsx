@@ -103,13 +103,13 @@ const PostingForm = () => {
     !aiResults.eligible;
 
   return (
-    <div className="bg-[#f8f6fc] text-primary px-6 py-8 border-[2px] border-accent rounded-xl shadow-md space-y-10">
+    <div className="bg-[#f8f6fc] text-primary px-4 sm:px-6 lg:px-8 py-6 sm:py-8 border-[2px] border-accent rounded-xl shadow-md space-y-10 overflow-hidden">
       <form action="" onSubmit={(e) => e.preventDefault()}>
         {/* Title & Synopsis Section */}
         <div className="space-y-4">
           <label
             htmlFor="title"
-            className="font-Forum font-semibold text-[24px] block"
+            className="font-Forum font-semibold text-xl sm:text-2xl lg:text-3xl block"
           >
             Title
           </label>
@@ -118,11 +118,11 @@ const PostingForm = () => {
             name="title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="bg-[#ECE7F6] w-full px-4 py-2 border-transparent rounded-md font-Montserrat text-xl text-[#2E2E48] focus:ring-2 focus:ring-[#7A5AF8] outline-none block"
+            className="bg-[#ECE7F6] w-full px-3 sm:px-4 py-2 border-transparent rounded-md font-Montserrat text-xl text-[#2E2E48] focus:ring-2 focus:ring-[#7A5AF8] outline-none block"
           />
           <label
             htmlFor="synopsis"
-            className="font-Forum font-semibold text-[24px] block"
+            className="font-Forum font-semibold text-xl sm:text-2xl lg:text-3xl block"
           >
             Synopsis
           </label>
@@ -131,16 +131,16 @@ const PostingForm = () => {
             rows={5}
             value={synopsis}
             onChange={(e) => setSynopsis(e.target.value)}
-            className="bg-[#ECE7F6] w-full px-3 py-2 border-transparent rounded-md font-Montserrat text-xl text-[#2E2E48] focus:ring-2 focus:ring-[#7A5AF8] outline-none block"
+            className="bg-[#ECE7F6] w-full px-3 sm:px-4 py-2 border-transparent rounded-md font-Montserrat text-xl text-[#2E2E48] focus:ring-2 focus:ring-[#7A5AF8] outline-none block"
           />
         </div>
 
         {/* Category/Duration/Pricing Section */}
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-8 items-end mt-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 lg:gap-10 items-end mt-6">
           <div className="flex flex-col gap-2">
             <label
               htmlFor="category"
-              className="font-Forum font-semibold text-2xl mb-1"
+              className="font-Forum font-semibold text-lg sm:text-xl lg:text-2xl mb-1"
             >
               Category
             </label>
@@ -163,7 +163,7 @@ const PostingForm = () => {
           <div className="flex flex-col gap-2">
             <label
               htmlFor="duration"
-              className="font-Forum font-semibold text-2xl mb-1"
+              className="font-Forum font-semibold text-lg sm:text-xl lg:text-2xl mb-1"
             >
               Duration
             </label>
@@ -173,16 +173,16 @@ const PostingForm = () => {
                 min={0}
                 value={duration}
                 onChange={(e) => setDuration(e.target.value)}
-                className="bg-[#ECE7F6]  px-3 py-2 rounded-md font-Montserrat text-xl text-[#2E2E48] focus:ring-2 focus:ring-[#7A5AF8] outline-none"
+                className="bg-[#ECE7F6] w-full px-3 py-2 rounded-md font-Montserrat text-xl text-[#2E2E48] focus:ring-2 focus:ring-[#7A5AF8] outline-none"
               />
-              <p className="font-Montserrat text-lg">Days</p>
+              <p className="font-Montserrat text-lg whitespace-nowrap">Days</p>
             </div>
           </div>
 
           <div className="flex flex-col gap-2">
             <label
               htmlFor="minimum_bid"
-              className="font-Forum font-semibold text-2xl mb-1"
+              className="font-Forum font-semibold text-lg sm:text-xl lg:text-2xl mb-1"
             >
               Minimum Bid
             </label>
@@ -193,7 +193,7 @@ const PostingForm = () => {
                 min={0}
                 value={minimumBid}
                 onChange={(e) => setMinimumBid(e.target.value)}
-                className="bg-[#ECE7F6]  px-3 py-2 rounded-md font-Montserrat text-xl text-[#2E2E48] focus:ring-2 focus:ring-[#7A5AF8] outline-none"
+                className="bg-[#ECE7F6] w-full px-3 py-2 rounded-md font-Montserrat text-xl text-[#2E2E48] focus:ring-2 focus:ring-[#7A5AF8] outline-none"
               />
             </div>
           </div>
@@ -201,7 +201,7 @@ const PostingForm = () => {
           <div className="flex flex-col gap-2">
             <label
               htmlFor="buy_now"
-              className="font-Forum font-semibold text-2xl mb-1"
+              className="font-Forum font-semibold text-lg sm:text-xl lg:text-2xl mb-1"
             >
               Buy Now
             </label>
@@ -212,18 +212,21 @@ const PostingForm = () => {
                 min={0}
                 value={buynowPrice ?? ''}
                 onChange={(e) => setBuynowPrice(Number(e.target.value))}
-                className="bg-[#ECE7F6]  px-3 py-2 rounded-md font-Montserrat text-xl text-[#2E2E48] focus:ring-2 focus:ring-[#7A5AF8] outline-none"
+                className="bg-[#ECE7F6] w-full px-3 py-2 rounded-md font-Montserrat text-xl text-[#2E2E48] focus:ring-2 focus:ring-[#7A5AF8] outline-none"
               />
             </div>
           </div>
         </div>
 
         {/* Upload Items Section */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-10 mt-6 bg-[#fafafa] border border-[#e0e0e0] rounded-lg p-6 shadow-sm font-semibold">
-          <div className="flex flex-col items-center sm:items-start gap-4">
+        <div className="flex flex-col sm:flex-col md:flex-row justify-around items-stretch gap-8 sm:gap-10 lg:gap-12 mt-6 bg-[#fafafa] border border-[#e0e0e0] rounded-lg p-4 sm:p-6 lg:p-8 shadow-sm font-semibold">
+          <div className="flex-1 flex flex-col items-center sm:items-start gap-4">
             <ImageUpload imageFile={imageFile} setImageFile={setImageFile} />
           </div>
-          <div className="flex flex-col items-center sm:items-start gap-4">
+
+          <div className="hidden sm:block w-[1px] bg-[#e0e0e0]"></div>
+
+          <div className="flex-1 flex flex-col items-center sm:items-start gap-4">
             <ArticleUpload
               articleFile={articleFile}
               setArticleFile={setArticleFile}
@@ -238,11 +241,11 @@ const PostingForm = () => {
             type="submit"
             disabled={isPostButtonDisabled || isSubmitting}
             onClick={handleSubmit}
-            className={`px-10 py-3 border-2 rounded-md font-Montserrat font-semibold transition-all duration-200 shadow-sm ${
+            className={`flex items-center justify-center gap-2 px-6 sm:px-10 py-2 sm:py-3 border-2 rounded-md font-Montserrat font-semibold transition-all duration-200 shadow-sm ${
               isPostButtonDisabled || isSubmitting
                 ? 'bg-gray-400 cursor-not-allowed'
                 : 'bg-primary hover:bg-[#1b00a3] hover:shadow-md hover:translate-y-0.5'
-            } text-white`}
+            } text-white text-base sm:text-lg lg:text-xl w-full sm:w-auto`}
           >
             {isSubmitting ? (
               <div className="flex items-center gap-2">

@@ -108,16 +108,16 @@ const ArticleUpload = ({
 
   return (
     <div>
-      <div className="flex flex-col gap-2 items-start">
+      <div className="w-full flex flex-col gap-2 items-start">
         <label
           htmlFor="article-upload"
-          className="font-Forum text-primary text-2xl"
+          className="font-Forum text-primary text-xl sm:text-2xl"
         >
           Article (.pdfonly)
         </label>
 
         <motion.div
-          className={`relative w-[250px] h-[180px] rounded-xl transition-all duration-300 flex flex-col items-center justify-center overflow-hidden text-center ${
+          className={`relative w-full sm:w-[280px] lg:w-[300px] aspect-[4/3] rounded-xl transition-all duration-300 flex flex-col items-center justify-center overflow-hidden text-center ${
             fileName
               ? 'border border-transparent'
               : isDragging
@@ -134,7 +134,7 @@ const ArticleUpload = ({
                 height={60}
                 className="object-cover opacity-90 hover:opacity-100 transition-all"
               />
-              <p className="text-sm font-Montserrat text-gray-500">
+              <p className="text-xs sm:text-sm font-Montserrat text-gray-500">
                 Drag & Drop or Click
               </p>
               <input

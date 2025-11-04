@@ -48,15 +48,17 @@ const ImageUpload = ({ imageFile, setImageFile }: ImageUploadProps) => {
 
   return (
     <div>
-      <div className="flex flex-col gap-2 items-start">
-        <label className="font-Forum text-primary text-2xl">Image</label>
+      <div className="w-full flex flex-col gap-2 items-start">
+        <label className="font-Forum text-primary text-xl sm:text-2xl">
+          Image
+        </label>
 
         <motion.div
           onDrop={handleDrop}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           whileHover={{ scale: 1.02 }}
-          className={`relative w-[250px] h-[180px] rounded-xl transition-all duration-300 flex flex-col items-center justify-center overflow-hidden ${
+          className={`relative w-full sm:w-[280px] md:w-[300px] aspect-[4/3] rounded-xl transition-all duration-300 flex flex-col items-center justify-center overflow-hidden ${
             previewImgUrl
               ? 'border border-transparent bg-transparent'
               : isDragging
@@ -76,7 +78,7 @@ const ImageUpload = ({ imageFile, setImageFile }: ImageUploadProps) => {
                 height={80}
                 className="object-cover. opacity-70 hover:opacity-100 transition-all"
               />
-              <p className="text-sm font-Montserrat text-gray-500">
+              <p className="text-xs sm:text-sm text-center font-Montserrat text-gray-500">
                 Drag & Drop or Click
               </p>
               <input
