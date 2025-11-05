@@ -1,6 +1,9 @@
 'use client';
 import { useAuth } from '@/context/auth/AuthContext';
-import { useBuyerDashboardAPI } from '@/hooks/buyer-dashboard-hooks/buyer-dashboard.api';
+import {
+  createStripeCheckoutSession,
+  useBuyerDashboardAPI,
+} from '@/hooks/buyer-dashboard-hooks/buyer-dashboard.api';
 import {
   ArticleTableItems,
   ContractArticle,
@@ -15,7 +18,6 @@ import { toast } from 'react-hot-toast';
 import { SlOptions } from 'react-icons/sl';
 import ContractModal from './ContractModal';
 import Pagination from './Pagination';
-import { createStripeCheckoutSession } from "@/hooks/buyer-dashboard-hooks/buyer-dashboard.api";
 
 const TableHead = [
   'Title',
@@ -121,7 +123,6 @@ const ArticleTable = ({
 
     try {
       const res = await buyerSignContractAPI(selectedArticle._id);
-      console.log('Buyer contract signed: ', res);
 
       setArticlesTableData((prev) =>
         prev.map((a) => {
@@ -160,7 +161,6 @@ const ArticleTable = ({
     try {
       // 1️⃣ Create PayPal order
       const orderData = await createPayPalOrderAPI(amount, 'THB');
-      console.log('✅ PayPal order created:', orderData);
 
       const approvalLink = orderData.links?.find(
         (link: any) => link.rel === 'approve',
@@ -176,7 +176,6 @@ const ArticleTable = ({
 
       // 3️⃣ Capture after approval (simulate or handle after return)
       const captureRes = await capturePayPalOrderAPI(orderData.id, articleId);
-      console.log('✅ Payment captured:', captureRes);
 
       // 4️⃣ Move article → inventory in UI
       const newItem = captureRes.inventory;
@@ -212,15 +211,14 @@ const ArticleTable = ({
       // Redirect to Stripe Checkout
       window.location.href = url;
     } catch (err) {
-      console.error("Stripe Checkout session failed", err);
-      setError("Could not start Stripe Checkout. Please try again.");
-      toast.error("Could not start Stripe Checkout");
+      console.error('Stripe Checkout session failed', err);
+      setError('Could not start Stripe Checkout. Please try again.');
+      toast.error('Could not start Stripe Checkout');
     } finally {
       setLoadingAction(null);
       setOpenDropdown(null);
     }
   };
-
 
   // Pagination to change page in the tables
   const nextPage = () => {
@@ -277,7 +275,6 @@ const ArticleTable = ({
             </button>
             {openDropdown === item.id && (
               <div className="absolute top-8 -right-3 w-48 rounded-lg z-50">
-                
                 <button
                   className="whitespace-nowrap px-8 py-2 rounded-[8px] text-lg text-primary font-Montserrat font-bold border-2 border-[#B9B9B9] bg-[#ffffff] hover:bg-gray-100 active:scale-95 cursor-pointer transition"
                   onClick={() => handleSignContract(item.id)}
@@ -427,30 +424,3 @@ const ArticleTable = ({
 };
 
 export default ArticleTable;
-
-// const handleAgreeContract = async () => {
-//   if (!selectedArticle) return;
-//   setSigning(true);
-
-//   try {
-//     const res = await signContractAPI(selectedArticle._id);
-//     console.log('Contract signed response: ', res);
-
-//     setArticlesTableData((prev) =>
-//       prev.map((a) =>
-//         a.id === selectedArticle._id
-//           ? { ...a, bidStatus: ArticleTableStatus.PENDING }
-//           : a,
-//       ),
-//     );
-
-//     toast.success('Contract Signed successfully');
-//     setIsModalOpen(false);
-//     setSelectedArticle(null);
-//   } catch (err) {
-//     console.error('Error signing contract: ', err);
-//     toast.error('Failed to sign contract. Please try again.');
-//   } finally {
-//     setSigning(false);
-//   }
-// };

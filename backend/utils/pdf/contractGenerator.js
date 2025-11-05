@@ -13,7 +13,7 @@ export const generateContractPDF = async (contractData) => {
   };
 
   // Add title
-  drawText('INKBID CONTRACT AGGREMENT', 150, 800, 18, rgb(0.2, 0.2, 0.6));
+  drawText('INKBID CONTRACT AGREEMENT', 150, 800, 18, rgb(0.2, 0.2, 0.6));
 
   const yStart = 760;
   const lineGap = 20;
@@ -24,7 +24,6 @@ export const generateContractPDF = async (contractData) => {
     `Buyer Name: ${contractData.buyerName}`,
     `Seller Name: ${contractData.authorName}`,
     `Final Price: ${Number(contractData.finalPrice)} THB`,
-    `Contract Period: ${contractData.contractPeriod}`,
     `Agreement Date: ${new Date(
       contractData.agreementDate,
     ).toLocaleDateString()}`,

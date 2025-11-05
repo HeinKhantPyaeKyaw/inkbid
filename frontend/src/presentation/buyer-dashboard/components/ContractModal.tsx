@@ -1,18 +1,18 @@
 'use client';
 
-import React from 'react';
+import { ContractModalProps } from '@/interfaces/buyer-dashboard-interface/buyer-dashboard-types';
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Typography,
-  Button,
   Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Divider,
   Paper,
+  Typography,
 } from '@mui/material';
-import { ContractModalProps } from '@/interfaces/buyer-dashboard-interface/buyer-dashboard-types';
+import React from 'react';
 
 const ContractModal: React.FC<ContractModalProps> = ({
   isOpen,
@@ -27,32 +27,30 @@ const ContractModal: React.FC<ContractModalProps> = ({
   const sellerName = article.author?.name || 'Seller';
   const title = article.title;
   const price = article.highest_bid ?? article.current_bid ?? 0;
-  const period = 30;
 
   const terms = `
 1. **Parties Involved**
    This Contract is entered into between **${buyerName}** (“Buyer”) and **${sellerName}** (“Seller”) through the InkBid platform, operated by InkBid Technologies.
 
 2. **Scope of Agreement**
-   The Seller agrees to transfer to the Buyer the right to publicly use, display, and distribute the article titled **"${title}"** for the agreed contract period of **${period} days**.
+   The Seller agrees to transfer to the Buyer the right to publicly use, display, and distribute the article titled **"${title}"** following successful payment via the InkBid platform.
 
 3. **Ownership and Rights**
-   - The Seller retains full ownership of the article but grants the Buyer a non-exclusive, temporary license to publicly use the article during the contract period.
-   - During the contract period, the Seller shall **not sell, license, modify, or reuse** the article in any form or platform.
-   - The Buyer is prohibited from reselling, sublicensing, or modifying the article for profit without explicit written consent from the Seller.
+   - The Seller retains full ownership of the article at all times.
+   - The Buyer is licensed to publicly use and display the article under the terms of this agreement.
+   - The Buyer may **not** resell, sublicense, or modify the article for profit without the Seller’s explicit written consent.
 
 4. **Payment Terms**
-   The Buyer agrees to pay **฿${price} THB** to the Seller through the InkBid platform.
+   The Buyer agrees to pay **${price} THB** to the Seller through the InkBid platform.
    Payment must be completed within five (5) business days after both parties have signed this agreement.
    The platform may temporarily withhold payment for verification and fraud prevention.
 
-5. **Usage License Period**
-   - The Buyer’s right to use the article begins upon full payment and remains valid for **${period} days**.
-   - After the period expires, the Buyer’s license to use the article automatically terminates.
-   - The Seller regains full exclusive rights to the article after the contract expires.
+5. **Delivery and Access**
+   The Seller must ensure the article is accessible in its original form and shall not alter or delete its contents after the Buyer has obtained access through the platform.
 
-6. **Delivery and Transfer**
-   The Seller must ensure the article is accessible in its original form and shall not alter or delete its contents during the contract period.
+6. **Exclusivity and Parallel Use**
+   - This license is **exclusive**; the Seller may not license the article to others unless a separate written exclusivity agreement is made.
+   - The Seller must not misrepresent the article’s availability or licensing status.
 
 7. **Confidentiality**
    Both parties agree not to disclose personal, payment, or platform-related information shared in the course of this transaction.
@@ -101,9 +99,6 @@ const ContractModal: React.FC<ContractModalProps> = ({
           </Typography>
           <Typography variant="body1" gutterBottom>
             <b>Final Price:</b> ฿{price} THB
-          </Typography>
-          <Typography variant="body1" gutterBottom>
-            <b>Contract Period:</b> {period} Days
           </Typography>
         </Box>
 
