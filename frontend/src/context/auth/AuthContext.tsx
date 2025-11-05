@@ -45,7 +45,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         { withCredentials: true },
       );
 
-      console.log('Login response:', res.data);
 
       setUser(res.data.profile);
     } catch (error: Error | unknown) {

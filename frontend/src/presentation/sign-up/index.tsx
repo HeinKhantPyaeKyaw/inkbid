@@ -34,7 +34,6 @@ export default function SignUpPage() {
       alert('Passwords do not match');
       return;
     }
-    console.log(form, role);
     try {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_BASE}/auth/register`,

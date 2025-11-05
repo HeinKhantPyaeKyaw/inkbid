@@ -55,7 +55,6 @@ export default function NavbarSecondary() {
 
     socket.emit("register", userId);
     socket.on("notification", (data) => {
-      console.log("📬 New notification:", data);
       setNotifications((prev) => [data, ...prev]);
       setHasNew(true);
     });

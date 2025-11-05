@@ -85,10 +85,8 @@ const SettingsPage: React.FC = () => {
     const socket = io(process.env.NEXT_PUBLIC_SOCKET_BASE, { withCredentials: true });
 
     socket.emit("register", userId);
-    console.log("🟢 Socket registered:", userId);
 
     socket.on("notification", (data: Notification) => {
-      console.log("📬 New Notification received:", data);
       setNotificationList((prev) => [data, ...prev]);
     });
 

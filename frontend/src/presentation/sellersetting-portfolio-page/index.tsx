@@ -117,7 +117,6 @@ export default function PortfolioPage() {
         }
       );
 
-      console.log('Upload response:', res.data);
 
       setItems((prev) => [res.data.article, ...prev]);
       setShowModal(false);

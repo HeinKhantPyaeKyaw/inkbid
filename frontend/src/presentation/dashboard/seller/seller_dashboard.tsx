@@ -124,7 +124,6 @@ export const SellerDashboard = () => {
   // ✅ Real-time listener for bid updates
   useEffect(() => {
     socket.on("bidUpdate", (update) => {
-      console.log("📡 Received bid update:", update);
 
       setArticles((prev) =>
         prev.map((article) =>

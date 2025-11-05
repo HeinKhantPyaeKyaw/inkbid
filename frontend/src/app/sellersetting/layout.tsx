@@ -9,7 +9,6 @@ import { LuBookOpen, LuLockKeyhole } from 'react-icons/lu';
 export default function Layout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  console.log(pathname);
 
   const { user } = useAuth();
   const isActive = (path: string) => pathname === path;

@@ -74,16 +74,13 @@ export const NavbarPrimary = ({
     });
 
     socket.on("connect", () => {
-      console.log("✅ Socket connected:", socket.id);
       socket.emit("register", authUserId);
     });
 
     socket.on("disconnect", () => {
-      console.log("❌ Socket disconnected");
     });
 
     socket.on("notification", (data) => {
-      console.log("📬 Notification:", data);
       setNotifications((prev) => [data, ...prev]);
       setHasNew(true);
     });

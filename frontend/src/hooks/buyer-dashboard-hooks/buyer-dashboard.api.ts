@@ -66,46 +66,12 @@ export const useBuyerDashboardAPI = () => {
         }),
       );
 
-      console.log('Articles in ArticleTable: ', res.data.data);
       return mappedArticles;
     } catch (error) {
       console.error('Error fetching articles data: ', error);
       throw error;
     }
   }, [buyerId]);
-
-  // const fetchInventoryData = useCallback(async (): Promise<
-  //   InventoryTableItems[]
-  // > => {
-  //   if (!buyerId) return [];
-  //   try {
-  //     const res = await axios.get(`${BASE_URL}/buyer/${buyerId}/inventory`, {
-  //       withCredentials: true,
-  //     });
-
-  //     console.log('Items in Inventory: ', res.data.data);
-
-  //     const mappedInventory: InventoryTableItems[] = res.data.data.map(
-  //       (item: RawInventory) => ({
-  //         id: String(item._id ?? ''),
-  //         title: String(item.article.title ?? 'Untitled'),
-  //         purchasedDate: item.purchasedDate
-  //           ? new Date(item.purchasedDate).toLocaleDateString()
-  //           : '—',
-  //         contractPeriod: String(item.contractPeriod ?? '30 Days'),
-  //         contractStatus: item.contractStatus
-  //           ? item.contractStatus.charAt(0).toUpperCase() +
-  //             item.contractStatus.slice(1).toLowerCase()
-  //           : 'Active',
-  //       }),
-  //     );
-
-  //     return mappedInventory;
-  //   } catch (error) {
-  //     console.error('Error fetching inventory data: ', error);
-  //     throw error;
-  //   }
-  // }, [buyerId]);
 
   const fetchInventoryData = useCallback(async (): Promise<
     InventoryTableItems[]
@@ -117,8 +83,6 @@ export const useBuyerDashboardAPI = () => {
         `${BASE_URL}/buyer/${buyerId}/completed-articles`,
         { withCredentials: true },
       );
-
-      console.log('🟢 Completed Articles (as Inventory): ', res.data.data);
 
       // 🟢 Map new data format (from Article + Contract)
       const mappedInventory: InventoryTableItems[] = res.data.data.map(
@@ -187,7 +151,6 @@ export const useBuyerDashboardAPI = () => {
         { amount, currency },
         { withCredentials: true },
       );
-      console.log('PayPal order created:', res.data);
       return res.data;
     } catch (error) {
       console.error('Error creating PayPal order:', error);
@@ -203,7 +166,6 @@ export const useBuyerDashboardAPI = () => {
         { articleId }, // 🟢 send articleId to backend
         { withCredentials: true },
       );
-      console.log('PayPal order captured:', res.data);
       return res.data;
     } catch (error) {
       console.error('Error capturing PayPal order:', error);
@@ -211,25 +173,6 @@ export const useBuyerDashboardAPI = () => {
     }
   };
 
-  // Download contract for an inventory item
-  // const downloadContractAPI = async (inventoryId: string) => {
-  //   try {
-  //     const res = await axios.get(
-  //       `${BASE_URL}/buyer/${buyerId}/inventory/${inventoryId}/contract`,
-  //       { withCredentials: true },
-  //     );
-
-  //     const fileUrl = res.data.url;
-  //     if (!fileUrl) throw new Error('File URL missing from response');
-
-  //     window.open(fileUrl, '_blank');
-
-  //     return res.data;
-  //   } catch (error) {
-  //     console.error('Error downloading contract: ', error);
-  //     throw error;
-  //   }
-  // };
   const downloadContractAPI = async (fileUrl?: string) => {
     try {
       if (!fileUrl) throw new Error('No contract URL provided');
@@ -241,25 +184,6 @@ export const useBuyerDashboardAPI = () => {
     }
   };
 
-  // Download article for an inventory item
-  // const downloadArticleAPI = async (inventoryId: string) => {
-  //   try {
-  //     const res = await axios.get(
-  //       `${BASE_URL}/buyer/${buyerId}/inventory/${inventoryId}/article`,
-  //       { withCredentials: true },
-  //     );
-
-  //     const fileUrl = res.data.url;
-  //     if (!fileUrl) throw new Error('File URL missing from response');
-
-  //     window.open(fileUrl, '_blank');
-
-  //     return res.data;
-  //   } catch (error) {
-  //     console.error('Error downloading article: ', error);
-  //     throw error;
-  //   }
-  // };
   const downloadArticleAPI = async (fileUrl?: string) => {
     try {
       if (!fileUrl) throw new Error('No article URL provided');
@@ -282,22 +206,3 @@ export const useBuyerDashboardAPI = () => {
     capturePayPalOrderAPI,
   };
 };
-
-// const signContractAPI = async (articleId: string) => {
-//   try {
-//     const res = await axios.post(
-//       `${API_BASE_URL}/${buyerId}/articles/${articleId}/contract`,
-//       {},
-//       { withCredentials: true },
-//     );
-//     return res.data;
-//   } catch (error) {
-//     console.error('Error signing contract: ', error);
-//     throw error;
-//   }
-// };
-
-// ? 'Won'
-// : item.status === 'awaiting_payment'
-// ? 'Pending'
-// : 'Lost',

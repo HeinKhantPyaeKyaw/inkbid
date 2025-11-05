@@ -82,10 +82,8 @@ const BuyerSettingsPage: React.FC = () => {
     const socket = io(process.env.NEXT_PUBLIC_SOCKET_BASE, { withCredentials: true }); //fix local host to env var ec2 DNS
 
     socket.emit("register", userId);
-    console.log("🟢 Buyer socket registered:", userId);
 
     socket.on("notification", (data: Notification) => {
-      console.log("📬 Buyer new notification:", data);
       setNotificationList((prev) => [data, ...prev]);
     });
 
