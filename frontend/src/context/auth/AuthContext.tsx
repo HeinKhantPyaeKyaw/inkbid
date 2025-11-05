@@ -26,7 +26,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         const res = await axios.get(`${API_URL}/me`, {
           withCredentials: true,
         }); // This route to remember logged in use even though refresh the page
-        console.log(res.data);
         setUser(res.data.user || res.data.profile); // In this step, backend should send {user: {}}
       } catch (err) {
         setUser(null);
