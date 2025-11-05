@@ -17,47 +17,54 @@ export const placeBid = async (req, res) => {
       return res.status(403).json({ error: "Only buyers can place bids" });
     }
 
-    // fetch article
+    // fetch article to validate existence
     const article = await Article.findById(refId);
     if (!article) {
       return res.status(404).json({ error: "Article not found" });
     }
 
-    // fetch bid record
-    let bidRecord = await Bid.findOne({ refId });
-
-    // check current highest bid
-    let currentHighest = 0;
-    if (bidRecord && bidRecord.bids.length > 0) {
-      const lastBid = bidRecord.bids[bidRecord.bids.length - 1];
-      currentHighest = parseFloat(lastBid.amount.toString());
-    } else if (article.highest_bid) {
-      currentHighest = parseFloat(article.highest_bid.toString());
-    }
-
     // enforce min_bid if this is the first bid
-    if ((!bidRecord || bidRecord.bids.length === 0) && article.min_bid) {
-      const minBid = parseFloat(article.min_bid.toString());
-      if (amount < minBid) {
-        return res.status(422).json({
-          success: false,
-          message: `The first bid must be at least the minimum bid (${minBid})`,
-        });
-      }
-    }
-
-    // prevent bidding lower or equal than current highest
-    if (amount <= currentHighest) {
-      return res.status(409).json({
+    if (
+      article.highest_bid === 0 &&
+      article.min_bid &&
+      amount < article.min_bid
+    ) {
+      return res.status(422).json({
         success: false,
-        message: `Bid must be higher than current highest bid (${currentHighest})`,
+        message: `The first bid must be at least the minimum bid (${article.min_bid})`,
       });
     }
 
+    // ✅ Atomic gate: try to bump article.highest_bid if this bid is higher
+    const articleUpdate = await Article.findOneAndUpdate(
+      { _id: refId, highest_bid: { $lt: amount } },
+      { $set: { highest_bid: amount } },
+      { new: true }
+    );
+
+    // ❌ If articleUpdate is null, another bid already set same/higher amount
+    if (!articleUpdate) {
+      return res.status(409).json({
+        success: false,
+        message:
+          "Bid rejected — another bidder placed the same or higher amount at the same time.",
+      });
+    }
+
+    // ✅ Fetch or create bid record and push the bid
+    const now = new Date();
+    const newBid = { ref_user: bidder.id, amount, timestamp: now };
+
+    const bidRecord = await Bid.findOneAndUpdate(
+      { refId },
+      { $push: { bids: newBid } },
+      { upsert: true, new: true }
+    );
+
     // ✅ Notify the previous highest bidder (if any)
-    if (bidRecord && bidRecord.bids.length > 0) {
-      const lastBid = bidRecord.bids[bidRecord.bids.length - 1];
-      const prevBidderId = lastBid.ref_user;
+    if (bidRecord.bids.length > 1) {
+      const prevBid = bidRecord.bids[bidRecord.bids.length - 2];
+      const prevBidderId = prevBid.ref_user;
       if (String(prevBidderId) !== String(bidder._id)) {
         try {
           await notify(prevBidderId, {
@@ -76,40 +83,7 @@ export const placeBid = async (req, res) => {
       }
     }
 
-    // ⚙️ Create the new bid object
-    const now = new Date();
-    const newBid = { ref_user: bidder.id, amount, timestamp: now };
-
-    // ✅ Atomic insert: ensure only one equal/higher bid wins
-    const updatedBidRecord = await Bid.findOneAndUpdate(
-      {
-        refId,
-        $or: [
-          { bids: { $size: 0 } }, // allow if no bids yet
-          {
-            $and: [
-              { bids: { $exists: true } },
-              { $not: { $elemMatch: { amount: { $gte: amount } } } }, // ❗ no equal/higher bids
-            ],
-          },
-        ],
-      },
-      {
-        $push: { bids: newBid },
-      },
-      { upsert: true, new: true }
-    );
-
-    if (!updatedBidRecord) {
-      // another bidder placed equal/higher bid concurrently
-      return res.status(409).json({
-        success: false,
-        message:
-          "Bid rejected — another bidder placed the same or higher amount at the same time.",
-      });
-    }
-
-    // ✅ Send notification to seller (article author)
+    // ✅ Notify seller (article author)
     try {
       await notify(article.author, {
         type: "bid",
@@ -125,21 +99,14 @@ export const placeBid = async (req, res) => {
       console.error("Notification failed:", notifyErr.message);
     }
 
-    // ✅ Update article's highest bid atomically
-    await Article.updateOne(
-      { _id: refId, highest_bid: { $lt: amount } },
-      { $set: { highest_bid: amount } }
-    );
-
-    // 🔑 Repopulate the latest bid with user details
-    const populatedBidRecord = await updatedBidRecord.populate(
+    // 🔑 Repopulate and broadcast via Redis
+    const populatedBidRecord = await bidRecord.populate(
       "bids.ref_user",
       "name email img_url rating"
     );
     const latestBid =
       populatedBidRecord.bids[populatedBidRecord.bids.length - 1];
 
-    // Publish via Redis for real-time updates
     const payload = {
       articleId: refId,
       bidId: latestBid.id,
@@ -150,9 +117,9 @@ export const placeBid = async (req, res) => {
       userRating: latestBid.ref_user.rating,
       timestamp: latestBid.timestamp,
     };
+
     await redisClient.publish("bids_updates", JSON.stringify(payload));
 
-    // ✅ Respond success
     res.status(201).json({
       success: true,
       message: "Bid placed successfully",
