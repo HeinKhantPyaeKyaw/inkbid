@@ -18,7 +18,6 @@ const buyerInventorySchema = new mongoose.Schema(
     },
     contractPeriod: {
       type: String,
-      required: true,
       default: '30 Days',
     },
     contractStatus: {

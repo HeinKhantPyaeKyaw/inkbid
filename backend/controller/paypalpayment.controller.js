@@ -247,7 +247,7 @@ export const capturePayPalOrder = async (req, res) => {
       buyerName: contract.buyer.name,
       authorName: contract.author.name,
       finalPrice: article.highest_bid,
-      contractPeriod: contract.contractPeriod,
+
       agreementDate: contract.agreementDate,
       purchasedDate: contract.purchasedDate,
       terms: contract.terms,

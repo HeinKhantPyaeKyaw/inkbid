@@ -1,13 +1,14 @@
 'use client';
 
 import { ImageUploadProps } from '@/interfaces/create-post-interface/create-post-types';
+import { AnimatePresence, motion } from 'framer-motion';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
-import { ImImage } from 'react-icons/im';
 import { RxCross2 } from 'react-icons/rx';
 
 const ImageUpload = ({ imageFile, setImageFile }: ImageUploadProps) => {
   const [previewImgUrl, setPreviewImgUrl] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   useEffect(() => {
     if (imageFile) {
@@ -19,6 +20,20 @@ const ImageUpload = ({ imageFile, setImageFile }: ImageUploadProps) => {
       setPreviewImgUrl(null);
     }
   }, [imageFile]);
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file && file.type.startsWith('image/')) setImageFile(file);
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = () => setIsDragging(false);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -33,22 +48,39 @@ const ImageUpload = ({ imageFile, setImageFile }: ImageUploadProps) => {
 
   return (
     <div>
-      <div className="flex flex-col gap-2 items-start">
-        <label className="font-Forum text-primary text-2xl">Image</label>
+      <div className="w-full flex flex-col gap-2 items-start">
+        <label className="font-Forum text-primary text-xl sm:text-2xl">
+          Image
+        </label>
 
-        <div className="relative w-[250px] h-[180px]">
+        <motion.div
+          onDrop={handleDrop}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          whileHover={{ scale: 1.02 }}
+          className={`relative w-full sm:w-[280px] md:w-[300px] aspect-[4/3] rounded-xl transition-all duration-300 flex flex-col items-center justify-center overflow-hidden ${
+            previewImgUrl
+              ? 'border border-transparent bg-transparent'
+              : isDragging
+              ? 'border-2 border-dashed border-[#7A5AF8] bg-[#f3edff]'
+              : 'border-2 border-dashed border-[#ccc] bg-[#F6F6F8] hover:border-[#B39DDB]'
+          }`}
+        >
           {!previewImgUrl ? (
             <label
               htmlFor="image-upload"
-              className="cursor-pointer block w-full h-full"
+              className="cursor-pointer w-[120px] h-[100px]"
             >
               <Image
                 src="/images/gallery-icon.png"
                 alt="Upload Image"
-                width={120}
-                height={100}
-                className="object-cover border rounded"
+                width={80}
+                height={80}
+                className="object-cover. opacity-70 hover:opacity-100 transition-all"
               />
+              <p className="text-xs sm:text-sm text-center font-Montserrat text-gray-500">
+                Drag & Drop or Click
+              </p>
               <input
                 type="file"
                 id="image-upload"
@@ -58,23 +90,31 @@ const ImageUpload = ({ imageFile, setImageFile }: ImageUploadProps) => {
               />
             </label>
           ) : (
-            <div className="relative w-full h-full border rounded overflow-hidden">
-              <Image
-                src={previewImgUrl}
-                alt="Uploaded Preview"
-                fill
-                className="object-cover"
-              />
-              <button
-                type="button"
-                onClick={handleRemoveImg}
-                className="absolute top-1 right-1 bg-black rounded-full p-1"
+            <AnimatePresence>
+              <motion.div
+                key="preview"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="relative w-full h-full border rounded overflow-hidden"
               >
-                <RxCross2 className="text-white text-sm" />
-              </button>
-            </div>
+                <Image
+                  src={previewImgUrl}
+                  alt="Uploaded Preview"
+                  fill
+                  className="object-cover"
+                />
+                <button
+                  type="button"
+                  onClick={handleRemoveImg}
+                  className="absolute top-1 right-1 bg-black rounded-full p-1 hover:bg-opacity-90 transition"
+                >
+                  <RxCross2 className="text-white text-sm" />
+                </button>
+              </motion.div>
+            </AnimatePresence>
           )}
-        </div>
+        </motion.div>
       </div>
     </div>
   );

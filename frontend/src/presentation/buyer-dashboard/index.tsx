@@ -45,19 +45,13 @@ const BuyerDashboard = () => {
       withCredentials: true,
     });
 
-    console.log('Buyer Socket connected:', socket.id);
-
-    socket.on('connect', () => {
-      console.log('Connected to server: ', socket.id);
-    });
+    socket.on('connect', () => {});
 
     socket.on('disconnect', () => {
       console.warn('Disconnected from socket server');
     });
 
     socket.on('bidUpdate', (update) => {
-      console.log('Received bid update: ', update);
-
       setArticles((prev) =>
         prev.map((article) =>
           article.id === update.articleId
@@ -73,8 +67,6 @@ const BuyerDashboard = () => {
     });
 
     socket.on('contractStatusUpdate', (data) => {
-      console.log('Contract status update received: ', data);
-
       setArticles((prev) =>
         prev.map((article) => {
           if (article.id !== data.articleId) return article;
@@ -108,7 +100,6 @@ const BuyerDashboard = () => {
       socket.off('bidUpdate');
       socket.off('contractStatusUpdate');
       socket.disconnect();
-      console.log('Socket disconnected from buyer dashboard');
     };
   }, [user, setArticles]);
 
