@@ -47,31 +47,39 @@ const SellerProfileCarousel = ({ data }: CarouselDataItems) => {
   };
 
   return (
-    <div className="w-full h-[280px] flex justify-between items-center px-7 gap-5 bg-secondary text-center  shadow-[inset_8px_0_50px_rgba(0,0,0,0.25),inset_-8px_0_50px_rgba(0,0,0,0.25),inset_0_12px_50px_rgba(0,0,0,0.25),inset_0_-12px_50px_rgba(0,0,0,0.25)] relative">
-      <div className="">
-        <button onClick={decreaseIndex}>
-          <RiArrowLeftSLine className="text-6xl text-[#5c5c5c]" />
+    <div className="w-full min-h-[240px] md:min-h-[260px] flex justify-between items-center px-4 sm:px-6 md:px-7 gap-4 md:gap-5 bg-secondary/95 rounded-xl ring-1 ring-white/10 text-center  shadow-[inset_8px_0_50px_rgba(0,0,0,0.25),inset_-8px_0_50px_rgba(0,0,0,0.25),inset_0_12px_50px_rgba(0,0,0,0.25),inset_0_-12px_50px_rgba(0,0,0,0.25)] relative">
+      <div>
+        <button
+          onClick={decreaseIndex}
+          className="p-1 rounded-md hover:bg-white/10 active:scale-95 transition"
+          aria-label="Previous portfolio"
+        >
+          <RiArrowLeftSLine className="text-4x. md:text-6xl text-[#5c5c5c]" />
         </button>
       </div>
 
-      <div className="flex flex-col justify-center items-center gap-4 flex-1">
-        <h2 className="font-Forum text-4xl text-primary-font text-shadow-[0_6px_0_rgba(0,0,0,0.25)]">
+      <div className="flex flex-col justify-center items-center gap-3 md:gap-4 flex-1 text-center">
+        <h2 className="font-Forum text-2xl md:text-4xl text-primary-font text-shadow-[0_6px_0_rgba(0,0,0,0.25)]">
           {currentPortfolio.title || 'Untitled work'}
         </h2>
-        <p className="w-5xl font-Montserrat text-2xl text-primary-font tex-shadow-[0_2px_10px_rgba(0,0,0,0.5)] line-clamp-3">
+        <p className="max-w-3xl font-Montserrat text-base md:text-lg text-primary-font/90 tex-shadow-[0_2px_10px_rgba(0,0,0,0.5)] line-clamp-3">
           {currentPortfolio.synopsis || 'No synopsis provided.'}
         </p>
         <button
-          className="font-Montserrat text-lg text-primary-font underline"
+          className="font-Montserrat text-sm md:text-lg text-primary-font underline underline-offset-4 hover:opacity-80 transition"
           onClick={handleReadMore}
         >
           Read More
         </button>
       </div>
 
-      <div className="">
-        <button onClick={increaseIndex}>
-          <RiArrowRightSLine className="text-6xl text-[#5c5c5c]" />
+      <div>
+        <button
+          onClick={increaseIndex}
+          className="p-1 rounded-md hover:bg-white/10 active:scale-95 transition"
+          aria-label="Next portfolio"
+        >
+          <RiArrowRightSLine className="text-4xl md:text-6xl text-[#5c5c5c]" />
         </button>
       </div>
 
