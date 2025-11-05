@@ -85,8 +85,13 @@ export const placeBid = async (req, res) => {
       {
         refId,
         $or: [
-          { "bids.amount": { $lt: amount } }, // all existing bids are lower
-          { bids: { $size: 0 } }, // or no bids yet
+          { bids: { $size: 0 } }, // allow if no bids yet
+          {
+            $and: [
+              { bids: { $exists: true } },
+              { $not: { $elemMatch: { amount: { $gte: amount } } } }, // ❗ no equal/higher bids
+            ],
+          },
         ],
       },
       {
