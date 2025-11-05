@@ -132,9 +132,9 @@ const fetchPaginatedArticles = async ({
     current_bid: maxBidMap.get(String(a._id)) ?? toNum(a.highest_bid),
     buy_now: toNum(a.buy_now),
     img_url: a.img_url,
-    // ✅ include new fields
     buyerSigned: a.buyerSigned ?? false,
     sellerSigned: a.sellerSigned ?? false,
+    purchased_date: a.updatedAt,
   }));
 
   return {

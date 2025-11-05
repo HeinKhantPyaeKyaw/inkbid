@@ -37,6 +37,16 @@ const statusStyles: Record<"Active" | "Expired", string> = {
 const money = (n: number) =>
   new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(n);
 
+// Format timestamp to MM/DD/YYYY
+const formatDate = (timestamp: number): string => {
+  if (!timestamp) return "N/A";
+  const date = new Date(timestamp);
+  const month = date.getMonth() + 1; // 0-indexed
+  const day = date.getDate();
+  const year = date.getFullYear();
+  return `${month}/${day}/${year}`;
+};
+
 export function InventoryTable({ items, onActionClick }: Props) {
   // If your table receives `items` (or `rows`/`articles`) — use that array name below.
   const [currentPage, setCurrentPage] = React.useState(0);
@@ -74,7 +84,6 @@ export function InventoryTable({ items, onActionClick }: Props) {
               <tr className="bg-[rgba(223,213,203,0.7)]">
                 <Th className="">Title</Th>
                 <Th>Purchased Date</Th>
-                <Th>Contract Period</Th>
                 <Th>Status</Th>
                 <Th className="text-right pr-4">Action</Th>
               </tr>
@@ -91,9 +100,8 @@ export function InventoryTable({ items, onActionClick }: Props) {
                     <div className="max-w-[36rem] truncate">{row.title}</div>
                   </Td>
 
-                  <Td className="tabular-nums">{row.purchased_date}</Td>
+                  <Td >{formatDate(row.purchased_date)}</Td>
 
-                  <Td className="whitespace-nowrap">{row.contract_period}</Td>
 
                   <Td>
                     {(() => {
