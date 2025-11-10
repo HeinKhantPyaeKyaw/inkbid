@@ -1,9 +1,6 @@
 'use client';
 
-import {
-  PortfolioModalProps,
-  SellerPortfolioCarouselProps,
-} from '@/interfaces/seller-profile-interface/seller-profile-types';
+import { PortfolioModalProps } from '@/interfaces/seller-profile-interface/seller-profile-types';
 import { RxCross2 } from 'react-icons/rx';
 
 const PortfolioModal = ({ portfolio, onClose }: PortfolioModalProps) => {

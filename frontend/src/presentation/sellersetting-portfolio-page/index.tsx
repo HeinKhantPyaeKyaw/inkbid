@@ -30,16 +30,19 @@ export default function PortfolioPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE}/portfolios`, {
-          withCredentials: true,
-          validateStatus: (status) => status < 500, // don't throw for 404
-        });
+        const res = await axios.get(
+          `${process.env.NEXT_PUBLIC_API_BASE}/portfolios`,
+          {
+            withCredentials: true,
+            validateStatus: (status) => status < 500, // don't throw for 404
+          },
+        );
 
         if (res.status === 200) {
           setItems(res.data || []);
         } else if (res.status === 404) {
           console.warn('Portfolio not found (404)');
-          setItems([]); // optional: clear items or show fallback UI
+          setItems([]);
         } else {
           console.error('Unexpected response:', res.status, res.data);
         }
@@ -64,7 +67,7 @@ export default function PortfolioPage() {
   ) => {
     const { name, value } = e.target;
     setNewItem({ ...newItem, [name]: value });
-    setErrors({ ...errors, [name]: '' }); // clear field error
+    setErrors({ ...errors, [name]: '' });
   };
 
   const limitString = (str: string, limit: number = 100): string => {
@@ -113,10 +116,9 @@ export default function PortfolioPage() {
         formData,
         {
           withCredentials: true,
-          headers: { "Content-Type": "multipart/form-data" },
-        }
+          headers: { 'Content-Type': 'multipart/form-data' },
+        },
       );
-
 
       setItems((prev) => [res.data.article, ...prev]);
       setShowModal(false);

@@ -8,16 +8,10 @@ import { GrArticle } from 'react-icons/gr';
 import { TbContract } from 'react-icons/tb';
 import Pagination from './Pagination';
 
-const TableHead = [
-  'Title',
-  'Purchased Date',
-  // 'Contract Period',
-  'Status',
-  'Action',
-];
+const TableHead = ['Title', 'Purchased Date', 'Status', 'Action'];
 
 interface InventoryTableProps {
-  data: InventoryTableItems[]; // * Array of Items to map for Inventory Table Data
+  data: InventoryTableItems[];
 }
 
 const InventoryTable = ({ data }: InventoryTableProps) => {
@@ -168,9 +162,6 @@ const InventoryTable = ({ data }: InventoryTableProps) => {
                   <td className="px-8 py-1.5 min-w-[220px] text-xl font-bold ">
                     {item.purchasedDate}
                   </td>
-                  {/* <td className="px-8 py-1.5 min-w-[220px] text-xl font-bold">
-                  {item.contractPeriod}
-                </td> */}
                   <td className="text-center">
                     <p className={getStatusDecoration(item.contractStatus)}>
                       {item.contractStatus}

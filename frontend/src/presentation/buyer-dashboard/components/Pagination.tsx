@@ -8,8 +8,6 @@ const Pagination = ({
   onClickNextPage,
   onClickPreviousPage,
 }: BuyerDashboardPaginationProps) => {
-  // TODO: Need to pass all data related to Pagination after using management tool
-
   return (
     <div className="flex">
       <ul

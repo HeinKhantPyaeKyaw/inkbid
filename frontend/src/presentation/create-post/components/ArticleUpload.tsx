@@ -58,7 +58,6 @@ const ArticleUpload = ({
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_AI_BASE}/predict`,
         {
-          //127.0.0:5000/predict
           method: 'POST',
           body: formData,
         },
@@ -78,7 +77,6 @@ const ArticleUpload = ({
 
       setAiResults(result);
     } catch (err) {
-      // console.error('Detection failed', err);
       setError('Failed to analyze article. Please try again');
     } finally {
       setLoading(false);
@@ -174,7 +172,6 @@ const ArticleUpload = ({
                   </motion.div>
                 )}
 
-                {/* FIXME: To implement the logic to accept the result from backend server later */}
                 {!loading && aiResults && (
                   <motion.div
                     key="result"

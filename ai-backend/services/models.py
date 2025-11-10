@@ -4,18 +4,8 @@ from transformers import AutoTokenizer, AutoModelForSequenceClassification, pipe
 from gradio_client import Client
 from dotenv import load_dotenv
 
-# Load environment variables from .env files
-# load_dotenv()
+#  --------- Vicuna-7B Radar(Inference API) ----------
 
-# HF_API_TOKEN = os.getenv("HF_API_TOKEN")
-
-# Authorization headers from Hugging Face API
-# ? Might need real authorization later
-# HEADERS = {"Authorization": f"Bearer {HF_API_TOKEN}"}
-
-# ========================================
-# Model A: Vicuna-7B Radar(Inference API)
-# ========================================
 def load_vicuna(model_id: str = "TrustSafeAI/RADAR-Vicuna-7B"):
   global vicuna_model
   try:
@@ -34,9 +24,7 @@ def query_vicuna(text: str):
   except Exception as e:
     return {"error": f"Vicuna inference failed: {str(e)}"}
 
-# ============================================
-# Model B: Szeged AI_Detector (via Gradio API)
-# ============================================
+# ---------- Szeged AI_Detector (via Gradio API) ----------
 def query_szegedai(text: str):
   try:
     client = Client("SzegedAI/AI_Detector")
