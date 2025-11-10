@@ -63,7 +63,6 @@ const BuyerSettingsPage: React.FC = () => {
   const { user } = useAuth();
   const userId = user?.id ?? null;
 
-  // ✅ Fetch existing notifications
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -76,10 +75,9 @@ const BuyerSettingsPage: React.FC = () => {
     fetchData();
   }, []);
 
-  // ✅ Setup socket listener for live notifications
   useEffect(() => {
     if (!userId) return;
-    const socket = io(process.env.NEXT_PUBLIC_SOCKET_BASE, { withCredentials: true }); //fix local host to env var ec2 DNS
+    const socket = io(process.env.NEXT_PUBLIC_SOCKET_BASE, { withCredentials: true });
 
     socket.emit("register", userId);
 
@@ -92,7 +90,6 @@ const BuyerSettingsPage: React.FC = () => {
     };
   }, [userId]);
 
-  // ✅ Mark notification as read
   const handleClickNotification = async (index: number) => {
     const notif = notificationList[index];
     setSelectId(index);
@@ -110,7 +107,6 @@ const BuyerSettingsPage: React.FC = () => {
     }
   };
 
-  // ✅ Local delete (for UI only)
   const handleDelete = (index: number) => {
     setNotificationList(notificationList.filter((_, i) => i !== index));
   };
@@ -147,7 +143,6 @@ const BuyerSettingsPage: React.FC = () => {
         )}
       </NotificationList>
 
-      {/* Modal */}
       {showModal && selectId !== null && (
         <div className="fixed inset-0 bg-gray-500/80 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md relative">

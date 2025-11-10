@@ -28,7 +28,6 @@ export const NavbarPrimary = ({
 }: INavBarPrimaryProps) => {
   const [showDropdown, setShowDropdown] = useState(false);
 
-  // 🔔 new state for notifications
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [hasNew, setHasNew] = useState(false);
@@ -44,9 +43,6 @@ export const NavbarPrimary = ({
     router.push("/");
   };
 
-  // =============================
-  // 🔔 Fetch unread notifications
-  // =============================
   useEffect(() => {
     const fetchUnread = async () => {
       if (!authUserId) return;
@@ -62,14 +58,11 @@ export const NavbarPrimary = ({
     fetchUnread();
   }, [authUserId]);
 
-  // =============================
-  // 🔔 Socket live updates
-  // =============================
   useEffect(() => {
     if (!authUserId) return;
 
     const socket = io(process.env.NEXT_PUBLIC_SOCKET_BASE!, {
-      transports: ["websocket"], // skip polling
+      transports: ["websocket"],
       withCredentials: true,
     });
 
@@ -90,10 +83,6 @@ export const NavbarPrimary = ({
     };
   }, [authUserId]);
 
-
-  // =============================
-  // Close dropdown on outside click
-  // =============================
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -107,9 +96,6 @@ export const NavbarPrimary = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // =============================
-  // Mark as read + remove from list
-  // =============================
   const handleNotificationClick = async (notifId: string, url?: string) => {
     try {
       await markNotificationRead(notifId);
@@ -120,9 +106,6 @@ export const NavbarPrimary = ({
     }
   };
 
-  // =============================
-  // Your existing menu logic (unchanged)
-  // =============================
   const dropdownItemsBuyer = (() => {
     const base = pathname.startsWith("/content")
       ? [
@@ -292,7 +275,6 @@ export const NavbarPrimary = ({
       </div>
 
       <div className="flex items-center gap-8">
-        {/* 🔔 Notification Bell */}
         {showNotification && (
           <div className="relative" ref={notifRef}>
             <button
@@ -348,7 +330,6 @@ export const NavbarPrimary = ({
           </div>
         )}
 
-        {/* 👤 User menu dropdown (UNCHANGED) */}
         <div className="relative">
           <button onClick={() => setShowDropdown((prev) => !prev)}>
             <FontAwesomeIcon

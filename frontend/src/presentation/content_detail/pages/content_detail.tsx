@@ -13,7 +13,6 @@ import { SuccessToast } from '../components/SuccessToast';
 import { useAuth } from '@/context/auth/AuthContext';
 
 export const ContentDetail = () => {
-  // STATE
   const [articleDetail, setArticleDetail] = useState<IContent | null>(null);
   const [bidAmount, setBidAmount] = useState('');
   const params = useParams();
@@ -21,11 +20,8 @@ export const ContentDetail = () => {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [bought, setBought] = useState(false);
-  // SOCKET
   const socket = useMemo(() => io(process.env.NEXT_PUBLIC_SOCKET_BASE), []);
 
-  
-  // FETCH ARTICLE
   useEffect(() => {
     if (!id) return;
     async function fetchArticle() {
@@ -39,7 +35,6 @@ export const ContentDetail = () => {
     fetchArticle();
   }, [id]);
 
-  // SUBSCRIBE TO REALTIME BID UPDATES
   useEffect(() => {
     socket.on('bidUpdate', (update) => {
       if (update.articleId === id) {
@@ -73,7 +68,6 @@ export const ContentDetail = () => {
     };
   }, [id, socket]);
 
-  // COUNTDOWN
   const countdown = useCountdown(articleDetail?.ends_in || '');
   const parseCountdown = (countdownStr: string) => {
     if (countdownStr === "Expired")
@@ -88,7 +82,6 @@ export const ContentDetail = () => {
   };
   const { days, hours, mins, secs } = parseCountdown(countdown);
 
-  // PLACE BID
   const handlePlaceBid = async () => {
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/bids`, {
@@ -129,13 +122,11 @@ export const ContentDetail = () => {
     }
   };
 
-  // QUICK BID
   const handleQuickBid = (multiplier: number) => {
     const newBid = Math.ceil((articleDetail?.highest_bid || 0) * multiplier);
     setBidAmount(newBid.toString());
   };
 
-  // BUY NOW
   const handleBuyNow = async () => {
     try {
       const { data } = await buyNowArticle(id);
@@ -162,16 +153,12 @@ export const ContentDetail = () => {
   const isBuyNowDisabled =
     (articleDetail?.highest_bid || 0) >= (articleDetail?.buy_now || 0) ||
     countdown === "Expired";
-  //-------
-  // RENDER
-  //-------
 
   return (
     <div className="min-h-screen bg-secondary">
       <NavbarPrimary user={user?.role} userId={user?.id} />
 
       <div className="container mx-auto px-6 py-8 max-w-7xl">
-        {/* IMAGE */}
         <div className="bg-white rounded-lg p-4 shadow-lg mb-6">
           <img
             src={articleDetail?.img_url || "/imgs/placeholder.png"}
@@ -181,9 +168,7 @@ export const ContentDetail = () => {
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">
-          {/* LEFT SIDE */}
           <div className="lg:w-1/2">
-            {/* Title + Author */}
             <div className="bg-white rounded-lg p-6 shadow-lg mb-6">
               <h1 className="text-2xl lg:text-3xl font-Forum text-primary mb-6 leading-tight">
                 {articleDetail?.title}
@@ -236,7 +221,6 @@ export const ContentDetail = () => {
               </div>
             </div>
 
-            {/* Synopsis */}
             <div className="bg-white rounded-lg p-6 shadow-lg">
               <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-4">
                 <h2 className="text-2xl font-Forum text-primary">Synopsis</h2>
@@ -265,10 +249,8 @@ export const ContentDetail = () => {
             </div>
           </div>
 
-          {/* RIGHT SIDE */}
           <div className="lg:w-1/2">
             <div className="bg-white rounded-lg p-6 shadow-lg">
-              {/* Highest Bid */}
               <div className="mb-6">
                 <h3 className="text-xl font-Forum text-primary mb-4">
                   Highest Bid
@@ -298,7 +280,6 @@ export const ContentDetail = () => {
                   <p>No bids yet</p>
                 )}
 
-                {/* Bid History */}
                 <div className="border-t pt-4">
                   <h4 className="text-sm font-Montserrat font-semibold text-gray-600 mb-3">
                     Bid History
@@ -329,7 +310,6 @@ export const ContentDetail = () => {
                 </div>
               </div>
 
-              {/* Countdown */}
               <div className="mb-6">
                 <h3 className="text-xl font-Forum text-primary mb-4">
                   Ends In
@@ -374,9 +354,7 @@ export const ContentDetail = () => {
               </div>
 
               {user?.role === "buyer" && (
-                // Bidding
                 <div className="space-y-4">
-                  {/* Quick Bid */}
                   <div className="flex gap-2 justify-center">
                     {[5.0, 2.0, 1.5].map((m) => (
                       <button
@@ -398,7 +376,6 @@ export const ContentDetail = () => {
                     ))}
                   </div>
 
-                  {/* Custom Bid */}
                   <div className="flex flex-col sm:flex-row gap-3">
                     <input
                       type="number"
@@ -425,7 +402,6 @@ export const ContentDetail = () => {
                     </button>
                   </div>
 
-                  {/* Buy Now */}
                   <div className="border-t-2 pt-6">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                       <div>

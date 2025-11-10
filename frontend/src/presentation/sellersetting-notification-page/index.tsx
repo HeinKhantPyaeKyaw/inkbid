@@ -8,7 +8,7 @@ import { useAuth } from "@/context/auth/AuthContext";
 import {
   getNotifications,
   markNotificationRead,
-} from "@/hooks/notification.api"; // ✅ imported API functions
+} from "@/hooks/notification.api";
 
 // ================== styled-components ==================
 const Content = styled.div`
@@ -62,15 +62,13 @@ const SettingsPage: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const { user } = useAuth();
 
-  // ✅ Get userId only once when user changes
   const userId = user?.id ?? null;
 
-  // ✅ Fetch notifications once
   useEffect(() => {
     const fetchData = async () => {
       try {
         const data = await getNotifications();
-        setNotificationList(data.items ?? data); // handle both object or array
+        setNotificationList(data.items ?? data);
       } catch (err) {
         console.error("Failed to fetch notifications:", err);
       }
@@ -78,9 +76,8 @@ const SettingsPage: React.FC = () => {
     fetchData();
   }, []);
 
-  // ✅ Setup socket listener once userId is known
   useEffect(() => {
-    if (!userId) return; // wait until userId is ready
+    if (!userId) return;
 
     const socket = io(process.env.NEXT_PUBLIC_SOCKET_BASE, { withCredentials: true });
 
@@ -95,7 +92,6 @@ const SettingsPage: React.FC = () => {
     };
   }, [userId]);
 
-  // ✅ Mark as read when clicked
   const handleClickNotification = async (index: number) => {
     const notif = notificationList[index];
     setSelectId(index);
@@ -113,7 +109,6 @@ const SettingsPage: React.FC = () => {
     }
   };
 
-  // ✅ Local-only delete for UI
   const handleDelete = (index: number) => {
     setNotificationList(notificationList.filter((_, i) => i !== index));
   };
@@ -150,7 +145,6 @@ const SettingsPage: React.FC = () => {
         )}
       </NotificationList>
 
-      {/* Modal */}
       {showModal && selectId !== null && (
         <div className="fixed inset-0 bg-gray-500/80 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md relative">

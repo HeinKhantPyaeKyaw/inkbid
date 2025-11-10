@@ -11,7 +11,6 @@ function LandingContent() {
   const [loading, setLoading] = useState(true);
   const API_BASE = process.env.NEXT_PUBLIC_API_BASE;
 
-  // 🔍 Read URL parameters
   const q = searchParams.get("q") || "";
   const genre = searchParams.get("genre") || "";
   const rating = searchParams.get("rating") || "";
@@ -20,7 +19,6 @@ function LandingContent() {
   const page = searchParams.get("page") || "1";
   const limit = searchParams.get("limit") || "12";
 
-  // 🔁 Fetch articles whenever filters change
   useEffect(() => {
     const fetchArticles = async () => {
       setLoading(true);
@@ -54,7 +52,6 @@ function LandingContent() {
   );
 }
 
-// ✅ Wrap LandingContent in Suspense boundary
 export const LandingPage = () => {
   return (
     <Suspense

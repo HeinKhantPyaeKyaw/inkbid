@@ -3,7 +3,7 @@
 import { IContent } from "@/interfaces/content/content.domain";
 import { Rating } from "@mui/material";
 import Link from "next/link";
-import { calculateCountdown } from "@/lib/utilities/util_functions"; // 👈 update your util
+import { calculateCountdown } from "@/lib/utilities/util_functions";
 
 interface ProductCardProps {
   articles?: IContent[];
@@ -21,7 +21,7 @@ export default function ProductCard({ articles }: ProductCardProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 p-4 justify-items-center">
       {articles.map((product, index) => {
-        const countdown = calculateCountdown(product.ends_in); // ✅ plain util function
+        const countdown = calculateCountdown(product.ends_in);
 
         return (
           <Link href={`/content/${product._id}`} key={product._id || index}>

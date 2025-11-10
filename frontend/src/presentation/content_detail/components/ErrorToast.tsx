@@ -20,9 +20,9 @@ export const ErrorToast: React.FC<ErrorToastProps> = ({ message, onClose }) => {
       
         <motion.div
           className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50"
-          initial={{ y: 50, opacity: 0 }} // start below screen
-          animate={{ y: 0, opacity: 1 }} // slide up & fade in
-          exit={{ y: 50, opacity: 0 }} // slide down & fade out
+          initial={{ y: 50, opacity: 0 }} 
+          animate={{ y: 0, opacity: 1 }} 
+          exit={{ y: 50, opacity: 0 }}
           transition={{ duration: 0.4, ease: "easeOut" }}
         >
           <div className="flex items-center gap-3 bg-red-100 border border-red-400 text-red-800 px-4 py-3 rounded-xl shadow-lg max-w-sm">

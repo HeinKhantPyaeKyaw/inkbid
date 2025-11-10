@@ -54,7 +54,6 @@ export const EngagementSection = () => {
           </div>
         </div>
 
-        {/* total bids */}
         <div className="flex flex-col w-[200px] justify-center">
           <div
             className="border-4 border-white flex text-[#313131] text-center items-center justify-center font-Montserrat rounded-lg font-bold text-[50px] w-[200px] h-[200px]"
@@ -67,7 +66,6 @@ export const EngagementSection = () => {
           </div>
         </div>
 
-        {/* total income */}
         <div className="flex flex-col w-[400px] justify-center mr-20">
           <div
             className="border-4 border-white flex text-center text-[#313131] items-center justify-center font-Montserrat rounded-lg font-bold text-[50px] w-[400px] h-[200px]"

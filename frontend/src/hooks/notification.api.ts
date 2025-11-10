@@ -2,7 +2,6 @@
 import axios from "axios";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE;
-// 🔹 Fetch notifications (optionally unread only)
 export async function getNotifications(params?: {
   unread?: boolean;
   page?: number;
@@ -15,7 +14,6 @@ export async function getNotifications(params?: {
   return data;
 }
 
-// 🔹 Mark a notification as read
 export async function markNotificationRead(id: string) {
   const { data } = await axios.patch(
     `${BASE_URL}/notifications/${id}/read`,

@@ -112,7 +112,6 @@ const SellerProfile = () => {
                   <h1 className="font-Forum text-3xl md:text-4xl leading-tight">
                     {sellerInfo?.name}
                   </h1>
-                  {/* TODO: To add Ratings according to the mean of all ratings */}
                   <div className="mt-3 space-y-2 text-[16px] md:text-base leading-relaxed font-Montserrat">
                     <p>
                       <em className="italic font-semibold">Specialization: </em>

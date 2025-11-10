@@ -18,7 +18,6 @@ const RatingReview = ({
   return (
     <div className="w-full py-5 px-5 flex flex-col md:flex-row md:items-center md:justify-between gap-8 md:gap-10">
       <div className="flex flex-col items-center text-white shrink-0">
-        {/* FIX: To fix Rating to be reactive according to the total ratings */}
         <h2 className="font-Montserrat text-2xl md:text-3xl">
           Rating & Reviews
         </h2>

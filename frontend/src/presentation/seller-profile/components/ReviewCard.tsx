@@ -1,8 +1,6 @@
 import { ReviewCardProps } from '@/interfaces/seller-profile-interface/seller-profile-types';
 import { AiFillStar, AiOutlineStar } from 'react-icons/ai';
 
-// FIXME: To add ID for user and Date to be reactive.
-
 const ReviewCard = ({ buyer, comment, rating }: ReviewCardProps) => {
   return (
     <div className="bg-white/10 border border-white/15 rounded-xl p-4 md:p-5 my-4 text-white shadow-sm`">

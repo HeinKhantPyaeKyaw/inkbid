@@ -24,7 +24,6 @@ export const updateUserProfileAPI = async (
       (data as SellerProfileUpdateData).profileImage
     ) {
       const formData = data instanceof FormData ? data : new FormData();
-      // If it's not already FormData, append fields manually
       if (!(data instanceof FormData)) {
         Object.entries(data).forEach(([key, value]) => {
           if (value !== undefined && value !== null) {

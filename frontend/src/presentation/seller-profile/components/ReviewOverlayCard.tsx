@@ -6,7 +6,6 @@ import { AiFillStar, AiOutlineStar } from 'react-icons/ai';
 import { RxCross2 } from 'react-icons/rx';
 
 const ReviewOverlayCard = ({ onCancel, onSubmit }: ReviewOverlayCardProps) => {
-  // const [name, setName] = useState('');
   const [comment, setComment] = useState('');
   const [rating, setRating] = useState(0);
 
@@ -47,7 +46,6 @@ const ReviewOverlayCard = ({ onCancel, onSubmit }: ReviewOverlayCardProps) => {
               <label className="font-Montserrat text-primary text-base sm:text-lg font-medium">
                 Click to Rate:{' '}
               </label>
-              {/* TODO: To implement button for stars to be clickable */}
               <div className="flex gap-1">
                 {[1, 2, 3, 4, 5].map((value) =>
                   value <= rating ? (

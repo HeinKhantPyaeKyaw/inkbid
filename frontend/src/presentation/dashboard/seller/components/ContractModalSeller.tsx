@@ -20,8 +20,8 @@ type Props = {
   article: {
     _id: string;
     title: string;
-    highest_bid?: number; // ✅ optional now
-    current_bid?: number; // ✅ optional fallback
+    highest_bid?: number; 
+    current_bid?: number;
     author: Author;
     winner?: Winner | null;
   } | null;
@@ -41,8 +41,7 @@ const ContractModalSeller: React.FC<Props> = ({
   const buyerName = article.winner?.name || "Buyer";
   const sellerName = article.author?.name || "Seller";
   const title = article.title;
-  const price = article.highest_bid ?? article.current_bid ?? 0; // ✅ fallback logic
-  const period = 30;
+  const price = article.highest_bid ?? article.current_bid ?? 0;
 
   const terms = `
 1. **Parties Involved**

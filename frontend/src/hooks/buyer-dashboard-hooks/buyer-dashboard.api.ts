@@ -18,19 +18,14 @@ export async function createStripeCheckoutSession(articleId: string) {
     { articleId },
     { withCredentials: true },
   );
-  // expects: { url: string }
   return data as { url: string };
 }
 
-const PAYPAL_API_BASE_URL = 'http://localhost:5500/api/v1/paypal'; // ✅ NEW
+const PAYPAL_API_BASE_URL = 'http://localhost:5500/api/v1/paypal';
 
 export const useBuyerDashboardAPI = () => {
   const { user } = useAuth();
   const buyerId = user?.id;
-
-  // if (!buyerId) {
-  //   console.warn('No buyer logged in - API calls will be skipped.');
-  // }
 
   const fetchArticlesData = useCallback(async (): Promise<
     ArticleTableItems[]
@@ -78,13 +73,11 @@ export const useBuyerDashboardAPI = () => {
   > => {
     if (!buyerId) return [];
     try {
-      // 🟢 Use new endpoint instead of /inventory
       const res = await axios.get(
         `${BASE_URL}/buyer/${buyerId}/completed-articles`,
         { withCredentials: true },
       );
 
-      // 🟢 Map new data format (from Article + Contract)
       const mappedInventory: InventoryTableItems[] = res.data.data.map(
         (item: any) => ({
           id: String(item._id ?? ''),
@@ -97,7 +90,6 @@ export const useBuyerDashboardAPI = () => {
             ? item.contractStatus.charAt(0).toUpperCase() +
               item.contractStatus.slice(1).toLowerCase()
             : 'Active',
-          // 🟢 Added new optional fields for download buttons
           contractUrl: item.contractUrl || null,
           articleUrl: item.articleUrl || null,
         }),
@@ -105,14 +97,13 @@ export const useBuyerDashboardAPI = () => {
 
       return mappedInventory;
     } catch (error) {
-      console.error('❌ Error fetching completed articles: ', error);
+      console.error('Error fetching completed articles: ', error);
       throw error;
     }
   }, [buyerId]);
 
   // -------------------------Stub Functions for Action Buttons---------------------------
 
-  //Mark contract as signed for a given article
   const buyerSignContractAPI = async (articleId: string) => {
     try {
       const res = await axios.patch(
@@ -127,7 +118,6 @@ export const useBuyerDashboardAPI = () => {
     }
   };
 
-  // Proceed with payment for a given article
   const proceedPaymentAPI = async (articleId: string) => {
     try {
       const res = await axios.post(
@@ -143,7 +133,6 @@ export const useBuyerDashboardAPI = () => {
   };
 
   // ------------------------- PayPal Sandbox API ---------------------------
-  // ✅ Step 1: Create a PayPal order for a given article
   const createPayPalOrderAPI = async (amount: number, currency = 'USD') => {
     try {
       const res = await axios.post(
@@ -158,12 +147,11 @@ export const useBuyerDashboardAPI = () => {
     }
   };
 
-  // ✅ Step 2: Capture the PayPal order after approval (will use later)
   const capturePayPalOrderAPI = async (orderId: string, articleId: string) => {
     try {
       const res = await axios.post(
         `${BASE_URL}/paypal/capture-order/${orderId}`,
-        { articleId }, // 🟢 send articleId to backend
+        { articleId },
         { withCredentials: true },
       );
       return res.data;
