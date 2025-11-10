@@ -3,13 +3,6 @@ import { FIREBASE_API_KEY } from "../config/env.js";
 import { admin } from "../config/firebase.js";
 import User from "../schemas/user.schema.js";
 
-import bcrypt from "bcryptjs";
-
-// export const hash = (input) => {
-//   const salt = bcrypt.genSaltSync(10);
-//   return bcrypt.hashSync(input, salt);
-// };
-
 export const register = async (req, res) => {
   const { email, password, firstName, lastName, role } = req.body;
   console.log(email, password, firstName, lastName, role);
@@ -51,9 +44,7 @@ export const register = async (req, res) => {
 
 export const login = async (req, res) => {
   const { email, password } = req.body;
-  // console.log(email, password);
   try {
-    // Verify with Firebase Auth REST API
     const url = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${FIREBASE_API_KEY}`;
     const { data } = await axios.post(url, {
       email,
@@ -61,9 +52,6 @@ export const login = async (req, res) => {
       returnSecureToken: true,
     });
 
-    console.log(data);
-
-    // Find profile in MongoDB
     const profile = await User.findOne({ firebaseUid: data.localId });
     if (!profile) {
       return res.status(404).json({ message: "User profile not found" });
@@ -76,13 +64,9 @@ export const login = async (req, res) => {
       maxAge: 60 * 60 * 1000,
     });
 
-    // Send back a clean response
     return res.json({
       uid: data.localId,
       email: data.email,
-      // idToken: data.idToken, //short-lived JWT
-      // refreshToken: data.refreshToken, // to renew the JWT later
-      // expiresIn: Number(data.expiresIn),
       profile: {
         id: profile._id,
         email: profile.email,

@@ -7,7 +7,6 @@ import User from '../schemas/user.schema.js';
 import { uploadPDFToFirebase } from '../utils/firebase/uploadToFirebase.js';
 import { generateContractPDF } from '../utils/pdf/contractGenerator.js';
 
-// Normalize Decimal128 values to plain JS numbers
 function normalizeArticle(article) {
   return {
     ...article,
@@ -34,14 +33,12 @@ export const getBuyerArticles = async (req, res) => {
           'in_progress',
           'awaiting_contract',
           'awaiting_payment',
-          // 'completed',
         ],
       },
     })
       .populate('author', 'name img_url rating')
       .lean();
 
-    // Combine each article with the buyer's latest bid
     const result = articles.map((article) => {
       const matchingBidDoc = buyerBids.find(
         (b) => String(b.refId) === String(article._id),
@@ -91,7 +88,6 @@ export const getBuyerArticles = async (req, res) => {
       };
     });
 
-    // const normalizeArticles = articles.map(normalizeArticle);
 
     return res.status(200).json({ success: true, data: result });
   } catch (err) {
@@ -104,19 +100,15 @@ export const getBuyerInventory = async (req, res) => {
   try {
     const { buyerId } = req.params;
 
-    // 1️⃣ Fetch all inventory for this buyer
     const inventory = await BuyerInventory.find({ buyer: buyerId })
       .populate('article', 'title img_url')
       .lean();
 
-    // 2️⃣ Prepare a bulk update array (for expired / reactivated items)
     const updates = [];
 
-    // 3️⃣ Check each item’s expiry based on purchasedDate + contractPeriod
     for (const item of inventory) {
       const purchaseDate = new Date(item.purchasedDate);
 
-      // Extract number of days from "30 Days"
       const contractDays = parseInt(item.contractPeriod) || 30;
 
       const expiryDate = new Date(purchaseDate);
@@ -125,7 +117,6 @@ export const getBuyerInventory = async (req, res) => {
       const now = new Date();
       const isExpired = now > expiryDate;
 
-      // 🔹 If expired but not marked yet
       if (isExpired && item.contractStatus !== 'expired') {
         updates.push({
           updateOne: {
@@ -133,9 +124,8 @@ export const getBuyerInventory = async (req, res) => {
             update: { $set: { contractStatus: 'expired' } },
           },
         });
-        item.contractStatus = 'expired'; // reflect change in returned data
+        item.contractStatus = 'expired';
       }
-      // 🔹 If active but wrongly marked as expired
       else if (!isExpired && item.contractStatus !== 'active') {
         updates.push({
           updateOne: {
@@ -147,7 +137,6 @@ export const getBuyerInventory = async (req, res) => {
       }
     }
 
-    // 4️⃣ Perform all updates in one go (if any)
     if (updates.length > 0) {
       await BuyerInventory.bulkWrite(updates);
       console.log(
@@ -155,7 +144,6 @@ export const getBuyerInventory = async (req, res) => {
       );
     }
 
-    // 5️⃣ Return the inventory with refreshed statuses
     return res.status(200).json({ success: true, data: inventory });
   } catch (err) {
     console.error('❌ Error fetching buyer inventory:', err);
@@ -276,18 +264,12 @@ export const proceedPayment = async (req, res) => {
     existingContract.contractUrl = pdfUrl;
     await existingContract.save();
 
-    // if (existingContract) {
-    //   existingContract.status = 'finalized';
-    //   existingContract.purchasedDate = new Date();
-    //   await existingContract.save();
-    // }
-
     const period = existingContract.contractPeriod || '30 Days';
     const newInventory = new BuyerInventory({
       buyer: buyerId,
       article: articleId,
       purchasedDate: new Date(),
-      contractPeriod: period, // FIXME: Contract Duration might be added later. article.duration is not right.
+      contractPeriod: period,
       contractStatus: 'active',
       paymentStatus: 'paid',
       contractUrl: pdfUrl,
@@ -339,7 +321,6 @@ export const downloadContract = async (req, res) => {
         .json({ success: false, error: 'No contract file found' });
     }
 
-    // return res.redirect(inventory.contractUrl);
     return res.status(200).json({ success: true, url: inventory.contractUrl });
   } catch (err) {
     console.error('Error downloading contract: ', err);
@@ -370,7 +351,6 @@ export const downloadArticle = async (req, res) => {
         .json({ success: false, error: 'No article file found' });
     }
 
-    // return res.redirect(inventory.articleUrl);
     return res.status(200).json({ success: true, url: inventory.articleUrl });
   } catch (err) {
     console.error('Error downloading article: ', err);
@@ -378,15 +358,10 @@ export const downloadArticle = async (req, res) => {
   }
 };
 
-// ============================================================
-// 🆕 NEW CONTROLLER: getBuyerCompletedArticles
-// Purpose: Return all completed articles (from Article + Contract)
-// ============================================================
 export const getBuyerCompletedArticles = async (req, res) => {
   try {
     const { buyerId } = req.params;
 
-    // 1️⃣ Find all completed articles that belong to this buyer
     const completedArticles = await Article.find({
       winner: buyerId,
       status: 'completed',
@@ -403,7 +378,6 @@ export const getBuyerCompletedArticles = async (req, res) => {
       });
     }
 
-    // 2️⃣ Find related finalized contracts for those articles
     const articleIds = completedArticles.map((a) => a._id);
     const contracts = await Contract.find({
       buyer: buyerId,
@@ -413,25 +387,22 @@ export const getBuyerCompletedArticles = async (req, res) => {
       .select('article contractUrl')
       .lean();
 
-    // 3️⃣ Make a quick lookup map for contract URLs
     const contractMap = {};
     for (const c of contracts) {
       contractMap[String(c.article)] = c.contractUrl || null;
     }
 
-    // 4️⃣ Merge article + contract info into one clean response
     const result = completedArticles.map((article) => ({
       _id: article._id,
       title: article.title || 'Untitled',
       purchasedDate: article.updatedAt || article.createdAt,
-      contractPeriod: '30 Days', // default fallback
-      contractStatus: 'Active', // can extend later with expiry logic
+      contractPeriod: '30 Days',
+      contractStatus: 'Active',
       contractUrl: contractMap[String(article._id)] || null,
       articleUrl: article.article_url || null,
       author: article.author?.name || 'Unknown Seller',
     }));
 
-    // 5️⃣ Send back the merged dataset
     return res.status(200).json({
       success: true,
       data: result,

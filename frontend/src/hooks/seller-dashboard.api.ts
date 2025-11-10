@@ -25,7 +25,7 @@ export async function getSellerArticles(params?: {
 }) {
   const { data } = await axios.get(`${BASE_URL}/seller-dashboard/articles`, {
     params,
-    withCredentials: true, // 🔴 sends backend auth cookie
+    withCredentials: true,
   });
   return data;
 }
@@ -37,7 +37,7 @@ export async function getSellerInventory(params?: {
 }) {
   const { data } = await axios.get(`${BASE_URL}/seller-dashboard/inventory`, {
     params,
-    withCredentials: true, // 🔴 sends backend auth cookie
+    withCredentials: true,
   });
   return data;
 }
@@ -47,7 +47,7 @@ export async function getSellerAnalytics(
 ) {
   const { data } = await axios.get(`${BASE_URL}/seller-dashboard/analytics`, {
     params: { range },
-    withCredentials: true, // ✅ ensure cookie auth is sent
+    withCredentials: true,
   });
   return data as {
     range: string;
@@ -63,7 +63,7 @@ export async function sellerSignContractAPI(articleId: string) {
     `${BASE_URL}/contracts/${articleId}/sign`,
     {},
     {
-      withCredentials: true, // to include cookies
+      withCredentials: true,
     }
   );
   return data;

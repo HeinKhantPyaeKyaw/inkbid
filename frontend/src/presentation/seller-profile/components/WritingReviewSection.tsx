@@ -1,6 +1,4 @@
 'use client';
-
-import { useAuth } from '@/context/auth/AuthContext';
 import { createReviewAPI, getSellerReviews } from '@/hooks/review.api';
 import { WritingReviewSectionProps } from '@/interfaces/seller-profile-interface/seller-profile-types';
 import { useEffect, useState } from 'react';
@@ -16,7 +14,6 @@ const WritingReviewSection = ({
   setAvgRating,
   setTotalReviews,
 }: WritingReviewSectionProps) => {
-  // const { user } = useAuth();
   const [open, setOpen] = useState(false);
 
   const handleOpen = () => {
@@ -49,7 +46,6 @@ const WritingReviewSection = ({
       setAvgRating(data.avgRating);
       setTotalReviews(data.totalReviews);
       setOpen(false);
-      // setReviews((prev) => [savedReview, ...prev]);
     } catch (error) {
       console.error('Error writing review: ', error);
     }
@@ -58,7 +54,6 @@ const WritingReviewSection = ({
   return (
     <div className="w-full">
       <div className="flex items-center justify-between gap-3">
-        {/* FIXME: Think to add Click to rate with stars here or not */}
         <h2 className="font-Montserrat text-white text-xl md:text-2xl">
           Recent Reviews
         </h2>

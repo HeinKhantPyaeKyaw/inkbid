@@ -19,7 +19,7 @@ export interface SellerProfileUpdateData {
   writingStyle?: string;
   organization?: string;
   paypalEmail?: string;
-  profileImage?: File; // 🟩 For image uploads
+  profileImage?: File;
 }
 
 export interface SellerPortfolioCarouselProps {
@@ -41,7 +41,7 @@ export interface RatingReviewProps {
 }
 
 export interface ReviewCardProps {
-  _id?: string; // MongoDB ID
+  _id?: string;
   buyer?: {
     _id: string;
     name: string;
@@ -65,7 +65,7 @@ export interface WritingReviewSectionProps {
   sellerId: string;
   reviews: ReviewCardProps[];
   setReviews: React.Dispatch<React.SetStateAction<ReviewCardProps[]>>;
-  setAvgRating: React.Dispatch<React.SetStateAction<number>>; // ✅ new
+  setAvgRating: React.Dispatch<React.SetStateAction<number>>;
   setTotalReviews: React.Dispatch<React.SetStateAction<number>>;
 }
 

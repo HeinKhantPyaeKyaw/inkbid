@@ -34,7 +34,6 @@ export default function SignUpPage() {
       alert('Passwords do not match');
       return;
     }
-    console.log(form, role);
     try {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_BASE}/auth/register`,
@@ -54,8 +53,6 @@ export default function SignUpPage() {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Registration failed');
       } else {
-        // alert('Registration successful! Please log in.');
-        // window.location.href = '/auth/login';
         await login(form.email, form.password);
       }
     } catch (error) {
@@ -97,7 +94,6 @@ export default function SignUpPage() {
             Sign Up
           </h2>
 
-          {/* Show Errors */}
           {error && (
             <div className="mb-4 text-red-400 text-center text-sm">{error}</div>
           )}

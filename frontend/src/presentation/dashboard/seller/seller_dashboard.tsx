@@ -49,7 +49,7 @@ interface SellerInventoryApi {
   _id: string;
   title: string;
   purchased_date: number;
-  contract_period: string; // already formatted, e.g. "01 Days 02 Hours 12 Mins"
+  contract_period: string;
   status: string;
 }
 
@@ -66,7 +66,6 @@ export const SellerDashboard = () => {
     withCredentials: true,
   });
 
-  // fetch data once when page loads
   const fetchAll = async () => {
     setLoading(true);
     setError(null);
@@ -91,7 +90,6 @@ export const SellerDashboard = () => {
           winner: item.winner
             ? { _id: item.winner._id, name: item.winner.name }
             : null,
-          // ✅ include these two new fields from backend
           buyerSigned: item.buyerSigned ?? false,
           sellerSigned: item.sellerSigned ?? false,
         }))
@@ -116,15 +114,12 @@ export const SellerDashboard = () => {
     }
   };
 
-  // fetch on mount
   useEffect(() => {
     fetchAll();
   }, []);
 
-  // ✅ Real-time listener for bid updates
   useEffect(() => {
     socket.on("bidUpdate", (update) => {
-      console.log("📡 Received bid update:", update);
 
       setArticles((prev) =>
         prev.map((article) =>
@@ -134,11 +129,9 @@ export const SellerDashboard = () => {
         )
       );
 
-      // Optional: show toast when relevant to seller
       toast(`💰 New bid placed on ${update.title || "an article"}`);
     });
 
-    // Optional: listen for status changes
     socket.on("statusUpdate", (update) => {
       setArticles((prev) =>
         prev.map((a) =>
@@ -161,7 +154,6 @@ export const SellerDashboard = () => {
         <p className="font-Montserrat text-[15px]">
           An overview of all biddings, inventory, and analysis.
         </p>
-        {/* <EngagementSection /> */}
         <div className="grid grid-cols-4 gap-4 mt-4">
           <StatCard
             title={"Total Revenue Generated"}
@@ -187,7 +179,7 @@ export const SellerDashboard = () => {
         <ArticleTable
           items={articles}
           onActionClick={(row) => console.log("Action for:", row)}
-          onRefresh={fetchAll} // ✅ pass refetch down
+          onRefresh={fetchAll}
         />
         <div className="h-[2px] w-[80%] bg-black my-[16px] self-center" />
         <InventoryTable

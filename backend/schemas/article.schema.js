@@ -4,40 +4,40 @@ import mongoose from 'mongoose';
 const articleSchema = new mongoose.Schema(
   {
     title: { type: String, required: true, trim: true },
-    date: { type: Date, required: true }, // stored as MongoDB Date
+    date: { type: Date, required: true }, 
     author: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
-    }, // seller reference
+    }, 
     duration: { type: mongoose.Schema.Types.Decimal128, required: true },
     article_url: { type: String, required: false, trim: true },
-    ends_in: { type: Date, required: true }, // deadline
+    ends_in: { type: Date, required: true }, 
     synopsis: { type: String, trim: true },
-    highest_bid: { type: mongoose.Schema.Types.Decimal128, default: 0.0 }, // from $numberDecimal
+    highest_bid: { type: mongoose.Schema.Types.Decimal128, default: 0.0 }, 
     min_bid: {
       type: mongoose.Schema.Types.Decimal128,
       required: true,
       default: 0.0,
-    }, // from $numberDecimal
+    },
     buy_now: { type: mongoose.Schema.Types.Decimal128 },
-    winner: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // buyer reference
+    winner: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     tag: {
       genre: [
         {
-          code: { type: mongoose.Schema.Types.ObjectId, ref: "Genre" }, // genre reference
+          code: { type: mongoose.Schema.Types.ObjectId, ref: "Genre" },
           keyword: { type: String, trim: true },
         },
       ],
       writing_style: [
         {
-          code: { type: mongoose.Schema.Types.ObjectId, ref: "WritingStyle" }, // writing style reference
+          code: { type: mongoose.Schema.Types.ObjectId, ref: "WritingStyle" },
           keyword: { type: String, trim: true },
         },
       ],
     },
     img_url: { type: String, required: false, trim: true },
-    proprietor: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // final owner (after payment)
+    proprietor: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     status: {
       type: String,
       enum: [

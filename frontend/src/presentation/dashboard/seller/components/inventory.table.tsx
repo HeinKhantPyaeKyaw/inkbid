@@ -1,4 +1,3 @@
-// components/ArticlesTable.tsx
 "use client";
 import * as React from "react";
 import Pagination from "../../../buyer-dashboard/components/Pagination";
@@ -13,7 +12,7 @@ export type InventoryRow = {
   id: string;
   title: string;
   purchased_date: number;
-  contract_period: string; // already formatted, e.g. "01 Days 02 Hours 12 Mins"
+  contract_period: string;
   status: string;
 };
 
@@ -22,13 +21,11 @@ type Props = {
   onActionClick?: (row: InventoryRow) => void;
 };
 
-// backend -> ui mapping
 const statusMap: Record<string, "Active" | "Expired" > = {
   completed: "Active",
   expired: "Expired",
 };
 
-// Tailwind styles for each display status
 const statusStyles: Record<"Active" | "Expired", string> = {
   Active: "bg-green-100/70 text-green-700 ring-1 ring-green-200",
   Expired: "bg-red-100/70 text-red-700 ring-1 ring-red-200",
@@ -37,12 +34,19 @@ const statusStyles: Record<"Active" | "Expired", string> = {
 const money = (n: number) =>
   new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(n);
 
-export function InventoryTable({ items, onActionClick }: Props) {
-  // If your table receives `items` (or `rows`/`articles`) — use that array name below.
-  const [currentPage, setCurrentPage] = React.useState(0);
-  const rowsPerPage = 10; // keep your layout balanced; tweak to your preference
+const formatDate = (timestamp: number): string => {
+  if (!timestamp) return "N/A";
+  const date = new Date(timestamp);
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+  const year = date.getFullYear();
+  return `${month}/${day}/${year}`;
+};
 
-  // If your data array is named something else, replace `items` accordingly:
+export function InventoryTable({ items, onActionClick }: Props) {
+  const [currentPage, setCurrentPage] = React.useState(0);
+  const rowsPerPage = 10;
+
   const totalPages = Math.max(1, Math.ceil(items.length / rowsPerPage));
   const start = currentPage * rowsPerPage;
   const end = Math.min(items.length, start + rowsPerPage);
@@ -51,14 +55,12 @@ export function InventoryTable({ items, onActionClick }: Props) {
     [items, start, end]
   );
 
-  // clamp page if data length changes (prevents “blank” pages after filters/refresh)
   React.useEffect(() => {
     if (currentPage > totalPages - 1) setCurrentPage(totalPages - 1);
   }, [totalPages, currentPage, items.length]);
 
   return (
     <section className="rounded-3xl border mt-4 border-black/10 bg-white/90 shadow-sm overflow-hidden">
-      {/* Card header */}
       <div className="px-5 pt-4 pb-3">
         <h2 className="text-xl font-semibold tracking-tight">Inventory</h2>
         <p className="text-sm text-black/60">
@@ -66,7 +68,6 @@ export function InventoryTable({ items, onActionClick }: Props) {
         </p>
       </div>
 
-      {/* Table */}
       <div className="pb-4">
         <div className="overflow-x-auto ring-1 ring-black/5">
           <table className="min-w-full border-separate border-spacing-0">
@@ -74,7 +75,6 @@ export function InventoryTable({ items, onActionClick }: Props) {
               <tr className="bg-[rgba(223,213,203,0.7)]">
                 <Th className="">Title</Th>
                 <Th>Purchased Date</Th>
-                <Th>Contract Period</Th>
                 <Th>Status</Th>
                 <Th className="text-right pr-4">Action</Th>
               </tr>
@@ -91,9 +91,8 @@ export function InventoryTable({ items, onActionClick }: Props) {
                     <div className="max-w-[36rem] truncate">{row.title}</div>
                   </Td>
 
-                  <Td className="tabular-nums">{row.purchased_date}</Td>
+                  <Td >{formatDate(row.purchased_date)}</Td>
 
-                  <Td className="whitespace-nowrap">{row.contract_period}</Td>
 
                   <Td>
                     {(() => {
@@ -184,7 +183,6 @@ export function InventoryTable({ items, onActionClick }: Props) {
   );
 }
 
-/* ---------- small helpers ---------- */
 function Th({
   children,
   className = "",

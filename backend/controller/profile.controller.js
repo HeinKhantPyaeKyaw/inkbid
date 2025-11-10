@@ -1,7 +1,6 @@
 import User from '../schemas/user.schema.js';
 import { uploadProfilePicture } from '../services/firebaseupload.js';
 
-// Update User Info
 export const updateProfile = async (req, res) => {
   try {
     const userId = req.user._id;
@@ -74,7 +73,6 @@ export const updateProfile = async (req, res) => {
   }
 };
 
-// Get Profile Info
 export const getProfileInfo = async (req, res) => {
   try {
     const userId = req.params.id;

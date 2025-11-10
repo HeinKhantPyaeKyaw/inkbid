@@ -94,26 +94,3 @@ const SellerProfileCarousel = ({ data }: CarouselDataItems) => {
 };
 
 export default SellerProfileCarousel;
-
-{
-  /* {data.map((item, index) => {
-  if (currentIndex === index) {
-    return (
-      <div
-        key={index}
-        className="flex flex-col justify-center items-center gap-4"
-      >
-        <h2 className="font-Forum text-4xl text-primary-font text-shadow-[0_6px_0_rgba(0,0,0,0.25)]">
-          {item.header}
-        </h2>
-        <p className="w-5xl font-Montserrat text-2xl text-primary-font tex-shadow-[0_2px_10px_rgba(0,0,0,0.5)] line-clamp-3">
-          {item.body}
-        </p>
-        <button className="font-Montserrat text-lg text-primary-font">
-          -Read more-
-        </button>
-      </div>
-    );
-  }
-})} */
-}

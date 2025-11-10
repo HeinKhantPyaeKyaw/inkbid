@@ -15,7 +15,7 @@ export interface UserProfile {
 }
 
 export interface AuthContextType {
-  user: UserProfile | null; // ? I think we need to type better
+  user: UserProfile | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;

@@ -1,4 +1,3 @@
-// --- User Type ---
 export interface IUser {
   _id: string;
   name: string;
@@ -8,13 +7,11 @@ export interface IUser {
   rating?: number;
 }
 
-// --- Tag Type ---
 export interface ITag {
   genre: { code: string; keyword: string }[];
   writing_style: { code: string; keyword: string }[];
 }
 
-// --- Bid Type ---
 export interface IBid {
   id: string;
   ref_user: IUser;
@@ -22,7 +19,6 @@ export interface IBid {
   timestamp: string;
 }
 
-// --- Article/Content Type ---
 export interface IContent {
   _id: string;
   title: string;
@@ -36,8 +32,6 @@ export interface IContent {
   img_url?: string;
   tag: ITag;
   bids: IBid[];
-
-  // ✅ New fields
   status:
     | "in_progress"
     | "awaiting_contract"

@@ -20,8 +20,8 @@ type Props = {
   article: {
     _id: string;
     title: string;
-    highest_bid?: number; // ✅ optional now
-    current_bid?: number; // ✅ optional fallback
+    highest_bid?: number; 
+    current_bid?: number;
     author: Author;
     winner?: Winner | null;
   } | null;
@@ -41,49 +41,47 @@ const ContractModalSeller: React.FC<Props> = ({
   const buyerName = article.winner?.name || "Buyer";
   const sellerName = article.author?.name || "Seller";
   const title = article.title;
-  const price = article.highest_bid ?? article.current_bid ?? 0; // ✅ fallback logic
-  const period = 30;
+  const price = article.highest_bid ?? article.current_bid ?? 0;
 
   const terms = `
-1. **Parties Involved**  
+1. **Parties Involved**
    This Contract is entered into between **${buyerName}** (“Buyer”) and **${sellerName}** (“Seller”) through the InkBid platform, operated by InkBid Technologies.
 
-2. **Scope of Agreement**  
-   The Seller agrees to transfer to the Buyer the right to publicly use, display, and distribute the article titled **"${title}"** for the agreed contract period of **${period} days**.
+2. **Scope of Agreement**
+   The Seller agrees to transfer to the Buyer the right to publicly use, display, and distribute the article titled **"${title}"** following successful payment via the InkBid platform.
 
-3. **Ownership and Rights**  
-   - The Seller retains full ownership of the article but grants the Buyer a non-exclusive, temporary license to publicly use the article during the contract period.  
-   - During the contract period, the Seller shall **not sell, license, modify, or reuse** the article in any form or platform.  
-   - The Buyer is prohibited from reselling, sublicensing, or modifying the article for profit without explicit written consent from the Seller.
+3. **Ownership and Rights**
+   - The Seller retains full ownership of the article at all times.
+   - The Buyer is licensed to publicly use and display the article under the terms of this agreement.
+   - The Buyer may **not** resell, sublicense, or modify the article for profit without the Seller’s explicit written consent.
 
-4. **Payment Terms**  
-   The Buyer agrees to pay **฿${price} THB** to the Seller through the InkBid platform.  
-   Payment must be completed within five (5) business days after both parties have signed this agreement.  
+4. **Payment Terms**
+   The Buyer agrees to pay **${price} THB** to the Seller through the InkBid platform.
+   Payment must be completed within five (5) business days after both parties have signed this agreement.
    The platform may temporarily withhold payment for verification and fraud prevention.
 
-5. **Usage License Period**  
-   - The Buyer’s right to use the article begins upon full payment and remains valid for **${period} days**.  
-   - After the period expires, the Buyer’s license to use the article automatically terminates.  
-   - The Seller regains full exclusive rights to the article after the contract expires.
+5. **Delivery and Access**
+   The Seller must ensure the article is accessible in its original form and shall not alter or delete its contents after the Buyer has obtained access through the platform.
 
-6. **Delivery and Transfer**  
-   The Seller must ensure the article is accessible in its original form and shall not alter or delete its contents during the contract period.
+6. **Exclusivity and Parallel Use**
+   - This license is **exclusive**; the Seller may not license the article to others unless a separate written exclusivity agreement is made.
+   - The Seller must not misrepresent the article’s availability or licensing status.
 
-7. **Confidentiality**  
+7. **Confidentiality**
    Both parties agree not to disclose personal, payment, or platform-related information shared in the course of this transaction.
 
-8. **Breach of Contract**  
-   - If the Buyer fails to complete payment, the contract is void.  
-   - If the Seller reuses or resells the article during the active period, InkBid reserves the right to penalize or suspend the Seller’s account.  
+8. **Breach of Contract**
+   - If the Buyer fails to complete payment, the contract is void.
+   - If the Seller reuses or resells the article during the active period, InkBid reserves the right to penalize or suspend the Seller’s account.
    - InkBid is not liable for any dispute arising outside its platform.
 
-9. **Termination**  
+9. **Termination**
    Either party may request early termination via the InkBid platform, subject to mutual written consent. Refunds may be issued only if both parties agree.
 
-10. **Governing Law**  
+10. **Governing Law**
    This Agreement shall be governed by and construed in accordance with the applicable laws under which InkBid operates.
 
-11. **Acknowledgement**  
+11. **Acknowledgement**
    By signing, both parties confirm that they have read and understood all terms and conditions stated herein and agree to be legally bound by them.
 `;
 
@@ -116,9 +114,6 @@ const ContractModalSeller: React.FC<Props> = ({
           </Typography>
           <Typography variant="body1" gutterBottom>
             <b>Final Price:</b> ฿{price} THB
-          </Typography>
-          <Typography variant="body1" gutterBottom>
-            <b>Contract Period:</b> {period} Days
           </Typography>
         </Box>
 

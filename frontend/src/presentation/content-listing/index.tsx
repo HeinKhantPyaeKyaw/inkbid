@@ -47,7 +47,6 @@ function MarketplaceContent() {
   const [articles, setArticles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // 🔍 Read URL parameters
   const q = searchParams.get("q") || "";
   const genre = searchParams.get("genre") || "";
   const rating = searchParams.get("rating") || "";
@@ -56,7 +55,6 @@ function MarketplaceContent() {
   const page = searchParams.get("page") || "1";
   const limit = searchParams.get("limit") || "12";
 
-  // 🔁 Fetch articles whenever filters change
   useEffect(() => {
     const fetchArticles = async () => {
       setLoading(true);
@@ -77,7 +75,6 @@ function MarketplaceContent() {
 
   return (
     <div className="min-h-screen bg-[#FAFAFA]">
-      {/* 🔝 Navbar with search + filters */}
       <NavbarSecondary />
 
       <div className="px-8 py-8">
@@ -85,7 +82,6 @@ function MarketplaceContent() {
           Explore Articles
         </h1>
 
-        {/* 🕓 Loading / Empty / Data states */}
         {loading ? (
           <p className="text-center text-gray-600 text-lg">
             Loading articles...
@@ -144,7 +140,6 @@ function MarketplaceContent() {
                   </p>
                 </div>
 
-                {/* 🏷 Genres and Writing Styles */}
                 <div className="mt-3 flex flex-wrap gap-2">
                   {Array.isArray(article.tag?.genre) &&
                     article.tag.genre.map((g: any, i: number) => (

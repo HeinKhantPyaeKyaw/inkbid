@@ -12,7 +12,6 @@ import { getSellerAnalytics } from "../controller/seller-analytics.controller.js
 
 const sellerDashboardRouter = express.Router();
 
-// Keep responses fresh while iterating
 const noStore = (req, res, next) => {
   res.set("Cache-Control", "no-store");
   res.set("Pragma", "no-cache");
@@ -20,10 +19,8 @@ const noStore = (req, res, next) => {
   next();
 };
 
-// Stat cards
 sellerDashboardRouter.get("/summary", verifyAuth, noStore, getSellerSummary);
 
-// Tables
 sellerDashboardRouter.get(
   "/articles",
   verifyAuth,

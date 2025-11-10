@@ -26,7 +26,6 @@ type Props = {
   onRefresh?: () => void | Promise<void>;
 };
 
-// ✅ Dynamic display logic
 function getDisplayStatus(row: ArticleRow) {
   const isTrue = (v: any) => v === true || v === "true";
   const isFalse = (v: any) => v === false || v === "false";
@@ -34,17 +33,13 @@ function getDisplayStatus(row: ArticleRow) {
   if (row.status === "in_progress") return "In Progress";
   if (row.status === "cancelled") return "Passed";
 
-  // ✅ awaiting_contract logic
   if (row.status === "awaiting_contract") {
-    if (isTrue(row.sellerSigned)) return "Pending"; // seller signed
-    if (isFalse(row.sellerSigned) && isFalse(row.buyerSigned)) return "Won"; // no one signed yet
+    if (isTrue(row.sellerSigned)) return "Pending";
+    if (isFalse(row.sellerSigned) && isFalse(row.buyerSigned)) return "Won";
     return "Won";
   }
 
-  // ✅ awaiting_payment logic
   if (row.status === "awaiting_payment") return "Pending";
-
-  // fallback
   return "Pending";
 }
 

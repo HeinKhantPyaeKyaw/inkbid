@@ -42,9 +42,6 @@ export default function NavbarSecondary() {
   const bellRef = useRef<HTMLDivElement | null>(null);
   const profileRef = useRef<HTMLDivElement | null>(null);
 
-  /* -------------------------------------------------------------------------- */
-  /* 🔔 SOCKET NOTIFICATIONS */
-  /* -------------------------------------------------------------------------- */
   useEffect(() => {
     if (!userId) return;
 
@@ -55,7 +52,6 @@ export default function NavbarSecondary() {
 
     socket.emit("register", userId);
     socket.on("notification", (data) => {
-      console.log("📬 New notification:", data);
       setNotifications((prev) => [data, ...prev]);
       setHasNew(true);
     });
@@ -77,9 +73,6 @@ export default function NavbarSecondary() {
     fetchUnread();
   }, []);
 
-  /* -------------------------------------------------------------------------- */
-  /* 🧭 CLOSE DROPDOWNS ON OUTSIDE CLICK */
-  /* -------------------------------------------------------------------------- */
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
@@ -100,9 +93,6 @@ export default function NavbarSecondary() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  /* -------------------------------------------------------------------------- */
-  /* 🔍 SEARCH SUBMIT */
-  /* -------------------------------------------------------------------------- */
   const handleSearch = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     const params = new URLSearchParams({
@@ -116,9 +106,6 @@ export default function NavbarSecondary() {
     setShowFilterDropdown(false);
   };
 
-  /* -------------------------------------------------------------------------- */
-  /* 🎚️ FILTER OPTIONS */
-  /* -------------------------------------------------------------------------- */
   const filterOptions = {
     genre: ["Business", "Culture", "Health", "Politics", "Tech"],
     rating: ["5 Stars", "4 Stars", "3 Stars", "2 Stars", "1 Star"],
@@ -166,15 +153,10 @@ export default function NavbarSecondary() {
     },
   ];
 
-  /* -------------------------------------------------------------------------- */
-  /* 🌈 UI */
-  /* -------------------------------------------------------------------------- */
   return (
     <nav className="flex justify-between items-center px-6 py-3 bg-primary shadow-md relative">
-      {/* Left: Logo */}
       <div className="text-4xl font-Forum text-accent">INKBID</div>
 
-      {/* Middle: Search + Filter */}
       <form
         onSubmit={handleSearch}
         className="flex items-center w-full max-w-2xl bg-white rounded-full shadow-md px-4 py-2 relative"
@@ -188,7 +170,6 @@ export default function NavbarSecondary() {
           onChange={(e) => setSearchQuery(e.target.value)}
         />
 
-        {/* Filter dropdown */}
         <div className="relative" ref={filterRef}>
           <button
             type="button"
@@ -236,7 +217,6 @@ export default function NavbarSecondary() {
                 </div>
               ))}
 
-              {/* ✅ Clear & Apply buttons */}
               <div className="flex justify-between mt-4">
                 <button
                   type="button"
@@ -258,9 +238,7 @@ export default function NavbarSecondary() {
         </div>
       </form>
 
-      {/* Right: Notifications + Profile */}
       <div className="flex items-center gap-6">
-        {/* Notifications */}
         <div className="relative" ref={bellRef}>
           <button
             onClick={() => {
@@ -310,7 +288,6 @@ export default function NavbarSecondary() {
           )}
         </div>
 
-        {/* Profile Dropdown */}
         <div className="relative" ref={profileRef}>
           <button
             onClick={() => setShowProfileDropdown((prev) => !prev)}

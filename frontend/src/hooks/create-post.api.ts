@@ -14,13 +14,13 @@ export const createPostAPI = async (formData: FormData) => {
     return response.data;
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
-      console.error('❌ Error creating article:', {
+      console.error('Error creating article:', {
         status: error.response?.status,
         statusText: error.response?.statusText,
         data: error.response?.data,
       });
     } else {
-      console.error('❌ Unexpected error:', error);
+      console.error('Unexpected error:', error);
     }
     throw error;
   }

@@ -8,10 +8,8 @@ import {
 
 const router = express.Router();
 
-// Create Checkout Session (buyer clicks Pay Now)
 router.post("/create-session", verifyAuth, createCheckoutSession);
 
-// Stripe Webhook (must use raw body ONLY for this route)
 router.post(
   "/webhook",
   express.raw({ type: "application/json" }),

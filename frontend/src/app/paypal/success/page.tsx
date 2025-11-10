@@ -15,7 +15,6 @@ function PayPalSuccessContent() {
     const articleId = localStorage.getItem("currentArticleId"); // stored when "Proceed Payment" clicked
 
     if (orderId && articleId) {
-      console.log("🕓 Waiting before capture...");
       setTimeout(async () => {
         try {
           const res = await capturePayPalOrderAPI(orderId, articleId);

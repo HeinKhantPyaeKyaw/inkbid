@@ -310,13 +310,13 @@ const ArticleTable = ({
             </button>
             {openDropdown === item.id && (
               <div className="absolute top-8 right-16 w-48 rounded-lg z-50">
-                <button
+                {/* <button
                   className="whitespace-nowrap w-full px-6 py-2 rounded-[8px] text-lg text-primary font-Montserrat font-bold border-2 border-[#B9B9B9] bg-white hover:bg-gray-100 active:scale-95 transition"
                   onClick={() => handleStripeCheckout(item.id)}
                   aria-label={`Pay with Stripe for article ${item.title}`}
                 >
                   Pay with Stripe
-                </button>
+                </button> */}
                 <button
                   className="whitespace-nowrap px-8 py-2 rounded-[8px] text-lg text-primary font-Montserrat font-bold border-2 border-[#B9B9B9] bg-[#ffffff] hover:bg-gray-100 active:scale-95 cursor-pointer transition"
                   onClick={() => handleProceedPayment(item.id, item.currentBid)} // ? amount should be current bid or your bid
