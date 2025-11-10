@@ -8,7 +8,7 @@ import {
 } from '../config/env.js';
 
 /* -------------------------------------------------------------------------- */
-/* 🧠 Step 1: Helper function — generate a short-lived access token           */
+/* Helper function — generate a short-lived access token                      */
 /* -------------------------------------------------------------------------- */
 async function generateAccessToken() {
   const credentials = Buffer.from(
@@ -30,7 +30,7 @@ async function generateAccessToken() {
 }
 
 /* -------------------------------------------------------------------------- */
-/* 💸 Step 2: Send Payout to Seller                                          */
+/* Send Payout to Seller                                                      */
 /* -------------------------------------------------------------------------- */
 export const sendPayoutToSeller = async ({
   recipientEmail,
@@ -44,13 +44,11 @@ export const sendPayoutToSeller = async ({
     console.log('Recipient Email:', recipientEmail);
     console.log('Amount:', amount, currency);
 
-    // 1️⃣ Get access token
     const accessToken = await generateAccessToken();
 
-    // 2️⃣ Build payout payload
     const payoutPayload = {
       sender_batch_header: {
-        sender_batch_id: uuidv4(), // unique batch for tracking
+        sender_batch_id: uuidv4(),
         email_subject: 'You’ve received a payment from InkBid!',
         email_message: `Your payout for article ${articleId} has been sent.`,
       },
@@ -67,7 +65,6 @@ export const sendPayoutToSeller = async ({
       ],
     };
 
-    // 3️⃣ Send POST request to PayPal Payouts API
     const response = await axios.post(
       `${PAYPAL_API_BASE}/v1/payments/payouts`,
       payoutPayload,
@@ -81,7 +78,6 @@ export const sendPayoutToSeller = async ({
 
     console.log('✅ Payout API Response:', response.data);
 
-    // 4️⃣ Return relevant info
     return {
       success: true,
       batchId: response.data.batch_header.payout_batch_id,

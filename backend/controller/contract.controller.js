@@ -10,7 +10,6 @@ export const sellerSignContract = async (req, res) => {
     const seller = req.user;
     const sellerId = seller?._id || seller?.id;
 
-    // Fetch article with author + winner populated
     const article = await Article.findById(articleId).populate('author winner');
     if (!article) {
       return res
@@ -18,7 +17,6 @@ export const sellerSignContract = async (req, res) => {
         .json({ success: false, message: 'Article not found' });
     }
 
-    // Validate seller identity
     if (String(article.author._id || article.author) !== String(sellerId)) {
       return res.status(403).json({
         success: false,
@@ -26,10 +24,8 @@ export const sellerSignContract = async (req, res) => {
       });
     }
 
-    // Find or create a contract for this article
     let contract = await Contract.findOne({ article: articleId });
 
-    // Track whether buyer had already signed before this call
     let buyerHadSignedBefore = false;
 
     const buyer = await User.findById(article.winner);
@@ -87,7 +83,6 @@ export const sellerSignContract = async (req, res) => {
 `;
 
     if (!contract) {
-      // Seller signs first → create contract (incomplete)
       const buyer = await User.findById(article.winner);
       if (!buyer) {
         return res
@@ -108,7 +103,6 @@ export const sellerSignContract = async (req, res) => {
         status: 'incomplete',
       });
     } else {
-      // Contract exists → update seller signature
       buyerHadSignedBefore = !!contract.buyerSigned;
 
       if (contract.sellerSigned) {
@@ -122,26 +116,24 @@ export const sellerSignContract = async (req, res) => {
       contract.terms = terms;
     }
 
-    // Transition status if both signatures are present now
     let justCompleted = false;
     if (contract.buyerSigned && contract.sellerSigned) {
       if (contract.status !== 'complete') {
-        justCompleted = true; // ⇦ becomes complete in THIS call
+        justCompleted = true; 
       }
       contract.status = 'complete';
       article.status = 'awaiting_payment';
-      article.final_price = article.highest_bid; // ✅ set final price
-      article.fees = Number((article.final_price * 0.15).toFixed(2)); // ✅ set fees (15%)
+      article.final_price = article.highest_bid; 
+      article.fees = Number((article.final_price * 0.15).toFixed(2)); 
       await article.save();
     } else {
       contract.status = 'incomplete';
     }
     contract.sellerSigned = true;
-    article.sellerSigned = true; // ✅ sync to Article
+    article.sellerSigned = true;
     await contract.save();
     await article.save();
 
-    // 🔔 NOTIFICATION: if buyer signed first and seller just completed it now → tell buyer to pay
     if (justCompleted && buyerHadSignedBefore) {
       const buyerId =
         article.winner?._id || article.winner?.id || article.winner;
@@ -282,15 +274,15 @@ export const buyerSignContract = async (req, res) => {
       }
       contract.status = 'complete';
       article.status = 'awaiting_payment';
-      article.final_price = article.highest_bid; // ✅ set final price
-      article.fees = Number((article.final_price * 0.15).toFixed(2)); // ✅ set fees (15%)
+      article.final_price = article.highest_bid; 
+      article.fees = Number((article.final_price * 0.15).toFixed(2));
       await article.save();
     } else {
       contract.status = 'incomplete';
     }
 
     contract.buyerSigned = true;
-    article.buyerSigned = true; // ✅ sync to Article
+    article.buyerSigned = true; 
     await contract.save();
     await article.save();
 

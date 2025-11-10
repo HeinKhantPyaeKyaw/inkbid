@@ -5,8 +5,6 @@ import {
   PAYPAL_CLIENT_ID,
   PAYPAL_CLIENT_SECRET,
 } from '../config/env.js';
-
-// 🟢 NEW: import InkBid models & helpers so we can reuse your existing flow
 import Article from '../schemas/article.schema.js';
 import BuyerInventory from '../schemas/buyer-inventory.schema.js';
 import Contract from '../schemas/contract.schema.js';
@@ -16,7 +14,7 @@ import { generateContractPDF } from '../utils/pdf/contractGenerator.js';
 import { sendPayoutToSeller } from './paypalpayout.controller.js';
 
 /* -------------------------------------------------------------------------- */
-/* STEP 6.1 – Generate short-lived PayPal access token                        */
+/* Generate short-lived PayPal access token                                   */
 /* -------------------------------------------------------------------------- */
 async function generateAccessToken() {
   const credentials = Buffer.from(
@@ -37,14 +35,13 @@ async function generateAccessToken() {
 }
 
 /* -------------------------------------------------------------------------- */
-/* STEP 6.2 – Create PayPal Order (✅ Updated with redirect URLs)             */
+/* Create PayPal Order                                                        */
 /* -------------------------------------------------------------------------- */
 export const createPayPalOrder = async (req, res) => {
   try {
     const { amount, currency = 'USD' } = req.body;
     const accessToken = await generateAccessToken();
 
-    // ✅ Include redirect URLs and UI settings for proper checkout flow
     const orderPayload = {
       intent: 'CAPTURE',
       purchase_units: [
@@ -57,18 +54,17 @@ export const createPayPalOrder = async (req, res) => {
       ],
       application_context: {
         brand_name: 'InkBid',
-        landing_page: 'LOGIN', // Options: LOGIN or NO_PREFERENCE
-        user_action: 'PAY_NOW', // Forces the "Pay Now" button
+        landing_page: 'LOGIN', 
+        user_action: 'PAY_NOW',
         return_url:
           process.env.PAYPAL_SUCCESS_URL ||
-          'http://localhost:3000/paypal/success', // ✅ redirect after approval
+          'http://localhost:3000/paypal/success',
         cancel_url:
           process.env.PAYPAL_CANCEL_URL ||
-          'http://localhost:3000/paypal/cancel', // ✅ redirect if canceled
+          'http://localhost:3000/paypal/cancel',
       },
     };
 
-    // 🔹 Create PayPal order
     const order = await axios.post(
       `${PAYPAL_API_BASE}/v2/checkout/orders`,
       orderPayload,
@@ -80,7 +76,6 @@ export const createPayPalOrder = async (req, res) => {
       },
     );
 
-    // ✅ Return the order info back to the frontend
     res.status(200).json({
       success: true,
       id: order.data.id,
@@ -100,7 +95,7 @@ export const createPayPalOrder = async (req, res) => {
 };
 
 /* -------------------------------------------------------------------------- */
-/* STEP 6.3 – Capture PayPal Order and process InkBid payment 🟢 NEW LOGIC     */
+/* Capture PayPal Order and process payment                                   */
 /* -------------------------------------------------------------------------- */
 export const capturePayPalOrder = async (req, res) => {
   try {
@@ -111,10 +106,8 @@ export const capturePayPalOrder = async (req, res) => {
 
     console.log('🔍 Capturing PayPal order ID:', orderId);
 
-    // 1️⃣ Generate PayPal token
     const token = await generateAccessToken();
 
-    /* 🟢 Check if the order is APPROVED first */
     const orderCheck = await axios.get(
       `${PAYPAL_API_BASE}/v2/checkout/orders/${orderId}`,
       { headers: { Authorization: `Bearer ${token}` } },
@@ -130,7 +123,6 @@ export const capturePayPalOrder = async (req, res) => {
       });
     }
 
-    /* 🟢 Capture the order */
     const captureRes = await axios.post(
       `${PAYPAL_API_BASE}/v2/checkout/orders/${orderId}/capture`,
       {},
@@ -148,7 +140,6 @@ export const capturePayPalOrder = async (req, res) => {
       });
     }
 
-    // 2️⃣ Find article and validate buyer
     const article = await Article.findById(articleId).populate('author');
     if (!article)
       return res
@@ -160,10 +151,8 @@ export const capturePayPalOrder = async (req, res) => {
         .status(403)
         .json({ success: false, message: 'Not authorized' });
 
-    // ⚡️ STEP 3️⃣ ADD PLATFORM FEE DEDUCTION (USING PAYPAL CAPTURE AMOUNT)
-    const PLATFORM_FEE_PERCENT = 15; // or load from process.env.PLATFORM_FEE_PERCENT
+    const PLATFORM_FEE_PERCENT = 15;
 
-    // 🟢 Extract actual paid amount from PayPal response
     const paidAmountStr =
       capture?.purchase_units?.[0]?.payments?.captures?.[0]?.amount?.value;
     const paidCurrency =
@@ -178,7 +167,6 @@ export const capturePayPalOrder = async (req, res) => {
 
     const paidAmount = parseFloat(paidAmountStr || article.highest_bid);
 
-    // 🧮 Calculate fees based on actual PayPal amount
     const platformFee = (paidAmount * PLATFORM_FEE_PERCENT) / 100;
     const sellerEarning = paidAmount - platformFee;
 
@@ -216,12 +204,10 @@ export const capturePayPalOrder = async (req, res) => {
 
     // ----------------------------------------------------------
 
-    // 4️⃣ Update article status
     article.status = 'completed';
     article.proprietor = buyerId;
     await article.save();
 
-    // 5️⃣ Find and finalize contract
     const contract = await Contract.findOne({
       buyer: buyerId,
       article: articleId,
@@ -236,12 +222,10 @@ export const capturePayPalOrder = async (req, res) => {
     contract.status = 'finalized';
     contract.purchasedDate = new Date();
 
-    // ⚡️ SAVE DEDUCTION INFO INTO CONTRACT FOR REFERENCE
     contract.platformFeePercent = PLATFORM_FEE_PERCENT;
     contract.platformFeeAmount = platformFee;
     contract.sellerEarning = sellerEarning;
 
-    // 6️⃣ Generate contract PDF & upload
     const pdfBuffer = await generateContractPDF({
       articleTitle: article.title,
       buyerName: contract.buyer.name,
@@ -262,7 +246,6 @@ export const capturePayPalOrder = async (req, res) => {
     console.log('contractURL', contract.contractUrl);
     await contract.save();
 
-    // 7️⃣ Add to BuyerInventory
     const newInventory = await BuyerInventory.create({
       buyer: buyerId,
       article: articleId,
@@ -272,7 +255,6 @@ export const capturePayPalOrder = async (req, res) => {
       paymentStatus: 'paid',
       contractUrl: pdfUrl,
       articleUrl: article.article_url || null,
-      // ⚡️ Include fee data for transparency
       platformFeePercent: PLATFORM_FEE_PERCENT,
       platformFeeAmount: platformFee,
       sellerEarning,
@@ -282,7 +264,6 @@ export const capturePayPalOrder = async (req, res) => {
       .populate('article', 'title img_url')
       .lean();
 
-    // ✅ Done
     res.status(200).json({
       success: true,
       message: '✅ PayPal payment captured and processed successfully',

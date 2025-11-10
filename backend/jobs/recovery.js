@@ -21,10 +21,9 @@ export const recoverAndScheduleAuctions = async () => {
 
     log(`Found ${overdue.length} overdue, ${future.length} future auctions`);
 
-    // ---- Overdue: enqueue immediate job ----
     for (const a of overdue) {
       const id = a._id.toString();
-      const jobId = finalizeJobId(id); // ← now "finalize_<id>"
+      const jobId = finalizeJobId(id);
       const existing = await auctionQueue.getJob(jobId);
 
       if (existing) {
@@ -45,7 +44,7 @@ export const recoverAndScheduleAuctions = async () => {
         { articleId: id },
         {
           delay: 0,
-          jobId, // ← safe ID
+          jobId,
           removeOnComplete: true,
           attempts: 3,
           backoff: { type: "fixed", delay: 3000 },
@@ -54,10 +53,9 @@ export const recoverAndScheduleAuctions = async () => {
       log(`Queued immediate finalize for ${id}`);
     }
 
-    // ---- Future: ensure delayed job exists ----
     for (const a of future) {
       const id = a._id.toString();
-      const jobId = finalizeJobId(id); // ← safe ID
+      const jobId = finalizeJobId(id);
       const existing = await auctionQueue.getJob(jobId);
 
       const delayMs = Math.max(0, new Date(a.ends_in).getTime() - Date.now());
@@ -81,7 +79,7 @@ export const recoverAndScheduleAuctions = async () => {
           { articleId: id },
           {
             delay: delayMs,
-            jobId, // ← safe ID
+            jobId,
             removeOnComplete: true,
             attempts: 3,
             backoff: { type: "fixed", delay: 3000 },
@@ -93,6 +91,6 @@ export const recoverAndScheduleAuctions = async () => {
 
     log("Recovery sweep complete");
   } catch (err) {
-    console.error("❌ Error in recovery:", err);
+    console.error(" Error in recovery:", err);
   }
 };

@@ -4,14 +4,13 @@ import { getIO } from "../socket.js";
 
 export const notify = async (userId, payload) => {
   try {
-    // 🧠 ensure userId is a clean string or ObjectId
     const cleanId =
       typeof userId === "object" && userId?._id
         ? String(userId._id)
         : String(userId);
 
     if (!mongoose.Types.ObjectId.isValid(cleanId)) {
-      console.warn("⚠️ notify(): Invalid userId", userId);
+      console.warn("notify(): Invalid userId", userId);
       return;
     }
 
@@ -20,11 +19,11 @@ export const notify = async (userId, payload) => {
       ...payload,
     });
 
-    console.log("📢 Emitting to room:", cleanId, payload.title);
+    console.log("Emitting to room:", cleanId, payload.title);
 
     const io = getIO();
     io.to(cleanId).emit("notification", notif);
   } catch (err) {
-    console.error("❌ notify() error:", err);
+    console.error("notify() error:", err);
   }
 };

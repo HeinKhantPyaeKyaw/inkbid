@@ -1,11 +1,9 @@
-// routes/paypalpayment.routes.js
-
 import express from 'express';
 import {
   createPayPalOrder,
   capturePayPalOrder,
 } from '../controller/paypalpayment.controller.js';
-import { verifyAuth } from '../middlewares/auth.middleware.js'; // ✅ optional: keep buyer authenticated
+import { verifyAuth } from '../middlewares/auth.middleware.js';
 
 const router = express.Router();
 

@@ -25,7 +25,6 @@ function normalizeBid(bid) {
   };
 }
 
-// backend/controller/article.controller.js
 export const getAllArticlesWithBids = async (req, res) => {
   try {
     const {
@@ -39,10 +38,9 @@ export const getAllArticlesWithBids = async (req, res) => {
     } = req.query;
 
     const query = {
-      status: "in_progress", // ✅ Only fetch in-progress articles
+      status: "in_progress",
     };
 
-    // 🔍 Search by title or synopsis
     if (q) {
       query.$or = [
         { title: { $regex: q, $options: "i" } },
@@ -50,21 +48,17 @@ export const getAllArticlesWithBids = async (req, res) => {
       ];
     }
 
-    // 🎭 Filter by genre keyword
     if (genre) {
       query["tag.genre.keyword"] = { $regex: new RegExp(genre, "i") };
     }
 
-    // ⭐ Filter by seller rating
     if (rating) {
       const ratingNumber = parseInt(rating);
       query["author.rating"] = { $gte: ratingNumber };
     }
 
-    // Pagination setup
     const skip = (Number(page) - 1) * Number(limit);
 
-    // 🧭 Query articles
     let articles = await Article.find(query)
       .populate("author", "name rating")
       .sort({ createdAt: -1 })
@@ -72,10 +66,8 @@ export const getAllArticlesWithBids = async (req, res) => {
       .limit(Number(limit))
       .lean();
 
-    // ✅ Double-check in case filtering or populate changes results
     articles = articles.filter((a) => a.status === "in_progress");
 
-    // Convert Decimal128 → Number
     articles = articles.map((article) => ({
       ...article,
       highest_bid: Number(article.highest_bid ?? 0),
@@ -85,7 +77,6 @@ export const getAllArticlesWithBids = async (req, res) => {
       fees: Number(article.fees ?? 0),
     }));
 
-    // Sorting logic (in-memory)
     const direction = dir === "asc" ? 1 : -1;
     if (sort === "highest_bid") {
       articles.sort((a, b) => (a.highest_bid - b.highest_bid) * direction);
@@ -97,10 +88,9 @@ export const getAllArticlesWithBids = async (req, res) => {
       );
     }
 
-    // Count total for pagination
     const total = await Article.countDocuments({
       ...query,
-      status: "in_progress", // ✅ Ensure consistent pagination
+      status: "in_progress", 
     });
 
     res.status(200).json({
@@ -122,7 +112,7 @@ export const getArticleWithBids = async (req, res) => {
     const { id } = req.params;
 
     const article = await Article.findById(id)
-      .populate("author", "name img_url rating") // ✅ populate seller info
+      .populate("author", "name img_url rating") 
       .lean();
 
     if (!article) {
@@ -135,13 +125,13 @@ export const getArticleWithBids = async (req, res) => {
 
     const topBids = bids
       ? bids.bids
-          .map(normalizeBid) // ✅ convert amount
+          .map(normalizeBid) 
           .sort((a, b) => b.amount - a.amount)
           .slice(0, 4)
       : [];
 
     res.status(200).json({
-      ...normalizeArticle(article), // ✅ normalize article fields
+      ...normalizeArticle(article), 
       bids: topBids,
     });
   } catch (err) {
@@ -152,32 +142,26 @@ export const getArticleWithBids = async (req, res) => {
 
 export const createArticle = async (req, res) => {
   try {
-    // Extract dtat from request body.
     const { title, synopsis, category, duration, minimumBid, buynowPrice } =
       req.body;
 
-    // Validate the required fields
     if (!title || !synopsis || !category || !duration || !minimumBid) {
       return res.status(400).json({ error: "Missing required field." });
     }
 
-    // Compute deadline
     const now = new Date();
     const deadline = new Date(
       now.getTime() + Number(duration) * 24 * 60 * 60 * 1000
     );
 
-    // G real author ID from auth middleware
     const authorID = req.user._id;
 
-    // Handle file uploads
     const imageFile = req.files?.image ? req.files.image[0] : null;
     const articleFile = req.files?.article ? req.files.article[0] : null;
 
     const imageUrl = await uploadFileToFirebase(imageFile, "articles/imgs");
     const articleUrl = await uploadFileToFirebase(articleFile, "articles/pdfs");
 
-    // Create a new article object
     const newArticle = new Article({
       title,
       synopsis,
@@ -195,10 +179,8 @@ export const createArticle = async (req, res) => {
       article_url: articleUrl,
     });
 
-    // Save article to MongoDB
     await newArticle.save();
 
-    // Enqueue or re-enqueue the finalize job right away
     await scheduleOrRescheduleFinalize(newArticle);
 
     res.status(201).json({
@@ -224,13 +206,11 @@ export const buyNow = async (req, res) => {
         .json({ success: false, message: 'Article not found' });
     }
 
-    // ✅ Update article as instantly won
     article.winner = buyerId;
     article.status = "awaiting_contract";
     article.highest_bid = article.buy_now;
     await article.save();
 
-    // ✅ Optional: record a "Buy Now" bid in the Bid doc
     const now = new Date();
     let bidRecord = await Bid.findOne({ refId: article._id });
     const buyNowBid = {
@@ -245,8 +225,6 @@ export const buyNow = async (req, res) => {
     }
     await bidRecord.save();
 
-    // 🔔 Notifications
-    // 1️⃣ Notify Buyer — you won instantly (same as auction win)
     await notify(buyerId, {
       type: "win",
       title: "🎉 You won instantly!",
@@ -260,7 +238,6 @@ export const buyNow = async (req, res) => {
       },
     });
 
-    // 2️⃣ Notify Seller — your article was bought
     await notify(article.author, {
       type: "bought",
       title: "🏆 Your article was bought",
@@ -274,7 +251,6 @@ export const buyNow = async (req, res) => {
       },
     });
 
-    // ✅ Prepare clean response (convert Decimal128 → number)
     const responseArticle = {
       ...article.toObject(),
       highest_bid: parseFloat(article.highest_bid?.toString() || '0'),
@@ -298,13 +274,10 @@ export const finalizeAuction = async (articleId) => {
   const article = await Article.findById(articleId);
   if (!article) return;
 
-  // already finalized / not in progress
   if (article.status && article.status !== "in_progress") return;
 
-  // not yet expired
   if (now < new Date(article.ends_in)) return;
 
-  // pick highest bid
   const bidDoc = await Bid.findOne({ refId: article._id }).lean();
   let highest = null;
 
@@ -315,11 +288,11 @@ export const finalizeAuction = async (articleId) => {
   }
 
   if (highest) {
-    article.winner = highest.ref_user; // ObjectId of buyer
+    article.winner = highest.ref_user; 
     article.status = "awaiting_contract";
     article.highest_bid = highest.amount;
   } else {
-    article.status = "cancelled"; // or "expired_without_bids"
+    article.status = "cancelled"; 
   }
 
   await article.save();

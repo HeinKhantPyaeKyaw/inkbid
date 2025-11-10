@@ -9,7 +9,6 @@ const noStore = (res) => {
   res.set("Expires", "0");
 };
 
-// helper
 const formatPeriod = (date, range) => {
   const d = new Date(date);
   if (range === "week")
@@ -19,7 +18,6 @@ const formatPeriod = (date, range) => {
   return `${d.getFullYear()}`;
 };
 
-// GET /seller-dashboard/analytics?range=week|month|year
 export const getSellerAnalytics = async (req, res) => {
   try {
     noStore(res);
@@ -30,14 +28,12 @@ export const getSellerAnalytics = async (req, res) => {
 
     const range = req.query.range || "week";
 
-    // ---- 1️⃣ Get seller's articles ----
     const sellerArticles = await Article.find(
       { author: sellerId },
       { _id: 1, highest_bid: 1, status: 1 }
     ).lean();
     const articleIds = sellerArticles.map((a) => a._id);
 
-    // ---- 2️⃣ Bids placed (group by week/month/year) ----
     const bidsAgg = await Bid.aggregate([
       { $match: { refId: { $in: articleIds } } },
       { $unwind: "$bids" },
@@ -54,7 +50,6 @@ export const getSellerAnalytics = async (req, res) => {
       { $sort: { "_id.year": 1, "_id.month": 1, "_id.week": 1 } },
     ]);
 
-    // format label for chart
     const bidsSeries = bidsAgg.map((x) => ({
       label: formatPeriod(
         `${x._id.year}-${x._id.month || 1}-${x._id.week || 1}`,
@@ -63,7 +58,6 @@ export const getSellerAnalytics = async (req, res) => {
       count: x.totalBids,
     }));
 
-    // ---- 3️⃣ Views per period ----
     const viewsAgg = await View.aggregate([
       { $match: { ref_article: { $in: articleIds } } },
       {
@@ -87,7 +81,6 @@ export const getSellerAnalytics = async (req, res) => {
       count: x.totalViews,
     }));
 
-    // ---- 4️⃣ Totals ----
     const totalBids = bidsAgg.reduce((sum, x) => sum + x.totalBids, 0);
     const totalIncome = sellerArticles
       .filter((a) => ["completed", "expired"].includes(a.status))

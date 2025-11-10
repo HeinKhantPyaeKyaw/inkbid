@@ -17,8 +17,7 @@ const contractSchema = new mongoose.Schema(
       ref: 'Article',
       required: true,
     },
-
-    // ----Contract Details-----
+    
     articleTitle: {
       type: String,
       required: true,
@@ -50,11 +49,9 @@ const contractSchema = new mongoose.Schema(
       type: Date,
     },
 
-    // Signature tracking
     buyerSigned: { type: Boolean, default: false },
     sellerSigned: { type: Boolean, default: false },
 
-    // ----- Status & PDF -----
     status: {
       type: String,
       enum: [

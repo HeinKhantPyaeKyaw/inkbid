@@ -14,10 +14,6 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
 
 const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:3000';
 
-/**
- * POST /api/v1/payment/create-session
- * body: { articleId }
- */
 export const createCheckoutSession = async (req, res) => {
   try {
     const { articleId } = req.body;
@@ -29,7 +25,6 @@ export const createCheckoutSession = async (req, res) => {
 
     if (!article) return res.status(404).json({ error: 'Article not found' });
 
-    // must be awaiting_payment to allow paying
     if (article.status !== 'awaiting_payment') {
       return res
         .status(400)
@@ -47,7 +42,6 @@ export const createCheckoutSession = async (req, res) => {
     const feeThb = Math.round(amountThb * feeRate);
     const sellerThb = amountThb - feeThb;
 
-    // Create a pending Payment record
     const payment = await Payment.create({
       article: article._id,
       buyer: buyerId || article.winner?._id,
@@ -59,8 +53,7 @@ export const createCheckoutSession = async (req, res) => {
       status: 'pending',
     });
     const destination = 'acct_1SHe1cGcE0uTLpEN';
-    const application_fee_amount = Math.round(feeThb * 100); // in satang
-    // 2) Build your session params WITHOUT transfer_data
+    const application_fee_amount = Math.round(feeThb * 100);
     const params = {
       mode: 'payment',
       payment_method_types: ['card'],
@@ -71,16 +64,14 @@ export const createCheckoutSession = async (req, res) => {
           price_data: {
             currency: 'thb',
             product_data: { name: `InkBid: ${article.title}` },
-            unit_amount: amountThb * 100, // THB → satang
+            unit_amount: amountThb * 100,
           },
         },
       ],
-      success_url: `${CLIENT_URL}/dashboard/buyer-dashboard`, //'localhost:3000/dashboard/buyer-dashboard' if on localhost
+      success_url: `${CLIENT_URL}/dashboard/buyer-dashboard`,
       cancel_url: `${CLIENT_URL}/dashboard/buyer-dashboard`,
       payment_intent_data: {
-        // ✅ platform fee on a direct charge
         application_fee_amount,
-        // (optional) on_behalf_of: destination,
       },
       metadata: {
         articleId: String(article._id),
@@ -92,13 +83,10 @@ export const createCheckoutSession = async (req, res) => {
       },
     };
 
-    // 3) Create the Checkout Session **on the connected account**
-    //    (this makes it a direct charge; the seller is liable)
     const session = await stripe.checkout.sessions.create(params, {
-      stripeAccount: destination, // 👈 critical
+      stripeAccount: destination,
     });
 
-    // store session id to the Payment record
     payment.stripe_session_id = session.id;
     await payment.save();
 
@@ -109,16 +97,13 @@ export const createCheckoutSession = async (req, res) => {
   }
 };
 
-/**
- * POST /api/v1/payment/webhook
- */
 export const stripeWebhook = async (req, res) => {
   const sig = req.headers['stripe-signature'];
   let event;
 
   try {
     event = stripe.webhooks.constructEvent(
-      req.body, // raw body (express.raw in app.js)
+      req.body,
       sig,
       process.env.STRIPE_WEBHOOK_SECRET,
     );
@@ -139,7 +124,6 @@ export const stripeWebhook = async (req, res) => {
         paymentId,
       } = session.metadata || {};
 
-      // 1️⃣ Update Payment record
       const payment = await Payment.findById(paymentId);
       if (payment) {
         payment.status = 'succeeded';
@@ -147,7 +131,6 @@ export const stripeWebhook = async (req, res) => {
         await payment.save();
       }
 
-      // 2️⃣ Update article status → completed
       const article = await Article.findById(articleId).populate('author');
       if (!article) {
         console.error('Article not found:', articleId);
@@ -157,7 +140,6 @@ export const stripeWebhook = async (req, res) => {
       article.proprietor = buyerId;
       await article.save();
 
-      // 3️⃣ Finalize contract
       const contract = await Contract.findOne({
         buyer: buyerId,
         article: articleId,
@@ -171,11 +153,10 @@ export const stripeWebhook = async (req, res) => {
 
       contract.status = 'finalized';
       contract.purchasedDate = new Date();
-      contract.platformFeePercent = 15; // or load from process.env if you have it
+      contract.platformFeePercent = 15; 
       contract.platformFeeAmount = parseFloat(platformFeeThb);
       contract.sellerEarning = parseFloat(sellerReceivableThb);
 
-      // 4️⃣ Generate and upload contract PDF
       const pdfBuffer = await generateContractPDF({
         articleTitle: article.title,
         buyerName: contract.buyer.name,
@@ -193,7 +174,6 @@ export const stripeWebhook = async (req, res) => {
       contract.contractUrl = pdfUrl;
       await contract.save();
 
-      // 5️⃣ Add to BuyerInventory
       const newInventory = await BuyerInventory.create({
         buyer: buyerId,
         article: articleId,
@@ -212,7 +192,6 @@ export const stripeWebhook = async (req, res) => {
         .populate('article', 'title img_url')
         .lean();
 
-      // 6️⃣ Notifications
       try {
         await notify(buyerId, {
           type: 'payment',

@@ -1,9 +1,8 @@
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 
 export const generateContractPDF = async (contractData) => {
-  // Create a new PDF document
   const pdfDoc = await PDFDocument.create();
-  const page = pdfDoc.addPage([595.28, 841.89]); // Standard A4 Size
+  const page = pdfDoc.addPage([595.28, 841.89]); 
 
   // Embed a standard font
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
@@ -12,13 +11,11 @@ export const generateContractPDF = async (contractData) => {
     page.drawText(text, { x, y, size, font, color });
   };
 
-  // Add title
   drawText('INKBID CONTRACT AGREEMENT', 150, 800, 18, rgb(0.2, 0.2, 0.6));
 
   const yStart = 760;
   const lineGap = 20;
 
-  // Add Contract Details section
   const details = [
     `Article Title: ${contractData.articleTitle}`,
     `Buyer Name: ${contractData.buyerName}`,
@@ -36,7 +33,6 @@ export const generateContractPDF = async (contractData) => {
     drawText(line, 60, yStart - index * lineGap);
   });
 
-  // Add Terms & Conditions Sections
   const terms =
     contractData.terms ||
     'This agreement binds both parties under InkBid regulations.';
@@ -49,7 +45,6 @@ export const generateContractPDF = async (contractData) => {
     drawText(line.trim(), 60, termsStartY - (i + 1) * 16);
   });
 
-  // ? Signature placeholder might be implemented later
 
   const pdfBytes = await pdfDoc.save();
   return Buffer.from(pdfBytes);

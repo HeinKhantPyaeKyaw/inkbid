@@ -20,8 +20,8 @@ export const initIO = (server) => {
 
     socket.on("register", (userId) => {
       if (!userId) return;
-      console.log(`👤 User ${userId} registered socket ${socket.id}`);
-      socket.join(userId); // <-- critical line: join user’s room
+      console.log(`User ${userId} registered socket ${socket.id}`);
+      socket.join(userId); 
     });
 
     socket.on("disconnect", (reason) => {

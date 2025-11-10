@@ -10,7 +10,6 @@ import Portfolio from '../schemas/portfolio.schema.js';
 
 const portfolioRouter = express.Router();
 
-//  Public rotue for portfolios that will show in the seller profile
 portfolioRouter.get('/portfolios/:sellerId', async (req, res) => {
   try {
     const { sellerId } = req.params;

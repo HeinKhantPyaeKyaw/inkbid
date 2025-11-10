@@ -1,4 +1,3 @@
-// controller/sellerDashboard.controller.js
 import mongoose from "mongoose";
 import Article from "../schemas/article.schema.js";
 import Bid from "../schemas/bids.schema.js";
@@ -12,7 +11,6 @@ const ACTIVE_STATUSES = [
 ];
 const INVENTORY_STATUSES = ["completed"];
 
-// Decimal128 → Number (or 0)
 const toNum = (v) => {
   if (v == null) return 0;
   if (typeof v === "number") return v;
@@ -27,7 +25,6 @@ const noStore = (res) => {
   res.set("Expires", "0");
 };
 
-// GET /seller-dashboard/summary
 export const getSellerSummary = async (req, res) => {
   try {
     noStore(res);
@@ -42,7 +39,6 @@ export const getSellerSummary = async (req, res) => {
     ]);
 
     const map = Object.fromEntries(byStatus.map((d) => [d._id, d.count]));
-    // Calculate total revenue from completed articles
     const revenueAgg = await Article.aggregate([
       {
         $match: {
@@ -81,7 +77,6 @@ export const getSellerSummary = async (req, res) => {
   }
 };
 
-// Utility to fetch paginated articles + top bid
 const fetchPaginatedArticles = async ({
   sellerId,
   statuses,
@@ -98,8 +93,8 @@ const fetchPaginatedArticles = async ({
 
   const [items, total] = await Promise.all([
     Article.find(q)
-      .populate("author", "name email")  // ✅ include seller
-      .populate("winner", "name email")  // ✅ include buyer
+      .populate("author", "name email")  
+      .populate("winner", "name email")  
       .sort(sort)
       .skip(skip)
       .limit(limit)
@@ -107,7 +102,6 @@ const fetchPaginatedArticles = async ({
     Article.countDocuments(q),
   ]);
 
-  // Map of { articleId: maxBid }
   const ids = items.map((a) => a._id);
   const bidAgg = ids.length
     ? await Bid.aggregate([
@@ -147,7 +141,6 @@ const fetchPaginatedArticles = async ({
 };
 
 
-// GET /seller-dashboard/articles?Page=1&limit=10&sort=-date
 export const getSellerArticles = async (req, res) => {
   try {
     noStore(res);
@@ -158,7 +151,7 @@ export const getSellerArticles = async (req, res) => {
 
     const page = Math.max(1, Number(req.query.page || 1));
     const limit = Math.min(50, Math.max(1, Number(req.query.limit || 10)));
-    const sort = req.query.sort || "-date"; // newest first
+    const sort = req.query.sort || "-date";
 
     const data = await fetchPaginatedArticles({
       sellerId,
@@ -175,7 +168,6 @@ export const getSellerArticles = async (req, res) => {
   }
 };
 
-// GET /seller-dashboard/inventory?page=1&limit=10&sort=-date
 export const getSellerInventory = async (req, res) => {
   try {
     noStore(res);
@@ -204,7 +196,7 @@ export const getSellerInventory = async (req, res) => {
 };
 
 /* -------------------------------------------------------------------------- */
-/* 🧾 DOWNLOAD CONTRACT (for seller)                                           */
+/*   DOWNLOAD CONTRACT (for seller)                                           */
 /* -------------------------------------------------------------------------- */
 export const downloadContract = async (req, res) => {
   try {
@@ -228,7 +220,7 @@ export const downloadContract = async (req, res) => {
 };
 
 /* -------------------------------------------------------------------------- */
-/* 📄 DOWNLOAD ARTICLE (for seller)                                            */
+/* DOWNLOAD ARTICLE (for seller)                                            */
 /* -------------------------------------------------------------------------- */
 export const downloadArticle = async (req, res) => {
   try {

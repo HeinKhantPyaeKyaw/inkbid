@@ -12,18 +12,15 @@ export const placeBid = async (req, res) => {
       return res.status(400).json({ error: "refId and amount are required" });
     }
 
-    // check bidder role
     if (bidder.role !== "buyer") {
       return res.status(403).json({ error: "Only buyers can place bids" });
     }
 
-    // fetch article to validate existence
     const article = await Article.findById(refId);
     if (!article) {
       return res.status(404).json({ error: "Article not found" });
     }
 
-    // enforce min_bid if this is the first bid
     if (
       article.highest_bid === 0 &&
       article.min_bid &&
@@ -35,14 +32,12 @@ export const placeBid = async (req, res) => {
       });
     }
 
-    // ✅ Atomic gate: try to bump article.highest_bid if this bid is higher
     const articleUpdate = await Article.findOneAndUpdate(
       { _id: refId, highest_bid: { $lt: amount } },
       { $set: { highest_bid: amount } },
       { new: true }
     );
 
-    // ❌ If articleUpdate is null, another bid already set same/higher amount
     if (!articleUpdate) {
       return res.status(409).json({
         success: false,
@@ -51,7 +46,6 @@ export const placeBid = async (req, res) => {
       });
     }
 
-    // ✅ Fetch or create bid record and push the bid
     const now = new Date();
     const newBid = { ref_user: bidder.id, amount, timestamp: now };
 
@@ -61,7 +55,6 @@ export const placeBid = async (req, res) => {
       { upsert: true, new: true }
     );
 
-    // ✅ Notify the previous highest bidder (if any)
     if (bidRecord.bids.length > 1) {
       const prevBid = bidRecord.bids[bidRecord.bids.length - 2];
       const prevBidderId = prevBid.ref_user;
@@ -83,7 +76,6 @@ export const placeBid = async (req, res) => {
       }
     }
 
-    // ✅ Notify seller (article author)
     try {
       await notify(article.author, {
         type: "bid",
@@ -99,7 +91,6 @@ export const placeBid = async (req, res) => {
       console.error("Notification failed:", notifyErr.message);
     }
 
-    // 🔑 Repopulate and broadcast via Redis
     const populatedBidRecord = await bidRecord.populate(
       "bids.ref_user",
       "name email img_url rating"

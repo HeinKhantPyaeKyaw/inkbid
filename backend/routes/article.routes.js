@@ -14,7 +14,6 @@ articleRouter.get('/articles', getAllArticlesWithBids);
 articleRouter.get('/articles/:id', getArticleWithBids);
 articleRouter.post('/articles/:id/buy-now', verifyAuth, buyNow);
 
-// / POST new article(Create Post page)
 articleRouter.post(
   '/articles',
   verifyAuth,
