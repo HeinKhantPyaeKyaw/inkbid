@@ -25,7 +25,6 @@ export default function BuyerSettingsPage() {
   const [showRetype, setShowRetype] = useState(false);
   const [newPassword, setNewPassword] = useState('');
 
-  // 👇 Start with null image
   const [profileImage, setProfileImage] = useState<string | null>(null);
 
   const [form, setForm] = useState<UserData>({
@@ -367,10 +366,8 @@ export default function BuyerSettingsPage() {
           className="bg-blue-900 text-white font-medium px-6 py-2 rounded hover:opacity-90"
           onClick={() => {
             if (isEditing) {
-              // When user clicks "Cancel"
               setIsEditing(false);
             } else {
-              // When user clicks "Update"
               setIsEditing(true);
             }
           }}

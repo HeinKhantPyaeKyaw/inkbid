@@ -54,7 +54,6 @@ const ArticleUpload = ({
       const formData = new FormData();
       formData.append('file', file);
 
-      // Call AI(Flask) Server
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_AI_BASE}/predict`,
         {
@@ -95,7 +94,6 @@ const ArticleUpload = ({
     setAiResults(null);
   };
 
-  // Reset local state if articleFile was cleared externally (from parent)
   useEffect(() => {
     if (!articleFile) {
       setFileName(null);

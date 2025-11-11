@@ -1,4 +1,3 @@
-// controller/payment.controller.js
 import Stripe from 'stripe';
 import Article from '../schemas/article.schema.js';
 import Payment from '../schemas/payment.schema.js';

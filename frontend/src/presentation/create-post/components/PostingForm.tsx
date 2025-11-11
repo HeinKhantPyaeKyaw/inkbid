@@ -17,7 +17,7 @@ const PostingForm = () => {
   const [synopsis, setSynopsis] = useState('');
   const [category, setCategory] = useState('');
   const [duration, setDuration] = useState<string | number>(1);
-  const [minimumBid, setMinimumBid] = useState<string | number>(''); // ? Should I use number for minimumBid and buyNowPrice
+  const [minimumBid, setMinimumBid] = useState<string | number>(''); 
   const [buynowPrice, setBuynowPrice] = useState<number | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [articleFile, setArticleFile] = useState<File | null>(null);
@@ -31,7 +31,6 @@ const PostingForm = () => {
     setIsSubmitting(true);
 
     try {
-      // Conversion for duration, minimumBid, buynowPrice
       const parsedDuration = Number(duration);
       const parsedMinimumBid = Number(minimumBid);
 
@@ -75,7 +74,6 @@ const PostingForm = () => {
       } else {
         router.push('/login');
       }
-      //Reset Form
       setTitle('');
       setSynopsis('');
       setCategory('');

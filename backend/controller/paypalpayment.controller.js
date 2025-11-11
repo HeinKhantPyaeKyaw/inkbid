@@ -1,4 +1,3 @@
-// controller/paypalpayment.controller.js
 import axios from 'axios';
 import {
   PAYPAL_API_BASE,

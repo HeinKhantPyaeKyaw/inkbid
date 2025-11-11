@@ -1,4 +1,3 @@
-// controller/contract.controller.js
 import Article from '../schemas/article.schema.js';
 import Contract from '../schemas/contract.schema.js';
 import User from '../schemas/user.schema.js';

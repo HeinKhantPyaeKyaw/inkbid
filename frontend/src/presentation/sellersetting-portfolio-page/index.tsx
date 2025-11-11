@@ -34,7 +34,7 @@ export default function PortfolioPage() {
           `${process.env.NEXT_PUBLIC_API_BASE}/portfolios`,
           {
             withCredentials: true,
-            validateStatus: (status) => status < 500, // don't throw for 404
+            validateStatus: (status) => status < 500, 
           },
         );
 

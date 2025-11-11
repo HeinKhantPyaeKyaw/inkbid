@@ -1,4 +1,3 @@
-// models/Article.js
 import mongoose from 'mongoose';
 
 const articleSchema = new mongoose.Schema(

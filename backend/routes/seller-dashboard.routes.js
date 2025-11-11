@@ -1,4 +1,3 @@
-// routes/seller-dashboard.routes.js
 import express from "express";
 import { verifyAuth } from "../middlewares/auth.middleware.js";
 import {

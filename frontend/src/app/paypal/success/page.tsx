@@ -11,8 +11,8 @@ function PayPalSuccessContent() {
   const { capturePayPalOrderAPI } = useBuyerDashboardAPI();
 
   useEffect(() => {
-    const orderId = searchParams.get("token"); // PayPal order token
-    const articleId = localStorage.getItem("currentArticleId"); // stored when "Proceed Payment" clicked
+    const orderId = searchParams.get("token"); 
+    const articleId = localStorage.getItem("currentArticleId");
 
     if (orderId && articleId) {
       setTimeout(async () => {

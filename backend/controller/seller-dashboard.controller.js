@@ -211,7 +211,6 @@ export const downloadContract = async (req, res) => {
       return res.status(404).json({ success: false, message: "Contract file not available" });
     }
 
-    // Redirect the browser to the file URL (Firebase / GCS / etc.)
     return res.redirect(contract.contractUrl);
   } catch (err) {
     console.error("Error downloading seller contract:", err);

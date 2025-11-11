@@ -29,7 +29,7 @@ const TableHead = [
 ];
 
 interface ArticleTableProps {
-  data: ArticleTableItems[]; // * Array of Items to map for Articles Table Data
+  data: ArticleTableItems[]; 
   setArticlesTableData: React.Dispatch<
     React.SetStateAction<ArticleTableItems[]>
   >;
@@ -46,18 +46,15 @@ const ArticleTable = ({
   const [rowsLimit] = useState(10);
   const [currentPage, setCurrentPage] = useState(0);
 
-  // For ActionButton Dropdown
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // State to track selected article and modal visibility
   const [selectedArticle, setSelectedArticle] =
     useState<ContractArticle | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // To track modal's "Agree" button is loading
   const [signing, setSigning] = useState(false);
 
   const { user } = useAuth();
@@ -77,7 +74,6 @@ const ArticleTable = ({
 
   const totalPages = Math.ceil(data.length / rowsLimit);
 
-  // To handle closing dropdown wherever click
   const dropdownRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -95,7 +91,6 @@ const ArticleTable = ({
     };
   }, [openDropdown]);
 
-  // Action Button{Sign Contract & Proceed with payment}
   const handleSignContract = async (id: string) => {
     const foundArticle = data.find((item) => item.id === id);
 
@@ -116,7 +111,6 @@ const ArticleTable = ({
     setSelectedArticle(null);
   };
 
-  // Handle "Agree" button click
   const handleAgreeContract = async () => {
     if (!selectedArticle) return;
     setSigning(true);
@@ -128,7 +122,6 @@ const ArticleTable = ({
         prev.map((a) => {
           if (a.id !== selectedArticle._id) return a;
 
-          // Check actual backend response
           const contract = res.contract;
           if (contract?.buyerSigned && !contract?.sellerSigned) {
             return { ...a, bidStatus: ArticleTableStatus.WAITING };
@@ -155,7 +148,6 @@ const ArticleTable = ({
     setLoadingAction(articleId);
     setError(null);
     try {
-      // Create PayPal order
       const orderData = await createPayPalOrderAPI(amount, 'THB');
 
       const approvalLink = orderData.links?.find(
@@ -164,16 +156,12 @@ const ArticleTable = ({
 
       if (!approvalLink) throw new Error('No PayPal approval link found');
 
-      // Store articleId for later capture
       localStorage.setItem('currentArticleId', articleId);
 
-      // Redirect user to PayPal approval page directly
       window.location.href = approvalLink;
 
-      // Capture after approval (simulate or handle after return)
       const captureRes = await capturePayPalOrderAPI(orderData.id, articleId);
 
-      // Move article → inventory in UI
       const newItem = captureRes.inventory;
       setArticlesTableData((prev) => prev.filter((a) => a.id !== articleId));
       setInventoryTableData((prev) => [
@@ -204,7 +192,6 @@ const ArticleTable = ({
     setError(null);
     try {
       const { url } = await createStripeCheckoutSession(id);
-      // Redirect to Stripe Checkout
       window.location.href = url;
     } catch (err) {
       console.error('Stripe Checkout session failed', err);
@@ -216,7 +203,6 @@ const ArticleTable = ({
     }
   };
 
-  // Pagination to change page in the tables
   const nextPage = () => {
     setCurrentPage((prev) => Math.min(prev + 1, totalPages - 1));
   };
@@ -248,7 +234,6 @@ const ArticleTable = ({
     }
   }
 
-  // For Action Buttons Rendering
   function renderActionButton(item: ArticleTableItems) {
     const isLoading = loadingAction === item.id;
     switch (item.bidStatus) {
@@ -265,7 +250,7 @@ const ArticleTable = ({
                 setOpenDropdown(openDropdown === item.id ? null : item.id)
               }
               className="cursor-pointer "
-              disabled={isLoading} // ? Might fix later
+              disabled={isLoading} 
             >
               <SlOptions />
             </button>
@@ -308,7 +293,7 @@ const ArticleTable = ({
               <div className="absolute top-8 right-16 w-48 rounded-lg z-50">
                 <button
                   className="whitespace-nowrap px-8 py-2 rounded-[8px] text-lg text-primary font-Montserrat font-bold border-2 border-[#B9B9B9] bg-[#ffffff] hover:bg-gray-100 active:scale-95 cursor-pointer transition"
-                  onClick={() => handleProceedPayment(item.id, item.currentBid)} // ? amount should be current bid or your bid
+                  onClick={() => handleProceedPayment(item.id, item.currentBid)}
                   aria-label={`Proceed with payment for article ${item.title}`}
                 >
                   Pay with Paypal
@@ -331,7 +316,6 @@ const ArticleTable = ({
         <p className="font-Montserrat text-lg text-primary-font">
           Keep track of recent biddings and other information.
         </p>
-        {/* Show error messgage if exists */}
         {error && <p className="text-red-500 mt-2">{error}</p>}
       </div>
       <table className="table-auto w-full focus-within:shadow-md transition-shadow">

@@ -4,7 +4,6 @@ export const generateContractPDF = async (contractData) => {
   const pdfDoc = await PDFDocument.create();
   const page = pdfDoc.addPage([595.28, 841.89]); 
 
-  // Embed a standard font
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
   const drawText = (text, x, y, size = 12, color = rgb(0, 0, 0)) => {

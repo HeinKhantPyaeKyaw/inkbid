@@ -1,4 +1,3 @@
-// jobs/finalize.worker.js
 import { Worker } from "bullmq";
 import { AUCTION_QUEUE, connectionOptions } from "./bullmq.js";
 import Article from "../schemas/article.schema.js";

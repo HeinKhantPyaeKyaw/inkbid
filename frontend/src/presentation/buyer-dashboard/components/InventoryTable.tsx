@@ -55,7 +55,6 @@ const InventoryTable = ({ data }: InventoryTableProps) => {
     }
   };
 
-  // Rendering Action Buttons
   const renderActionButtons = (item: InventoryTableItems) => {
     const isLoading = loadingAction === item.id;
     if (item.contractStatus === InventoryTableStatus.ACTIVE) {
