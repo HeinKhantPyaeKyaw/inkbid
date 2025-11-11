@@ -25,7 +25,6 @@ export default function BuyerSettingsPage() {
   const [showRetype, setShowRetype] = useState(false);
   const [newPassword, setNewPassword] = useState('');
 
-  // 👇 Start with null image
   const [profileImage, setProfileImage] = useState<string | null>(null);
 
   const [form, setForm] = useState<UserData>({
@@ -56,10 +55,9 @@ export default function BuyerSettingsPage() {
         organization: user.organization || '',
         paypal: user.paypalEmail || '',
         email: user.email || '',
-        password: '********', // Placeholder for security
+        password: '********',
       });
 
-      //  Only set image if exists
       setProfileImage(user.img_url || null);
     } else if (!loading && !user) {
       router.push('/login');
@@ -150,7 +148,7 @@ export default function BuyerSettingsPage() {
 
     try {
       await axios.put(
-        'http://localhost:5500/api/v1/auth/update-password',
+        `${process.env.NEXT_PUBLIC_API_BASE}/auth/update-password`,
         { newPassword },
         { withCredentials: true },
       );
@@ -165,8 +163,7 @@ export default function BuyerSettingsPage() {
   };
 
   const handleRemoveImage = () => {
-    setProfileImage(null); // 👈 reset to null (no default)
-    // Add image removal API call here
+    setProfileImage(null);
   };
 
   if (loading) {
@@ -369,10 +366,8 @@ export default function BuyerSettingsPage() {
           className="bg-blue-900 text-white font-medium px-6 py-2 rounded hover:opacity-90"
           onClick={() => {
             if (isEditing) {
-              // When user clicks "Cancel"
               setIsEditing(false);
             } else {
-              // When user clicks "Update"
               setIsEditing(true);
             }
           }}

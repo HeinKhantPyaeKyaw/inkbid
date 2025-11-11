@@ -1,8 +1,7 @@
 import { SellerProfileUpdateData } from '@/interfaces/seller-profile-interface/seller-profile-types';
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:5500/api/v1/seller-profile';
-
+const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_BASE}/seller-profile`;
 export const getUserProfileAPI = async (userId: string) => {
   const res = await axios.get(`${API_BASE_URL}/${userId}`, {
     withCredentials: true,
@@ -25,7 +24,6 @@ export const updateUserProfileAPI = async (
       (data as SellerProfileUpdateData).profileImage
     ) {
       const formData = data instanceof FormData ? data : new FormData();
-      // If it's not already FormData, append fields manually
       if (!(data instanceof FormData)) {
         Object.entries(data).forEach(([key, value]) => {
           if (value !== undefined && value !== null) {

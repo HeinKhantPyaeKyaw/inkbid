@@ -21,11 +21,9 @@ export default function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // console.log(form);
     setError(null);
 
     try {
-      //Call context login (set cookies + fetches user)
       await login(form.email, form.password);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login Failed');
@@ -65,7 +63,6 @@ export default function LoginPage() {
             Welcome Back
           </h2>
 
-          {/* Show error if login failed */}
           {error && (
             <div className="mb-4 text-red-400 text-center text-sm">{error}</div>
           )}

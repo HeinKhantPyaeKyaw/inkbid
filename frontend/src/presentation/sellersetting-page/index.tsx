@@ -23,7 +23,6 @@ export default function SellerSettingPage() {
   const path = usePathname();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  //  Start with no image
   const [profileImage, setProfileImage] = useState<string | null>(null);
 
   const [isEditing, setIsEditing] = useState(false);
@@ -146,7 +145,7 @@ export default function SellerSettingPage() {
   };
 
   const handleRemoveImage = () => {
-    setProfileImage(null); // 👈 now resets to null, not default
+    setProfileImage(null);
   };
 
   return (

@@ -1,30 +1,28 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { FiBookOpen, FiTrash2 } from "react-icons/fi";
-import { FaGripVertical, FaPlus } from "react-icons/fa";
-import axios from "axios";
+import axios from 'axios';
+import { useEffect, useState } from 'react';
+import { FaGripVertical, FaPlus } from 'react-icons/fa';
+import { FiBookOpen, FiTrash2 } from 'react-icons/fi';
 
 type PortfolioItem = {
   _id: string | number;
   title: string;
-  article: string;
+  synopsis: string;
 };
 
 export default function PortfolioPage() {
   const [showModal, setShowModal] = useState(false);
   const [errors, setErrors] = useState({
-    title: "",
-    synopsis: "",
-    article: "",
-    publishMedium: "",
-    pdfFile: "",
+    title: '',
+    synopsis: '',
+    publishMedium: '',
+    pdfFile: '',
   });
   const [newItem, setNewItem] = useState({
-    title: "",
-    synopsis: "",
-    article: "",
-    publishMedium: "",
+    title: '',
+    synopsis: '',
+    publishMedium: '',
   });
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [items, setItems] = useState<PortfolioItem[]>([]);
@@ -32,21 +30,24 @@ export default function PortfolioPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await axios.get("http://localhost:5500/api/v1/portfolios", {
-          withCredentials: true,
-          validateStatus: (status) => status < 500, // don't throw for 404
-        });
+        const res = await axios.get(
+          `${process.env.NEXT_PUBLIC_API_BASE}/portfolios`,
+          {
+            withCredentials: true,
+            validateStatus: (status) => status < 500, 
+          },
+        );
 
         if (res.status === 200) {
           setItems(res.data || []);
         } else if (res.status === 404) {
-          console.warn("Portfolio not found (404)");
-          setItems([]); // optional: clear items or show fallback UI
+          console.warn('Portfolio not found (404)');
+          setItems([]);
         } else {
-          console.error("Unexpected response:", res.status, res.data);
+          console.error('Unexpected response:', res.status, res.data);
         }
       } catch (error) {
-        console.error("Error fetching portfolio items:", error);
+        console.error('Error fetching portfolio items:', error);
       }
     };
 
@@ -55,84 +56,89 @@ export default function PortfolioPage() {
 
   const handleDelete = async (id: number | string) => {
     setItems(items.filter((item) => item._id !== id));
-    await axios.delete(`http://localhost:5500/api/v1/portfolios/${id}`, {
+    await axios.delete(`${process.env.NEXT_PUBLIC_API_BASE}/portfolios/${id}`, {
       withCredentials: true,
     });
-    alert("Portfolio item deleted");
+    alert('Portfolio item deleted');
   };
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
     setNewItem({ ...newItem, [name]: value });
-    setErrors({ ...errors, [name]: "" }); // clear field error
+    setErrors({ ...errors, [name]: '' });
   };
 
   const limitString = (str: string, limit: number = 100): string => {
-    return str.length > limit ? str.slice(0, limit) + "..." : str;
+    return str.length > limit ? str.slice(0, limit) + '...' : str;
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.type !== "application/pdf") {
-      setErrors({ ...errors, pdfFile: "Only PDF files are allowed." });
+    if (file.type !== 'application/pdf') {
+      setErrors({ ...errors, pdfFile: 'Only PDF files are allowed.' });
       return;
     }
     setPdfFile(file);
-    setErrors({ ...errors, pdfFile: "" });
+    setErrors({ ...errors, pdfFile: '' });
   };
 
   const validateForm = () => {
     const newErrors = {
-      title: !newItem.title.trim() ? "Title is required" : "",
-      synopsis: !newItem.synopsis.trim() ? "Synopsis is required" : "",
-      article: !newItem.article.trim() ? "Article is required" : "",
+      title: !newItem.title.trim() ? 'Title is required' : '',
+      synopsis: !newItem.synopsis.trim() ? 'Synopsis is required' : '',
       publishMedium: !newItem.publishMedium.trim()
-        ? "Publish Medium is required"
-        : "",
-      pdfFile: !pdfFile ? "Please upload a PDF file" : "",
+        ? 'Publish Medium is required'
+        : '',
+      pdfFile: !pdfFile ? 'Please upload a PDF file' : '',
     };
     setErrors(newErrors);
-    return !Object.values(newErrors).some((error) => error !== "");
+    return !Object.values(newErrors).some((error) => error !== '');
   };
 
   const handleConfirm = async () => {
     if (!validateForm()) return;
 
-    const item: PortfolioItem = {
-      _id: Date.now(),
-      title: newItem.title,
-      article: newItem.article,
-    };
-
     try {
-      await axios.post(
-        "http://localhost:5500/api/v1/portfolios",
-        { ...newItem, pdf: pdfFile },
-        { withCredentials: true }
+      const formData = new FormData();
+      formData.append('title', newItem.title);
+      formData.append('synopsis', newItem.synopsis);
+      formData.append('publishMedium', newItem.publishMedium);
+
+      if (pdfFile) {
+        formData.append('pdf', pdfFile);
+      }
+
+      const res = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_BASE}/portfolios`,
+        formData,
+        {
+          withCredentials: true,
+          headers: { 'Content-Type': 'multipart/form-data' },
+        },
       );
-      setItems([item, ...items]);
+
+      setItems((prev) => [res.data.article, ...prev]);
       setShowModal(false);
+      alert('Portfolio uploaded successfully');
     } catch (error) {
-      console.error("Error submitting portfolio item:", error);
+      console.error('Error submitting portfolio items:', error);
+      alert('Failed to upload portfolio.');
     }
 
-    // Reset form
     setNewItem({
-      title: "",
-      synopsis: "",
-      article: "",
-      publishMedium: "",
+      title: '',
+      synopsis: '',
+      publishMedium: '',
     });
     setPdfFile(null);
     setErrors({
-      title: "",
-      synopsis: "",
-      article: "",
-      publishMedium: "",
-      pdfFile: "",
+      title: '',
+      synopsis: '',
+      publishMedium: '',
+      pdfFile: '',
     });
   };
 
@@ -173,7 +179,7 @@ export default function PortfolioPage() {
                 name="title"
                 type="text"
                 className={`w-full border rounded px-3 py-2 ${
-                  errors.title ? "border-red-500" : ""
+                  errors.title ? 'border-red-500' : ''
                 }`}
                 value={newItem.title}
                 onChange={handleInputChange}
@@ -190,30 +196,13 @@ export default function PortfolioPage() {
                 name="synopsis"
                 type="text"
                 className={`w-full border rounded px-3 py-2 ${
-                  errors.synopsis ? "border-red-500" : ""
+                  errors.synopsis ? 'border-red-500' : ''
                 }`}
                 value={newItem.synopsis}
                 onChange={handleInputChange}
               />
               {errors.synopsis && (
                 <p className="text-red-500 text-sm mt-1">{errors.synopsis}</p>
-              )}
-            </div>
-
-            {/* Article */}
-            <div className="mb-3">
-              <label className="block text-sm font-medium mb-1">Article</label>
-              <textarea
-                name="article"
-                rows={4}
-                className={`w-full border rounded px-3 py-2 ${
-                  errors.article ? "border-red-500" : ""
-                }`}
-                value={newItem.article}
-                onChange={handleInputChange}
-              />
-              {errors.article && (
-                <p className="text-red-500 text-sm mt-1">{errors.article}</p>
               )}
             </div>
 
@@ -226,7 +215,7 @@ export default function PortfolioPage() {
                 name="publishMedium"
                 type="text"
                 className={`w-full border rounded px-3 py-2 ${
-                  errors.publishMedium ? "border-red-500" : ""
+                  errors.publishMedium ? 'border-red-500' : ''
                 }`}
                 value={newItem.publishMedium}
                 onChange={handleInputChange}
@@ -285,7 +274,7 @@ export default function PortfolioPage() {
             <div className="flex-1">
               <h2 className="font-semibold text-base mb-1">{item.title}</h2>
               <p className="text-sm text-gray-700 whitespace-pre-wrap">
-                {limitString(item.article, 100)}
+                {limitString(item.synopsis, 100)}
               </p>
             </div>
             <button

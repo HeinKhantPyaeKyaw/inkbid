@@ -1,9 +1,7 @@
 'use client';
-
-import { useAuth } from '@/context/auth/AuthContext';
 import { createReviewAPI, getSellerReviews } from '@/hooks/review.api';
 import { WritingReviewSectionProps } from '@/interfaces/seller-profile-interface/seller-profile-types';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FaPenToSquare } from 'react-icons/fa6';
 import ReviewCard from './ReviewCard';
 import ReviewOverlayCard from './ReviewOverlayCard';
@@ -16,13 +14,21 @@ const WritingReviewSection = ({
   setAvgRating,
   setTotalReviews,
 }: WritingReviewSectionProps) => {
-  // const { user } = useAuth();
   const [open, setOpen] = useState(false);
 
   const handleOpen = () => {
     setOpen(!open);
-    console.log(open);
   };
+
+  useEffect(() => {
+    if (open) {
+      document.body.classList.add('overflow-hidden');
+    } else {
+      document.body.classList.remove('overflow-hidden');
+    }
+
+    return () => document.body.classList.remove('overflow-hidden');
+  }, [open]);
 
   const handleSubmit = async (newReview: {
     rating: number;
@@ -39,42 +45,35 @@ const WritingReviewSection = ({
       setReviews(data.reviews);
       setAvgRating(data.avgRating);
       setTotalReviews(data.totalReviews);
-
-      // setReviews((prev) => [savedReview, ...prev]);
+      setOpen(false);
     } catch (error) {
       console.error('Error writing review: ', error);
     }
   };
 
   return (
-    <div className="w-full py-5 px-5">
-      <div className="flex justify-between items-center">
-        {/* FIXME: Think to add Click to rate with stars here or not */}
-        <div className="">
-          <h2>Click to Rate: </h2>
-        </div>
+    <div className="w-full">
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="font-Montserrat text-white text-xl md:text-2xl">
+          Recent Reviews
+        </h2>
         {userRole === 'buyer' && (
           <div>
             <button
-              className="bg-secondary rounded-[6px] p-1 w-[240px]"
+              className="bg-secondary rounded-md p-[2px] w-[240px]"
               onClick={handleOpen}
             >
-              <div className="flex justify-center items-center gap-1 text-primary font-Montserrat font-bold border-2 border-primary rounded-[4px] py-0.5">
+              <div className="flex justify-center items-center gap-2 text-primary font-Montserrat font-bold border-2 border-primary rounded-[6px] py-2 hover:bg-primary/10 transition">
                 <FaPenToSquare className="inline-flex" />
-                Write a Reivew
+                Write a Review
               </div>
             </button>
           </div>
         )}
-        {open ? (
-          <ReviewOverlayCard
-            onCancel={() => setOpen(false)}
-            onSubmit={handleSubmit}
-          />
-        ) : null}
       </div>
+
       <div className="mt-5">
-        {reviews.map((review, index) => (
+        {reviews.map((review) => (
           <ReviewCard
             key={review._id}
             buyer={review.buyer}
@@ -83,6 +82,13 @@ const WritingReviewSection = ({
           />
         ))}
       </div>
+
+      {open ? (
+        <ReviewOverlayCard
+          onCancel={() => setOpen(false)}
+          onSubmit={handleSubmit}
+        />
+      ) : null}
     </div>
   );
 };

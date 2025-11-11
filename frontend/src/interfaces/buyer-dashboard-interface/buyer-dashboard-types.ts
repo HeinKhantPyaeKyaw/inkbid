@@ -11,7 +11,7 @@ export interface ArticleTableItems {
   title: string;
   yourBid: number;
   currentBid: number;
-  timeRemaining: string; // ? DateTime
+  timeRemaining: string; 
   bidStatus: ArticleTableStatus | string;
   author: {
     name: string;
@@ -23,9 +23,11 @@ export interface ArticleTableItems {
 export interface InventoryTableItems {
   id: string;
   title: string;
-  purchasedDate: string; // ? DateTime
-  contractPeriod: string; // ? DateTime
+  purchasedDate: string; 
+  contractPeriod: string; 
   contractStatus: InventoryTableStatus | string;
+  contractUrl?: string;
+  articleUrl?: string;
 }
 
 export interface BuyerDashboardPaginationProps {

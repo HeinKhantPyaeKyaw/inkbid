@@ -8,16 +8,10 @@ import { GrArticle } from 'react-icons/gr';
 import { TbContract } from 'react-icons/tb';
 import Pagination from './Pagination';
 
-const TableHead = [
-  'Title',
-  'Purchased Date',
-  'Contract Period',
-  'Status',
-  'Action',
-];
+const TableHead = ['Title', 'Purchased Date', 'Status', 'Action'];
 
 interface InventoryTableProps {
-  data: InventoryTableItems[]; // * Array of Items to map for Inventory Table Data
+  data: InventoryTableItems[];
 }
 
 const InventoryTable = ({ data }: InventoryTableProps) => {
@@ -61,7 +55,6 @@ const InventoryTable = ({ data }: InventoryTableProps) => {
     }
   };
 
-  // Rendering Action Buttons
   const renderActionButtons = (item: InventoryTableItems) => {
     const isLoading = loadingAction === item.id;
     if (item.contractStatus === InventoryTableStatus.ACTIVE) {
@@ -72,9 +65,7 @@ const InventoryTable = ({ data }: InventoryTableProps) => {
               setLoadingAction(item.id);
               setError(null);
               try {
-                // const file = await downloadContractAPI(item.id);
-                // console.log('Download Contract blob: ', file);
-                await downloadContractAPI(item.id);
+                await downloadContractAPI(item.contractUrl);
               } catch (err) {
                 console.error('Failed to download contract', err);
                 setError('Failed to download contract. Please try again');
@@ -96,9 +87,7 @@ const InventoryTable = ({ data }: InventoryTableProps) => {
               setLoadingAction(item.id);
               setError(null);
               try {
-                // const file = await downloadArticleAPI(item.id);
-                // console.log('Download article blob: ', file);
-                await downloadArticleAPI(item.id);
+                await downloadArticleAPI(item.articleUrl);
               } catch (err) {
                 console.error('Failed to download ', err);
                 setError('Failed to download article. Please try again.');
@@ -147,46 +136,45 @@ const InventoryTable = ({ data }: InventoryTableProps) => {
         {/* Show Error if exists */}
         {error && <p className="text-red-500 mt-2">{error}</p>}
       </div>
-      <table className="table-auto w-full focus-within:shadow-md transition-shadow">
-        <thead>
-          <tr className="bg-tertiary">
-            {TableHead.map((head) => (
-              <th
-                key={head}
-                className="font-Forum text-start text-4xl px-8 py-1.5 border-y-1 border-[#5c5c5c]"
-              >
-                {head}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rowsToShow.map((item) => {
-            return (
-              <tr
-                key={item.id}
-                className="border-b-1 border-[#5c5c5c] font-Montserrat "
-              >
-                <td className="px-8 py-1.5">{item.title}</td>
-                <td className="px-8 py-1.5 min-w-[220px] text-xl font-bold ">
-                  {item.purchasedDate}
-                </td>
-                <td className="px-8 py-1.5 min-w-[220px] text-xl font-bold">
-                  {item.contractPeriod}
-                </td>
-                <td className="text-center">
-                  <p className={getStatusDecoration(item.contractStatus)}>
-                    {item.contractStatus}
-                  </p>
-                </td>
-                <td className="m-auto text-5xl text-[#5c5c5c]">
-                  {renderActionButtons(item)}
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+      <div className="overflow-x-auto">
+        <table className="table-auto w-full focus-within:shadow-md transition-shadow min-w-[720px]">
+          <thead>
+            <tr className="bg-tertiary">
+              {TableHead.map((head) => (
+                <th
+                  key={head}
+                  className="font-Forum text-start text-4xl px-8 py-1.5 border-y-1 border-[#5c5c5c]"
+                >
+                  {head}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {rowsToShow.map((item) => {
+              return (
+                <tr
+                  key={item.id}
+                  className="border-b-1 border-[#5c5c5c] font-Montserrat "
+                >
+                  <td className="px-8 py-1.5">{item.title}</td>
+                  <td className="px-8 py-1.5 min-w-[220px] text-xl font-bold ">
+                    {item.purchasedDate}
+                  </td>
+                  <td className="text-center">
+                    <p className={getStatusDecoration(item.contractStatus)}>
+                      {item.contractStatus}
+                    </p>
+                  </td>
+                  <td className="m-auto text-5xl text-[#5c5c5c]">
+                    {renderActionButtons(item)}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
       <div className="w-full flex justify-between items-center my-4 px-5">
         <div className="font-Montserrat text-lg">
           <p>

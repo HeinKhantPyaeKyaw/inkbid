@@ -7,12 +7,14 @@ import {
   InventoryTableStatus,
 } from '@/interfaces/buyer-dashboard-interface/status-types';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
+import { toast } from 'react-hot-toast';
 import { IoWarning } from 'react-icons/io5';
 import { LuFileText, LuInbox } from 'react-icons/lu';
 import { MdOutlineInventory2 } from 'react-icons/md';
 import { PiGavel } from 'react-icons/pi';
 import { SlOptions } from 'react-icons/sl';
+import { io } from 'socket.io-client';
 import { NavbarPrimary } from '../components/navbar/navbar_primary';
 import ArticleTable from './components/ArticlesTable';
 import InfoCard from './components/InfoCard';
@@ -36,9 +38,72 @@ const BuyerDashboard = () => {
   const { user } = useAuth();
   const isLoading = articlesLoading || inventoryLoading;
 
-  /* ------------------------------------------------
-            Memoized dashboard summary counts
-      ---------------------------------------------- */
+  useEffect(() => {
+    if (!user) return;
+
+    const socket = io(process.env.NEXT_PUBLIC_SOCKET_BASE!, {
+      withCredentials: true,
+    });
+
+    socket.on('connect', () => {});
+
+    socket.on('disconnect', () => {
+      console.warn('Disconnected from socket server');
+    });
+
+    socket.on('bidUpdate', (update) => {
+      setArticles((prev) =>
+        prev.map((article) =>
+          article.id === update.articleId
+            ? { ...article, currentBid: update.amount }
+            : article,
+        ),
+      );
+
+      toast.success(
+        `New bid on "${update.title ?? 'an article'}": ฿${update.amount}`,
+        { duration: 3000 },
+      );
+    });
+
+    socket.on('contractStatusUpdate', (data) => {
+      setArticles((prev) =>
+        prev.map((article) => {
+          if (article.id !== data.articleId) return article;
+
+          let newStatus = article.bidStatus;
+
+          if (data.buyerSigned && !data.sellerSigned) {
+            newStatus = ArticleTableStatus.WAITING;
+          }
+
+          if (data.buyerSigned && data.sellerSigned) {
+            newStatus = ArticleTableStatus.PENDING;
+          }
+
+          return { ...article, bidStatus: newStatus };
+        }),
+      );
+
+      if (data.buyerSigned && !data.sellerSigned) {
+        toast(`You signed the contract. Waiting for seller's signature`, {
+          duration: 4000,
+        });
+      } else if (data.buyerSigned && data.sellerSigned) {
+        toast.success(`Both parties signed! Ready for payment`, {
+          duration: 4000,
+        });
+      }
+    });
+
+    return () => {
+      socket.off('bidUpdate');
+      socket.off('contractStatusUpdate');
+      socket.disconnect();
+    };
+  }, [user, setArticles]);
+
+  /* --------- Memoized dashboard summary counts ---------- */
   const articlesInBid = useMemo(() => {
     return articles.filter(
       (article) => article.bidStatus === ArticleTableStatus.INPROGRESS,
@@ -63,9 +128,7 @@ const BuyerDashboard = () => {
     ).length;
   }, [inventory]);
 
-  /* ------------------------------------------------
-            Loading & Error Handling
-      ---------------------------------------------- */
+  /* ---------- Loading & Error Handling ----------- */
 
   if (articlesLoading || inventoryLoading) {
     return (
@@ -90,10 +153,6 @@ const BuyerDashboard = () => {
   ) => {
     return `${count} ${count === 1 ? singular : plural}`;
   };
-
-  /* ------------------------------------------------
-            Render Buyer Dashboard
-      ---------------------------------------------- */
 
   return (
     <div className="h-full bg-secondary">

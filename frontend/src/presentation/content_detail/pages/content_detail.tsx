@@ -13,18 +13,15 @@ import { SuccessToast } from '../components/SuccessToast';
 import { useAuth } from '@/context/auth/AuthContext';
 
 export const ContentDetail = () => {
-  // STATE
   const [articleDetail, setArticleDetail] = useState<IContent | null>(null);
   const [bidAmount, setBidAmount] = useState('');
   const params = useParams();
   const id = params?.id as string;
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [bought, setBought] = useState(false);
+  const socket = useMemo(() => io(process.env.NEXT_PUBLIC_SOCKET_BASE), []);
 
-  // SOCKET
-  const socket = useMemo(() => io('http://localhost:5500'), []);
-
-  // FETCH ARTICLE
   useEffect(() => {
     if (!id) return;
     async function fetchArticle() {
@@ -38,7 +35,6 @@ export const ContentDetail = () => {
     fetchArticle();
   }, [id]);
 
-  // SUBSCRIBE TO REALTIME BID UPDATES
   useEffect(() => {
     socket.on('bidUpdate', (update) => {
       if (update.articleId === id) {
@@ -72,7 +68,6 @@ export const ContentDetail = () => {
     };
   }, [id, socket]);
 
-  // COUNTDOWN
   const countdown = useCountdown(articleDetail?.ends_in || '');
   const parseCountdown = (countdownStr: string) => {
     if (countdownStr === "Expired")
@@ -87,10 +82,9 @@ export const ContentDetail = () => {
   };
   const { days, hours, mins, secs } = parseCountdown(countdown);
 
-  // PLACE BID
   const handlePlaceBid = async () => {
     try {
-      const res = await fetch('http://localhost:5500/api/v1/bids', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/bids`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -128,17 +122,16 @@ export const ContentDetail = () => {
     }
   };
 
-  // QUICK BID
   const handleQuickBid = (multiplier: number) => {
     const newBid = Math.ceil((articleDetail?.highest_bid || 0) * multiplier);
     setBidAmount(newBid.toString());
   };
 
-  // BUY NOW
   const handleBuyNow = async () => {
     try {
       const { data } = await buyNowArticle(id);
       if (data.success) {
+        setBought(true);
         setArticleDetail(data.article);
         setSuccessMessage('🎉 Congratulations! You are the Winner');
       } else {
@@ -152,28 +145,30 @@ export const ContentDetail = () => {
 
   const {user} = useAuth();
 
-  //-------
-  // RENDER
-  //-------
+  const isBiddingDisabled =
+    bought ||
+    articleDetail?.status !== "in_progress" ||
+    countdown === "Expired";
+
+  const isBuyNowDisabled =
+    (articleDetail?.highest_bid || 0) >= (articleDetail?.buy_now || 0) ||
+    countdown === "Expired";
 
   return (
     <div className="min-h-screen bg-secondary">
       <NavbarPrimary user={user?.role} userId={user?.id} />
 
       <div className="container mx-auto px-6 py-8 max-w-7xl">
-        {/* IMAGE */}
         <div className="bg-white rounded-lg p-4 shadow-lg mb-6">
           <img
-            src={articleDetail?.img_url || '/imgs/placeholder.png'}
+            src={articleDetail?.img_url || "/imgs/placeholder.png"}
             alt="Content Image"
             className="w-full h-100 object-cover rounded-lg"
           />
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">
-          {/* LEFT SIDE */}
           <div className="lg:w-1/2">
-            {/* Title + Author */}
             <div className="bg-white rounded-lg p-6 shadow-lg mb-6">
               <h1 className="text-2xl lg:text-3xl font-Forum text-primary mb-6 leading-tight">
                 {articleDetail?.title}
@@ -191,9 +186,9 @@ export const ContentDetail = () => {
                     <img
                       src={
                         articleDetail?.author?.img_url ||
-                        '/imgs/default-avatar.png'
+                        "/imgs/default-avatar.png"
                       }
-                      alt={articleDetail?.author?.name || 'Unknown'}
+                      alt={articleDetail?.author?.name || "Unknown"}
                       className="w-full h-full object-cover"
                     />
                   </Link>
@@ -202,7 +197,7 @@ export const ContentDetail = () => {
                       href={`/profile/seller/${articleDetail?.author?._id}`}
                       className="font-Montserrat font-semibold text-primary text-lg cursor-pointer"
                     >
-                      {articleDetail?.author?.name || 'Unknown Author'}
+                      {articleDetail?.author?.name || "Unknown Author"}
                     </Link>
                     <Rating
                       name="author-rating"
@@ -216,17 +211,16 @@ export const ContentDetail = () => {
                 <div className="text-left sm:text-right">
                   <p className="text-lg font-Montserrat text-gray-700">
                     {articleDetail?.date &&
-                      new Date(articleDetail.date).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
+                      new Date(articleDetail.date).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
                       })}
                   </p>
                 </div>
               </div>
             </div>
 
-            {/* Synopsis */}
             <div className="bg-white rounded-lg p-6 shadow-lg">
               <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-4">
                 <h2 className="text-2xl font-Forum text-primary">Synopsis</h2>
@@ -255,10 +249,8 @@ export const ContentDetail = () => {
             </div>
           </div>
 
-          {/* RIGHT SIDE */}
           <div className="lg:w-1/2">
             <div className="bg-white rounded-lg p-6 shadow-lg">
-              {/* Highest Bid */}
               <div className="mb-6">
                 <h3 className="text-xl font-Forum text-primary mb-4">
                   Highest Bid
@@ -269,9 +261,9 @@ export const ContentDetail = () => {
                       <img
                         src={
                           articleDetail.bids[0].ref_user?.img_url ||
-                          '/imgs/default-avatar.png'
+                          "/imgs/default-avatar.png"
                         }
-                        alt={articleDetail.bids[0].ref_user?.name || 'Bidder'}
+                        alt={articleDetail.bids[0].ref_user?.name || "Bidder"}
                         className="w-full h-full object-cover"
                       />
                     </div>
@@ -288,7 +280,6 @@ export const ContentDetail = () => {
                   <p>No bids yet</p>
                 )}
 
-                {/* Bid History */}
                 <div className="border-t pt-4">
                   <h4 className="text-sm font-Montserrat font-semibold text-gray-600 mb-3">
                     Bid History
@@ -303,9 +294,9 @@ export const ContentDetail = () => {
                           <img
                             src={
                               bid.ref_user?.img_url ||
-                              '/imgs/default-avatar.png'
+                              "/imgs/default-avatar.png"
                             }
-                            alt={bid.ref_user?.name || 'Bidder'}
+                            alt={bid.ref_user?.name || "Bidder"}
                             className="w-8 h-8 rounded-full object-cover"
                           />
                           {bid.ref_user?.name}
@@ -319,7 +310,6 @@ export const ContentDetail = () => {
                 </div>
               </div>
 
-              {/* Countdown */}
               <div className="mb-6">
                 <h3 className="text-xl font-Forum text-primary mb-4">
                   Ends In
@@ -363,60 +353,79 @@ export const ContentDetail = () => {
                 </div>
               </div>
 
-              {user?.role === 'buyer' && (
-              // Bidding
-              <div className="space-y-4">
-                {/* Quick Bid */}
-                <div className="flex gap-2 justify-center">
-                  {[5.0, 2.0, 1.5].map((m) => (
-                    <button
-                      key={m}
-                      onClick={() => handleQuickBid(m)}
-                      className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-Montserrat hover:bg-opacity-90 transition-colors"
-                    >
-                      {m}x
-                    </button>
-                  ))}
-                </div>
+              {user?.role === "buyer" && (
+                <div className="space-y-4">
+                  <div className="flex gap-2 justify-center">
+                    {[5.0, 2.0, 1.5].map((m) => (
+                      <button
+                        key={m}
+                        onClick={() => handleQuickBid(m)}
+                        disabled={
+                          bought ||
+                          articleDetail?.status !== "in_progress" ||
+                          countdown === "Expired"
+                        }
+                        className={`px-4 py-2 bg-primary ${
+                          isBiddingDisabled
+                            ? " opacity-50 cursor-not-allowed"
+                            : ""
+                        } text-white rounded-lg text-sm font-Montserrat hover:bg-opacity-90 transition-colors`}
+                      >
+                        {m}x
+                      </button>
+                    ))}
+                  </div>
 
-                {/* Custom Bid */}
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <input
-                    type="number"
-                    value={bidAmount}
-                    onChange={(e) => setBidAmount(e.target.value)}
-                    placeholder="Enter Amount"
-                    min={(articleDetail?.highest_bid || 0) + 1}
-                    className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-lg font-Montserrat focus:outline-none focus:border-primary transition-colors"
-                  />
-                  <button
-                    onClick={handlePlaceBid}
-                    className="px-6 py-3 bg-primary text-white rounded-lg font-Montserrat font-semibold hover:bg-opacity-90 transition-colors"
-                  >
-                    Place a bid
-                  </button>
-                </div>
-
-                {/* Buy Now */}
-                <div className="border-t-2 pt-6">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div>
-                      <p className="text-lg font-Forum text-primary">
-                        Buy Price
-                      </p>
-                      <p className="text-4xl font-Forum font-bold text-primary">
-                        ฿{articleDetail?.buy_now}
-                      </p>
-                    </div>
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <input
+                      type="number"
+                      value={bidAmount}
+                      onChange={(e) => setBidAmount(e.target.value)}
+                      placeholder="Enter Amount"
+                      min={(articleDetail?.highest_bid || 0) + 1}
+                      className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-lg font-Montserrat focus:outline-none focus:border-primary transition-colors "
+                    />
                     <button
-                      onClick={handleBuyNow}
-                      className="px-8 py-3 bg-primary text-white rounded-lg font-Montserrat font-semibold hover:bg-opacity-90 transition-colors text-lg"
+                      onClick={handlePlaceBid}
+                      disabled={
+                        bought ||
+                        articleDetail?.status !== "in_progress" ||
+                        countdown === "Expired"
+                      }
+                      className={`px-6 py-3 bg-primary ${
+                        isBiddingDisabled
+                          ? " opacity-50 cursor-not-allowed"
+                          : ""
+                      } text-white rounded-lg font-Montserrat font-semibold hover:bg-opacity-90 transition-colors`}
                     >
-                      Buy Now
+                      Place a bid
                     </button>
                   </div>
+
+                  <div className="border-t-2 pt-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                      <div>
+                        <p className="text-lg font-Forum text-primary">
+                          Buy Price
+                        </p>
+                        <p className="text-4xl font-Forum font-bold text-primary">
+                          ฿{articleDetail?.buy_now}
+                        </p>
+                      </div>
+                      <button
+                        onClick={handleBuyNow}
+                        disabled={
+                          (articleDetail?.highest_bid || 0) >=
+                            (articleDetail?.buy_now || 0) ||
+                          countdown === "Expired"
+                        }
+                        className={`px-8 py-3 bg-primary ${isBuyNowDisabled ? " opacity-50 cursor-not-allowed" : ""} text-white rounded-lg font-Montserrat font-semibold hover:bg-opacity-90 transition-colors text-lg`}
+                      >
+                        Buy Now
+                      </button>
+                    </div>
+                  </div>
                 </div>
-              </div>
               )}
             </div>
           </div>

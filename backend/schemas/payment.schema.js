@@ -19,9 +19,9 @@ const paymentSchema = new mongoose.Schema(
     },
 
     currency: { type: String, default: "thb" },
-    amount_total_thb: { type: Number, required: true }, // e.g., 1500
-    platform_fee_thb: { type: Number, required: true }, // 225
-    seller_receivable_thb: { type: Number, required: true }, // 1275
+    amount_total_thb: { type: Number, required: true }, 
+    platform_fee_thb: { type: Number, required: true }, 
+    seller_receivable_thb: { type: Number, required: true },
 
     stripe_session_id: String,
     stripe_payment_intent_id: String,

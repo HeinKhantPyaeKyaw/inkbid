@@ -35,24 +35,23 @@ export const getAllPortfolio = async (req, res) => {
 
 export const createPortfolio = async (req, res) => {
   try {
-    // Extract dtat from request body.
-    const { title, synopsis, article, publishMedium, pdf } = req.body;
+    const { title, synopsis, publishMedium } = req.body;
 
-    // Validate the required fields
-    if (!title || !synopsis || !article || !publishMedium || !pdf) {
+    if (!title || !synopsis || !publishMedium) {
       return res.status(400).json({ error: 'Missing required field.' });
     }
 
-    // G real author ID from auth middleware
-    const authorID = req.user.id;
+    if (!req.file) {
+      return res.status(400).json({ error: 'PDF file is required' });
+    }
 
-    const pdfUrl = await uploadFileToFirebase(pdf, 'portfolio/pdfs');
+    const authorID = req.user._id;
 
-    // Create a new article object
+    const pdfUrl = await uploadFileToFirebase(req.file, 'portfolio/pdfs');
+
     const newPortfolio = new Portfolio({
       title,
       synopsis,
-      article,
       writer: authorID,
       publishMedium,
       pdfUrl,
@@ -60,7 +59,6 @@ export const createPortfolio = async (req, res) => {
 
     console.log(newPortfolio);
 
-    // Save article to MongoDB
     await newPortfolio.save();
 
     res.status(201).json({

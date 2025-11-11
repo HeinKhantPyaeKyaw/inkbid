@@ -28,7 +28,6 @@ export const NavbarPrimary = ({
 }: INavBarPrimaryProps) => {
   const [showDropdown, setShowDropdown] = useState(false);
 
-  // 🔔 new state for notifications
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [hasNew, setHasNew] = useState(false);
@@ -44,9 +43,6 @@ export const NavbarPrimary = ({
     router.push("/");
   };
 
-  // =============================
-  // 🔔 Fetch unread notifications
-  // =============================
   useEffect(() => {
     const fetchUnread = async () => {
       if (!authUserId) return;
@@ -62,18 +58,22 @@ export const NavbarPrimary = ({
     fetchUnread();
   }, [authUserId]);
 
-  // =============================
-  // 🔔 Socket live updates
-  // =============================
   useEffect(() => {
     if (!authUserId) return;
 
-    const socket = io("http://localhost:5500", { withCredentials: true });
-    socket.emit("register", authUserId);
-    console.log("🟢 Navbar socket registered for", authUserId);
+    const socket = io(process.env.NEXT_PUBLIC_SOCKET_BASE!, {
+      transports: ["websocket"],
+      withCredentials: true,
+    });
+
+    socket.on("connect", () => {
+      socket.emit("register", authUserId);
+    });
+
+    socket.on("disconnect", () => {
+    });
 
     socket.on("notification", (data) => {
-      console.log("📬 New notification in navbar:", data);
       setNotifications((prev) => [data, ...prev]);
       setHasNew(true);
     });
@@ -83,9 +83,6 @@ export const NavbarPrimary = ({
     };
   }, [authUserId]);
 
-  // =============================
-  // Close dropdown on outside click
-  // =============================
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -99,9 +96,6 @@ export const NavbarPrimary = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // =============================
-  // Mark as read + remove from list
-  // =============================
   const handleNotificationClick = async (notifId: string, url?: string) => {
     try {
       await markNotificationRead(notifId);
@@ -112,9 +106,6 @@ export const NavbarPrimary = ({
     }
   };
 
-  // =============================
-  // Your existing menu logic (unchanged)
-  // =============================
   const dropdownItemsBuyer = (() => {
     const base = pathname.startsWith("/content")
       ? [
@@ -279,12 +270,11 @@ export const NavbarPrimary = ({
   return (
     <nav className="flex items-center justify-between px-6 bg-primary">
       <div className="w-32" />
-      <div className="text-[64px] tracking-wide font-Forum text-accent">
+      <div className={`text-[64px] tracking-wide font-Forum text-accent ${user === "buyer" ? "cursor-pointer" : ""}`} onClick={() => user==="buyer" && router.push("/content-listing")}>
         INKBID
       </div>
 
       <div className="flex items-center gap-8">
-        {/* 🔔 Notification Bell */}
         {showNotification && (
           <div className="relative" ref={notifRef}>
             <button
@@ -340,7 +330,6 @@ export const NavbarPrimary = ({
           </div>
         )}
 
-        {/* 👤 User menu dropdown (UNCHANGED) */}
         <div className="relative">
           <button onClick={() => setShowDropdown((prev) => !prev)}>
             <FontAwesomeIcon

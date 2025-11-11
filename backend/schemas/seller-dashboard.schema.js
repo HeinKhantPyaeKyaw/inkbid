@@ -15,7 +15,6 @@ const SellerDashboardSchema = new mongoose.Schema(
       cancelled: { type: Number, default: 0 },
       completed: { type: Number, default: 0 },
     },
-    // place for any cached charts / last refresh metadata
     lastComputedAt: { type: Date },
   },
   { timestamps: true, versionKey: false, collection: "seller_dashboard" }

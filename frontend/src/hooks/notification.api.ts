@@ -1,25 +1,21 @@
-// src/hooks/notification.api.ts
 import axios from "axios";
 
-const API_BASE = "http://localhost:5500/api/v1/notifications";
-
-// 🔹 Fetch notifications (optionally unread only)
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE;
 export async function getNotifications(params?: {
   unread?: boolean;
   page?: number;
   limit?: number;
 }) {
-  const { data } = await axios.get(API_BASE, {
+  const { data } = await axios.get(`${BASE_URL}/notifications`, {
     params,
     withCredentials: true,
   });
   return data;
 }
 
-// 🔹 Mark a notification as read
 export async function markNotificationRead(id: string) {
   const { data } = await axios.patch(
-    `${API_BASE}/${id}/read`,
+    `${BASE_URL}/notifications/${id}/read`,
     {},
     { withCredentials: true }
   );

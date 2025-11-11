@@ -14,12 +14,12 @@ export interface IContent {
   _id: string;
   title: string;
   date: string;
-  author: IUser; // 👈 object instead of string
-  synopsis: string; // 👈 backend uses "synopsis"
+  author: IUser; 
+  synopsis: string;
   highest_bid: number;
   min_bid: number;
   buy_now: number;
   ends_in: string;
   img_url?: string;
-  tag: ITag; // 👈 object instead of flat string
+  tag: ITag;
 }

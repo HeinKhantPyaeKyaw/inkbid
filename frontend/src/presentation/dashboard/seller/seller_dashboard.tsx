@@ -18,6 +18,9 @@ import { ArticleTable, type ArticleRow } from './components/article_table';
 import { EngagementSection } from './components/engagement_section';
 import { InventoryRow, InventoryTable } from './components/inventory.table';
 import { StatCard } from './components/stat_card';
+import { io } from "socket.io-client";
+import { toast } from "react-hot-toast";
+
 
 interface SellerSummary {
   in_progress: number;
@@ -26,6 +29,7 @@ interface SellerSummary {
   cancelled: number;
   completed: number;
   expired: number;
+  total_revenue: number;
 }
 
 interface SellerArticleApi {
@@ -45,7 +49,7 @@ interface SellerInventoryApi {
   _id: string;
   title: string;
   purchased_date: number;
-  contract_period: string; // already formatted, e.g. "01 Days 02 Hours 12 Mins"
+  contract_period: string;
   status: string;
 }
 
@@ -58,7 +62,10 @@ export const SellerDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // fetch data once when page loads
+  const socket = io(process.env.NEXT_PUBLIC_SOCKET_BASE!, {
+    withCredentials: true,
+  });
+
   const fetchAll = async () => {
     setLoading(true);
     setError(null);
@@ -83,7 +90,6 @@ export const SellerDashboard = () => {
           winner: item.winner
             ? { _id: item.winner._id, name: item.winner.name }
             : null,
-          // ✅ include these two new fields from backend
           buyerSigned: item.buyerSigned ?? false,
           sellerSigned: item.sellerSigned ?? false,
         }))
@@ -108,10 +114,37 @@ export const SellerDashboard = () => {
     }
   };
 
-  // fetch on mount
   useEffect(() => {
     fetchAll();
   }, []);
+
+  useEffect(() => {
+    socket.on("bidUpdate", (update) => {
+
+      setArticles((prev) =>
+        prev.map((article) =>
+          article.id === update.articleId
+            ? { ...article, current_bid: update.amount }
+            : article
+        )
+      );
+
+      toast(`💰 New bid placed on ${update.title || "an article"}`);
+    });
+
+    socket.on("statusUpdate", (update) => {
+      setArticles((prev) =>
+        prev.map((a) =>
+          a.id === update.articleId ? { ...a, status: update.status } : a
+        )
+      );
+    });
+
+    return () => {
+      socket.off("bidUpdate");
+      socket.off("statusUpdate");
+    };
+  }, [socket]);
 
   return (
     <>
@@ -121,8 +154,12 @@ export const SellerDashboard = () => {
         <p className="font-Montserrat text-[15px]">
           An overview of all biddings, inventory, and analysis.
         </p>
-        {/* <EngagementSection /> */}
         <div className="grid grid-cols-4 gap-4 mt-4">
+          <StatCard
+            title={"Total Revenue Generated"}
+            value={summary?.total_revenue || "-"}
+            icon={faTriangleExclamation}
+          />
           <StatCard
             title={"Total Article Bids In-Progress"}
             value={summary?.in_progress || "-"}
@@ -138,16 +175,11 @@ export const SellerDashboard = () => {
             value={summary?.awaiting_contract || "-"}
             icon={faEllipsis}
           />
-          <StatCard
-            title={"Total Expired Contracts"}
-            value={summary?.expired || "-"}
-            icon={faTriangleExclamation}
-          />
         </div>
         <ArticleTable
           items={articles}
           onActionClick={(row) => console.log("Action for:", row)}
-          onRefresh={fetchAll} // ✅ pass refetch down
+          onRefresh={fetchAll}
         />
         <div className="h-[2px] w-[80%] bg-black my-[16px] self-center" />
         <InventoryTable

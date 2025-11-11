@@ -27,7 +27,6 @@ const NotificationSchema = new mongoose.Schema(
     title: { type: String, required: true },
     message: { type: String, required: true },
 
-    // Context for deep-linking from the dropdown or settings page
     target: {
       kind: {
         type: String,
@@ -35,7 +34,7 @@ const NotificationSchema = new mongoose.Schema(
         required: true,
       },
       id: { type: mongoose.Schema.Types.ObjectId, required: true },
-      url: { type: String }, // e.g. "/articles/abc123" (frontend route)
+      url: { type: String },
     },
 
     read: { type: Boolean, default: false, index: true },
@@ -44,7 +43,6 @@ const NotificationSchema = new mongoose.Schema(
   { timestamps: true, versionKey: false, collection: "notifications" }
 );
 
-// Helpful compound index for lists:
 NotificationSchema.index({ ref_user: 1, createdAt: -1 });
 
 export default mongoose.model("Notification", NotificationSchema);

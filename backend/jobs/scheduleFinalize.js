@@ -1,4 +1,3 @@
-// jobs/scheduleFinalize.js
 import { auctionQueue, finalizeJobId } from "./bullmq.js";
 
 export const scheduleOrRescheduleFinalize = async (article) => {
@@ -9,7 +8,6 @@ export const scheduleOrRescheduleFinalize = async (article) => {
   const target = new Date(article.ends_in).getTime();
   const delayMs = Math.max(0, target - now);
 
-  // Remove any previous job for this article (idempotent)
   const existing = await auctionQueue.getJob(jobId);
   if (existing) {
     try {
@@ -24,7 +22,7 @@ export const scheduleOrRescheduleFinalize = async (article) => {
     { articleId },
     {
       delay: delayMs,
-      jobId, // deterministic to prevent duplicates
+      jobId,
       removeOnComplete: true,
       attempts: 3,
       backoff: { type: "fixed", delay: 5000 },
@@ -32,6 +30,6 @@ export const scheduleOrRescheduleFinalize = async (article) => {
   );
 
   console.log(
-    `⏰ Scheduled finalize for ${articleId} in ${Math.round(delayMs / 1000)}s`
+    `Scheduled finalize for ${articleId} in ${Math.round(delayMs / 1000)}s`
   );
 };

@@ -1,6 +1,9 @@
 'use client';
 import { useAuth } from '@/context/auth/AuthContext';
-import { useBuyerDashboardAPI } from '@/hooks/buyer-dashboard-hooks/buyer-dashboard.api';
+import {
+  createStripeCheckoutSession,
+  useBuyerDashboardAPI,
+} from '@/hooks/buyer-dashboard-hooks/buyer-dashboard.api';
 import {
   ArticleTableItems,
   ContractArticle,
@@ -15,7 +18,6 @@ import { toast } from 'react-hot-toast';
 import { SlOptions } from 'react-icons/sl';
 import ContractModal from './ContractModal';
 import Pagination from './Pagination';
-import { createStripeCheckoutSession } from "@/hooks/buyer-dashboard-hooks/buyer-dashboard.api";
 
 const TableHead = [
   'Title',
@@ -27,7 +29,7 @@ const TableHead = [
 ];
 
 interface ArticleTableProps {
-  data: ArticleTableItems[]; // * Array of Items to map for Articles Table Data
+  data: ArticleTableItems[]; 
   setArticlesTableData: React.Dispatch<
     React.SetStateAction<ArticleTableItems[]>
   >;
@@ -41,27 +43,29 @@ const ArticleTable = ({
   setArticlesTableData,
   setInventoryTableData,
 }: ArticleTableProps) => {
-  const [rowsLimit] = useState(5);
+  const [rowsLimit] = useState(10);
   const [currentPage, setCurrentPage] = useState(0);
 
-  // For ActionButton Dropdown
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // State to track selected article and modal visibility
   const [selectedArticle, setSelectedArticle] =
     useState<ContractArticle | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // To track modal's "Agree" button is loading
   const [signing, setSigning] = useState(false);
 
   const { user } = useAuth();
   const buyerName = user?.name ?? 'Buyer';
 
-  const { buyerSignContractAPI, proceedPaymentAPI } = useBuyerDashboardAPI();
+  const {
+    buyerSignContractAPI,
+    proceedPaymentAPI,
+    createPayPalOrderAPI,
+    capturePayPalOrderAPI,
+  } = useBuyerDashboardAPI();
 
   const rowsToShow = useMemo(() => {
     const startIndex = currentPage * rowsLimit;
@@ -70,7 +74,6 @@ const ArticleTable = ({
 
   const totalPages = Math.ceil(data.length / rowsLimit);
 
-  // To handle closing dropdown wherever click
   const dropdownRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -88,7 +91,6 @@ const ArticleTable = ({
     };
   }, [openDropdown]);
 
-  // Action Button{Sign Contract & Proceed with payment}
   const handleSignContract = async (id: string) => {
     const foundArticle = data.find((item) => item.id === id);
 
@@ -109,36 +111,23 @@ const ArticleTable = ({
     setSelectedArticle(null);
   };
 
-  // Handle "Agree" button click
   const handleAgreeContract = async () => {
     if (!selectedArticle) return;
     setSigning(true);
 
     try {
       const res = await buyerSignContractAPI(selectedArticle._id);
-      console.log('Buyer contract signed: ', res);
 
-      // setArticlesTableData((prev) =>
-      //   prev.map((a) =>
-      //     a.id === selectedArticle._id
-      //       ? { ...a, bidStatus: ArticleTableStatus.PENDING }
-      //       : a,
-      //   ),
-      // );
       setArticlesTableData((prev) =>
         prev.map((a) => {
           if (a.id !== selectedArticle._id) return a;
 
-          // Check actual backend response
           const contract = res.contract;
           if (contract?.buyerSigned && !contract?.sellerSigned) {
-            // Buyer signed first — waiting for seller
             return { ...a, bidStatus: ArticleTableStatus.WAITING };
           } else if (contract?.buyerSigned && contract?.sellerSigned) {
-            // Both signed — payment next
             return { ...a, bidStatus: ArticleTableStatus.PENDING };
           } else {
-            // Default fallback
             return { ...a, bidStatus: a.bidStatus };
           }
         }),
@@ -155,18 +144,26 @@ const ArticleTable = ({
     }
   };
 
-  const handleProceedPayment = async (id: string) => {
-    setLoadingAction(id);
+  const handleProceedPayment = async (articleId: string, amount: number) => {
+    setLoadingAction(articleId);
     setError(null);
     try {
-      const res = await proceedPaymentAPI(id);
+      const orderData = await createPayPalOrderAPI(amount, 'THB');
 
-      const newItem = res.inventory;
-      console.log('New inventory from backend: ', newItem);
+      const approvalLink = orderData.links?.find(
+        (link: any) => link.rel === 'approve',
+      )?.href;
 
-      setArticlesTableData((prev) =>
-        prev.filter((article) => article.id !== id),
-      );
+      if (!approvalLink) throw new Error('No PayPal approval link found');
+
+      localStorage.setItem('currentArticleId', articleId);
+
+      window.location.href = approvalLink;
+
+      const captureRes = await capturePayPalOrderAPI(orderData.id, articleId);
+
+      const newItem = captureRes.inventory;
+      setArticlesTableData((prev) => prev.filter((a) => a.id !== articleId));
       setInventoryTableData((prev) => [
         ...prev,
         {
@@ -174,17 +171,16 @@ const ArticleTable = ({
           title: String(newItem.article.title ?? 'Untitled'),
           purchasedDate: new Date(newItem.purchasedDate).toLocaleDateString(),
           contractPeriod: String(newItem.contractPeriod ?? '30 Days'),
-          contractStatus: String(
-            newItem.contractStatus
-              ? newItem.contractStatus.charAt(0).toUpperCase() +
-                  newItem.contractStatus.slice(1).toLowerCase()
-              : 'Active',
-          ),
+          contractStatus:
+            newItem.contractStatus?.charAt(0).toUpperCase() +
+              newItem.contractStatus.slice(1).toLowerCase() || 'Active',
         },
       ]);
+
+      toast.success('Payment completed successfully!');
     } catch (err) {
-      console.error('Failed to process payment', err);
-      setError('Payment failed. Please try again');
+      console.error('Payment error:', err);
+      setError('Payment failed. Please try again.');
     } finally {
       setLoadingAction(null);
       setOpenDropdown(null);
@@ -196,20 +192,17 @@ const ArticleTable = ({
     setError(null);
     try {
       const { url } = await createStripeCheckoutSession(id);
-      // Redirect to Stripe Checkout
       window.location.href = url;
     } catch (err) {
-      console.error("Stripe Checkout session failed", err);
-      setError("Could not start Stripe Checkout. Please try again.");
-      toast.error("Could not start Stripe Checkout");
+      console.error('Stripe Checkout session failed', err);
+      setError('Could not start Stripe Checkout. Please try again.');
+      toast.error('Could not start Stripe Checkout');
     } finally {
       setLoadingAction(null);
       setOpenDropdown(null);
     }
   };
 
-
-  // Pagination to change page in the tables
   const nextPage = () => {
     setCurrentPage((prev) => Math.min(prev + 1, totalPages - 1));
   };
@@ -241,7 +234,6 @@ const ArticleTable = ({
     }
   }
 
-  // For Action Buttons Rendering
   function renderActionButton(item: ArticleTableItems) {
     const isLoading = loadingAction === item.id;
     switch (item.bidStatus) {
@@ -258,13 +250,12 @@ const ArticleTable = ({
                 setOpenDropdown(openDropdown === item.id ? null : item.id)
               }
               className="cursor-pointer "
-              disabled={isLoading} // ? Might fix later
+              disabled={isLoading} 
             >
               <SlOptions />
             </button>
             {openDropdown === item.id && (
               <div className="absolute top-8 -right-3 w-48 rounded-lg z-50">
-                
                 <button
                   className="whitespace-nowrap px-8 py-2 rounded-[8px] text-lg text-primary font-Montserrat font-bold border-2 border-[#B9B9B9] bg-[#ffffff] hover:bg-gray-100 active:scale-95 cursor-pointer transition"
                   onClick={() => handleSignContract(item.id)}
@@ -301,18 +292,11 @@ const ArticleTable = ({
             {openDropdown === item.id && (
               <div className="absolute top-8 right-16 w-48 rounded-lg z-50">
                 <button
-                  className="whitespace-nowrap w-full px-6 py-2 rounded-[8px] text-lg text-primary font-Montserrat font-bold border-2 border-[#B9B9B9] bg-white hover:bg-gray-100 active:scale-95 transition"
-                  onClick={() => handleStripeCheckout(item.id)}
-                  aria-label={`Pay with Stripe for article ${item.title}`}
-                >
-                  Pay with Stripe
-                </button>
-                <button
                   className="whitespace-nowrap px-8 py-2 rounded-[8px] text-lg text-primary font-Montserrat font-bold border-2 border-[#B9B9B9] bg-[#ffffff] hover:bg-gray-100 active:scale-95 cursor-pointer transition"
-                  onClick={() => handleProceedPayment(item.id)}
+                  onClick={() => handleProceedPayment(item.id, item.currentBid)}
                   aria-label={`Proceed with payment for article ${item.title}`}
                 >
-                  Proceed with Payment
+                  Pay with Paypal
                 </button>
               </div>
             )}
@@ -332,7 +316,6 @@ const ArticleTable = ({
         <p className="font-Montserrat text-lg text-primary-font">
           Keep track of recent biddings and other information.
         </p>
-        {/* Show error messgage if exists */}
         {error && <p className="text-red-500 mt-2">{error}</p>}
       </div>
       <table className="table-auto w-full focus-within:shadow-md transition-shadow">
@@ -414,30 +397,3 @@ const ArticleTable = ({
 };
 
 export default ArticleTable;
-
-// const handleAgreeContract = async () => {
-//   if (!selectedArticle) return;
-//   setSigning(true);
-
-//   try {
-//     const res = await signContractAPI(selectedArticle._id);
-//     console.log('Contract signed response: ', res);
-
-//     setArticlesTableData((prev) =>
-//       prev.map((a) =>
-//         a.id === selectedArticle._id
-//           ? { ...a, bidStatus: ArticleTableStatus.PENDING }
-//           : a,
-//       ),
-//     );
-
-//     toast.success('Contract Signed successfully');
-//     setIsModalOpen(false);
-//     setSelectedArticle(null);
-//   } catch (err) {
-//     console.error('Error signing contract: ', err);
-//     toast.error('Failed to sign contract. Please try again.');
-//   } finally {
-//     setSigning(false);
-//   }
-// };

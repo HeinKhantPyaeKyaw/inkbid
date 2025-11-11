@@ -1,4 +1,3 @@
-// jobs/bullmq.js
 import { Queue } from "bullmq";
 
 export const AUCTION_QUEUE = "auction.finalize";
@@ -15,5 +14,4 @@ export const auctionQueue = new Queue(AUCTION_QUEUE, {
   connection: connectionOptions,
 });
 
-// ✅ Use only safe characters (no colon):
 export const finalizeJobId = (articleId) => `finalize_${articleId}`;

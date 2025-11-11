@@ -7,8 +7,6 @@ import { verifyAuth } from '../middlewares/auth.middleware.js';
 
 const router = express.Router();
 
-// Either buyer or seller can hit this route
-// router.patch("/:articleId/sign", verifyAuth, sellerSignContract);
 router.patch('/:articleId/sign', verifyAuth, (req, res, next) => {
   try {
     if (req.user?.role === 'seller') {

@@ -4,21 +4,20 @@ const contractSchema = new mongoose.Schema(
   {
     buyer: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
       required: true,
     },
     author: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
       required: true,
     },
     article: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Article",
+      ref: 'Article',
       required: true,
     },
-
-    // ----Contract Details-----
+    
     articleTitle: {
       type: String,
       required: true,
@@ -40,7 +39,7 @@ const contractSchema = new mongoose.Schema(
     },
     contractPeriod: {
       type: String,
-      default: "30 Days",
+      default: '30 Days',
     },
     agreementDate: {
       type: Date,
@@ -50,21 +49,19 @@ const contractSchema = new mongoose.Schema(
       type: Date,
     },
 
-    // Signature tracking
     buyerSigned: { type: Boolean, default: false },
     sellerSigned: { type: Boolean, default: false },
 
-    // ----- Status & PDF -----
     status: {
       type: String,
       enum: [
-        "incomplete",
-        "complete",
-        "awaiting_payment",
-        "finalized",
-        "cancelled",
+        'incomplete',
+        'complete',
+        'awaiting_payment',
+        'finalized',
+        'cancelled',
       ],
-      default: "incomplete",
+      default: 'incomplete',
     },
     contractUrl: {
       type: String,
@@ -73,10 +70,10 @@ const contractSchema = new mongoose.Schema(
     terms: {
       type: String,
       trim: true,
-      default: "",
+      default: '',
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 const Contract = mongoose.model('Contract', contractSchema, 'Contracts');

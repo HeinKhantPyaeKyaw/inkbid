@@ -1,7 +1,7 @@
-// controller/sellerDashboard.controller.js
 import mongoose from "mongoose";
 import Article from "../schemas/article.schema.js";
 import Bid from "../schemas/bids.schema.js";
+import Contract from "../schemas/contract.schema.js";
 
 const ACTIVE_STATUSES = [
   "in_progress",
@@ -11,7 +11,6 @@ const ACTIVE_STATUSES = [
 ];
 const INVENTORY_STATUSES = ["completed"];
 
-// Decimal128 → Number (or 0)
 const toNum = (v) => {
   if (v == null) return 0;
   if (typeof v === "number") return v;
@@ -26,7 +25,6 @@ const noStore = (res) => {
   res.set("Expires", "0");
 };
 
-// GET /seller-dashboard/summary
 export const getSellerSummary = async (req, res) => {
   try {
     noStore(res);
@@ -41,6 +39,29 @@ export const getSellerSummary = async (req, res) => {
     ]);
 
     const map = Object.fromEntries(byStatus.map((d) => [d._id, d.count]));
+    const revenueAgg = await Article.aggregate([
+      {
+        $match: {
+          author: new mongoose.Types.ObjectId(sellerId),
+          status: "completed",
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalRevenue: {
+            $sum: {
+              $cond: [
+                { $ifNull: ["$final_price", false] },
+                "$final_price",
+                { $ifNull: ["$highest_bid", 0] },
+              ],
+            },
+          },
+        },
+      },
+    ]);
+    const totalRevenue = revenueAgg.length > 0 ? Number(revenueAgg[0].totalRevenue) : 0;
     res.json({
       in_progress: map.in_progress || 0,
       awaiting_contract: map.awaiting_contract || 0,
@@ -48,6 +69,7 @@ export const getSellerSummary = async (req, res) => {
       cancelled: map.cancelled || 0,
       completed: map.completed || 0,
       expired: map.expired || 0,
+      total_revenue: totalRevenue, 
     });
   } catch (err) {
     console.error("getSellerSummary error:", err);
@@ -55,7 +77,6 @@ export const getSellerSummary = async (req, res) => {
   }
 };
 
-// Utility to fetch paginated articles + top bid
 const fetchPaginatedArticles = async ({
   sellerId,
   statuses,
@@ -72,8 +93,8 @@ const fetchPaginatedArticles = async ({
 
   const [items, total] = await Promise.all([
     Article.find(q)
-      .populate("author", "name email")  // ✅ include seller
-      .populate("winner", "name email")  // ✅ include buyer
+      .populate("author", "name email")  
+      .populate("winner", "name email")  
       .sort(sort)
       .skip(skip)
       .limit(limit)
@@ -81,7 +102,6 @@ const fetchPaginatedArticles = async ({
     Article.countDocuments(q),
   ]);
 
-  // Map of { articleId: maxBid }
   const ids = items.map((a) => a._id);
   const bidAgg = ids.length
     ? await Bid.aggregate([
@@ -106,9 +126,9 @@ const fetchPaginatedArticles = async ({
     current_bid: maxBidMap.get(String(a._id)) ?? toNum(a.highest_bid),
     buy_now: toNum(a.buy_now),
     img_url: a.img_url,
-    // ✅ include new fields
     buyerSigned: a.buyerSigned ?? false,
     sellerSigned: a.sellerSigned ?? false,
+    purchased_date: a.updatedAt,
   }));
 
   return {
@@ -121,7 +141,6 @@ const fetchPaginatedArticles = async ({
 };
 
 
-// GET /seller-dashboard/articles?Page=1&limit=10&sort=-date
 export const getSellerArticles = async (req, res) => {
   try {
     noStore(res);
@@ -132,7 +151,7 @@ export const getSellerArticles = async (req, res) => {
 
     const page = Math.max(1, Number(req.query.page || 1));
     const limit = Math.min(50, Math.max(1, Number(req.query.limit || 10)));
-    const sort = req.query.sort || "-date"; // newest first
+    const sort = req.query.sort || "-date";
 
     const data = await fetchPaginatedArticles({
       sellerId,
@@ -149,7 +168,6 @@ export const getSellerArticles = async (req, res) => {
   }
 };
 
-// GET /seller-dashboard/inventory?page=1&limit=10&sort=-date
 export const getSellerInventory = async (req, res) => {
   try {
     noStore(res);
@@ -174,5 +192,51 @@ export const getSellerInventory = async (req, res) => {
   } catch (err) {
     console.error("getSellerInventory error:", err);
     res.status(500).json({ error: "Server error" });
+  }
+};
+
+/* -------------------------------------------------------------------------- */
+/*   DOWNLOAD CONTRACT (for seller)                                           */
+/* -------------------------------------------------------------------------- */
+export const downloadContract = async (req, res) => {
+  try {
+    const { articleId } = req.params;
+
+    const contract = await Contract.findOne({ article: articleId });
+    if (!contract) {
+      return res.status(404).json({ success: false, message: "Contract not found" });
+    }
+
+    if (!contract.contractUrl) {
+      return res.status(404).json({ success: false, message: "Contract file not available" });
+    }
+
+    return res.redirect(contract.contractUrl);
+  } catch (err) {
+    console.error("Error downloading seller contract:", err);
+    res.status(500).json({ success: false, message: "Failed to download contract" });
+  }
+};
+
+/* -------------------------------------------------------------------------- */
+/* DOWNLOAD ARTICLE (for seller)                                            */
+/* -------------------------------------------------------------------------- */
+export const downloadArticle = async (req, res) => {
+  try {
+    const { articleId } = req.params;
+
+    const article = await Article.findById(articleId);
+    if (!article) {
+      return res.status(404).json({ success: false, message: "Article not found" });
+    }
+
+    if (!article.article_url) {
+      return res.status(404).json({ success: false, message: "Article file not available" });
+    }
+
+    return res.redirect(article.article_url);
+  } catch (err) {
+    console.error("Error downloading seller article:", err);
+    res.status(500).json({ success: false, message: "Failed to download article" });
   }
 };

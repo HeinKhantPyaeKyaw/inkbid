@@ -8,7 +8,7 @@ const serviceAccount = require('./firebase-service-account.json');
 if (!admin.apps.length) {
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
-    storageBucket: 'inkbid-95cc3.firebasestorage.app', //inkbid-95cc3.appspot.com
+    storageBucket: 'inkbid-95cc3.firebasestorage.app',
   });
 }
 

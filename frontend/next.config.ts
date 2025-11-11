@@ -10,7 +10,7 @@ const nextConfig: NextConfig = {
       'picsum.photos',
       'storage.googleapis.com',
       'firebasestorage.googleapis.com',
-    ], // Add any external image domains here
+    ],
   },
 };
 
