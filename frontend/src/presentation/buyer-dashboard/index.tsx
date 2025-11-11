@@ -103,9 +103,7 @@ const BuyerDashboard = () => {
     };
   }, [user, setArticles]);
 
-  /* ------------------------------------------------
-            Memoized dashboard summary counts
-      ---------------------------------------------- */
+  /* --------- Memoized dashboard summary counts ---------- */
   const articlesInBid = useMemo(() => {
     return articles.filter(
       (article) => article.bidStatus === ArticleTableStatus.INPROGRESS,
@@ -130,9 +128,7 @@ const BuyerDashboard = () => {
     ).length;
   }, [inventory]);
 
-  /* ------------------------------------------------
-            Loading & Error Handling
-      ---------------------------------------------- */
+  /* ---------- Loading & Error Handling ----------- */
 
   if (articlesLoading || inventoryLoading) {
     return (
@@ -157,10 +153,6 @@ const BuyerDashboard = () => {
   ) => {
     return `${count} ${count === 1 ? singular : plural}`;
   };
-
-  /* ------------------------------------------------
-            Render Buyer Dashboard
-      ---------------------------------------------- */
 
   return (
     <div className="h-full bg-secondary">

@@ -26,12 +26,7 @@ const SellerProfile = () => {
   const sellerId = params.id as string;
 
   const [sellerInfo, setSellerInfo] = useState<SellerInfo | null>(null);
-  const [
-    carouselData,
-    {
-      /*setCarouselData */
-    },
-  ] = useState(CarouselData);
+  const [carouselData] = useState(CarouselData);
 
   const [portfolios, setPortfolios] = useState<SellerPortfolioCarouselProps[]>(
     [],
@@ -97,7 +92,7 @@ const SellerProfile = () => {
       <NavbarPrimary user={user?.role || 'buyer'} userId={sellerId} />{' '}
       <main className="flex-1">
         <div className="w-full mx-auto px-4 md:px-6 lg:px-8">
-          {/* ============= Profile Header ============= */}
+          {/* --------- Profile Header ---------- */}
           <section className="py-6 md:py-8">
             <div className="rounded-xl ring-1 ring-white/10 bg-white/5 p-4 md:p-6">
               <div className="grid grid-cols1 md:grid-cols-[260px_minmax(0,1fr)] gap-6 items-start">
@@ -131,7 +126,7 @@ const SellerProfile = () => {
               </div>
             </div>
           </section>
-          {/* ========== Portfolio Carousel ========= */}
+          {/* --------- Portfolio Carousel --------- */}
           <section className="py-6 md:py-8">
             {portfolios.length > 0 ? (
               <SellerProfileCarousel data={portfolios} />
@@ -143,7 +138,7 @@ const SellerProfile = () => {
               </div>
             )}
           </section>
-          {/* ========== Rating Summary ========= */}
+          {/* --------- Rating Summary --------- */}
           <section className="py-6 md:py-8">
             <div className="rounded-xl ring-1 ring-white/10 bg-white/5 p-4 md:p-6">
               <RatingReview
@@ -158,7 +153,7 @@ const SellerProfile = () => {
             <hr className="border-white/30" />
           </div>
 
-          {/* ========== Reviews + Write Review ========== */}
+          {/* --------- Reviews + Write Review ---------- */}
           <section className="py-6 md:py-8">
             <div className="rounded-xl ring-1 ring-white/10 bg-white/5 p-4 md:p-6">
               <WritingReviewSection

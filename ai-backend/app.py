@@ -7,20 +7,15 @@ from services.normalize_results import normalize_vicuna, normalize_szegedai
 from services.ensemble import ensemble_results
 from flask_cors import CORS
 
-# Create Flask app
 app = Flask(__name__)
-# CORS(app)
 CORS(app, origins=["https://inkbid.store","http://ec2-54-252-208-51.ap-southeast-2.compute.amazonaws.com:3000", "http://localhost:3000", "http://127.0.0.1:3000"])
 
-# Configure upload folder
 UPLOAD_FOLDER = "uploads"
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-# Load Vicuna Model
 load_vicuna()
 
-# Home Route
 @app.route("/", methods = ["GET"])
 def home():
   return jsonify({"message": "Welcome to the AI Detection Backend 🚀"})
@@ -72,4 +67,4 @@ def predict():
     return jsonify(response), 200
 
 if(__name__ == "__main__"):
-  app.run(host='0.0.0.0', debug=True, port=5000)
+  app.run(host='0.0.0.0', debug=True, port=5050)

@@ -131,13 +131,10 @@ const ArticleTable = ({
           // Check actual backend response
           const contract = res.contract;
           if (contract?.buyerSigned && !contract?.sellerSigned) {
-            // Buyer signed first — waiting for seller
             return { ...a, bidStatus: ArticleTableStatus.WAITING };
           } else if (contract?.buyerSigned && contract?.sellerSigned) {
-            // Both signed — payment next
             return { ...a, bidStatus: ArticleTableStatus.PENDING };
           } else {
-            // Default fallback
             return { ...a, bidStatus: a.bidStatus };
           }
         }),
@@ -154,12 +151,11 @@ const ArticleTable = ({
     }
   };
 
-  // ✅ Updated PayPal version of handleProceedPayment
   const handleProceedPayment = async (articleId: string, amount: number) => {
     setLoadingAction(articleId);
     setError(null);
     try {
-      // 1️⃣ Create PayPal order
+      // Create PayPal order
       const orderData = await createPayPalOrderAPI(amount, 'THB');
 
       const approvalLink = orderData.links?.find(
@@ -168,16 +164,16 @@ const ArticleTable = ({
 
       if (!approvalLink) throw new Error('No PayPal approval link found');
 
-      // ✅ Step 2: Store articleId for later capture
+      // Store articleId for later capture
       localStorage.setItem('currentArticleId', articleId);
 
-      // ✅ Step 3: Redirect user to PayPal approval page directly
+      // Redirect user to PayPal approval page directly
       window.location.href = approvalLink;
 
-      // 3️⃣ Capture after approval (simulate or handle after return)
+      // Capture after approval (simulate or handle after return)
       const captureRes = await capturePayPalOrderAPI(orderData.id, articleId);
 
-      // 4️⃣ Move article → inventory in UI
+      // Move article → inventory in UI
       const newItem = captureRes.inventory;
       setArticlesTableData((prev) => prev.filter((a) => a.id !== articleId));
       setInventoryTableData((prev) => [
@@ -195,7 +191,7 @@ const ArticleTable = ({
 
       toast.success('Payment completed successfully!');
     } catch (err) {
-      console.error('❌ Payment error:', err);
+      console.error('Payment error:', err);
       setError('Payment failed. Please try again.');
     } finally {
       setLoadingAction(null);
@@ -310,13 +306,6 @@ const ArticleTable = ({
             </button>
             {openDropdown === item.id && (
               <div className="absolute top-8 right-16 w-48 rounded-lg z-50">
-                {/* <button
-                  className="whitespace-nowrap w-full px-6 py-2 rounded-[8px] text-lg text-primary font-Montserrat font-bold border-2 border-[#B9B9B9] bg-white hover:bg-gray-100 active:scale-95 transition"
-                  onClick={() => handleStripeCheckout(item.id)}
-                  aria-label={`Pay with Stripe for article ${item.title}`}
-                >
-                  Pay with Stripe
-                </button> */}
                 <button
                   className="whitespace-nowrap px-8 py-2 rounded-[8px] text-lg text-primary font-Montserrat font-bold border-2 border-[#B9B9B9] bg-[#ffffff] hover:bg-gray-100 active:scale-95 cursor-pointer transition"
                   onClick={() => handleProceedPayment(item.id, item.currentBid)} // ? amount should be current bid or your bid
