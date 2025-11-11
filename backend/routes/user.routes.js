@@ -19,7 +19,3 @@ userRouter.delete("/users/:id", (req, res) => {
 });
 
 export default userRouter
-
-// localhost:3000/users
-
-// .get`users/${id}`

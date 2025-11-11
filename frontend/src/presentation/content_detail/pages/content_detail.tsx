@@ -1,105 +1,177 @@
-"use client";
-import { useState } from "react";
-import { NavbarPrimary } from "../../components/navbar/navbar_primary";
-import { Rating } from "@mui/material";
-import { useCountdown } from "@/lib/utilities/util_functions";
+'use client';
+import { buyNowArticle, getArticleDetail } from '@/hooks/content_detail.api';
+import { useCountdown } from '@/lib/utilities/util_functions';
+import { Rating } from '@mui/material';
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
+import { useEffect, useMemo, useState } from 'react';
+import { io } from 'socket.io-client';
+import { IContent } from '../../../interfaces/content_detail/content_detail.domain';
+import { NavbarPrimary } from '../../components/navbar/navbar_primary';
+import { ErrorToast } from '../components/ErrorToast';
+import { SuccessToast } from '../components/SuccessToast';
+import { useAuth } from '@/context/auth/AuthContext';
 
-interface ContentDetailProps {
-  contentData?: any;
-}
+export const ContentDetail = () => {
+  const [articleDetail, setArticleDetail] = useState<IContent | null>(null);
+  const [bidAmount, setBidAmount] = useState('');
+  const params = useParams();
+  const id = params?.id as string;
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [bought, setBought] = useState(false);
+  const socket = useMemo(() => io(process.env.NEXT_PUBLIC_SOCKET_BASE), []);
 
-export const ContentDetail = ({ contentData }: ContentDetailProps) => {
-  const [bidAmount, setBidAmount] = useState("");
+  useEffect(() => {
+    if (!id) return;
+    async function fetchArticle() {
+      try {
+        const { data } = await getArticleDetail(id);
+        setArticleDetail(data);
+      } catch (err) {
+        console.error('Error fetching article:', err);
+      }
+    }
+    fetchArticle();
+  }, [id]);
 
-  // Mock data - replace with contentData when API is ready
-  const mockData = {
-    id: "1",
-    title:
-      "The equilibrium of high income vs low income disparity heightens amidst ongoing tariff wars.",
-    author: {
-      name: "Arthur Bills",
-      avatar: "/imgs/sample.jpg",
-      rating: 3.5,
-    },
-    date: "29 April 2025",
-    tags: ["Political", "Economics", "Recent"],
-    synopsis:
-      "This article explores how escalating global tariff wars are intensifying the economic divide between high-income and low-income populations. It analyzes the disproportionate impact of trade barriers on labor-intensive sectors, wage stagnation among lower earners, and the compounding advantages enjoyed by capital-heavy industries. Drawing on recent economic data and policy developments, the piece highlights how trade policy can unintentionally exacerbate income inequality, challenging the notion of equitable economic growth.",
-    image: "/imgs/sample.jpg",
-    due: "22/August/2025",
-    highestBid: {
-      amount: 150,
-      bidder: "Alex Boman",
-      avatar: "/imgs/sample.jpg",
-    },
-    buyPrice: 850,
-    bidHistory: [
-      { bidder: "Alex Boman", amount: 150, avatar: "/imgs/sample.jpg" },
-      { bidder: "Durett Gurial", amount: 100, avatar: "/imgs/sample.jpg" },
-      { bidder: "Sammet Johnson", amount: 50, avatar: "/imgs/sample.jpg" },
-      { bidder: "Thomas Smiths", amount: 25, avatar: "/imgs/sample.jpg" },
-    ],
-  };
+  useEffect(() => {
+    socket.on('bidUpdate', (update) => {
+      if (update.articleId === id) {
+        setArticleDetail((prev) =>
+          prev
+            ? {
+                ...prev,
+                highest_bid: update.amount,
+                bids: [
+                  {
+                    id: update.bidId,
+                    ref_user: {
+                      _id: update.userId,
+                      name: update.userName,
+                      img_url: update.userImg,
+                      rating: update.userRating,
+                    },
+                    amount: update.amount,
+                    timestamp: update.timestamp,
+                  },
+                  ...(prev.bids || []),
+                ],
+              }
+            : prev,
+        );
+      }
+    });
 
-  const countdown = useCountdown(mockData.due);
+    return () => {
+      socket.off('bidUpdate');
+    };
+  }, [id, socket]);
 
-  // Parse countdown string to get individual values
+  const countdown = useCountdown(articleDetail?.ends_in || '');
   const parseCountdown = (countdownStr: string) => {
     if (countdownStr === "Expired")
-      return { days: "00", hours: "00", mins: "00" };
-
+      return { days: "00", hours: "00", mins: "00", secs: "00" };
     const parts = countdownStr.split(" ");
-    const days = parts[0] || "01";
-    const hours = parts[2] || "02";
-    const mins = parts[4] || "12";
-
-    return { days, hours, mins };
+    return {
+      days: parts[0] || "00",
+      hours: parts[2] || "00",
+      mins: parts[4] || "00",
+      secs: parts[6] || "00",
+    };
   };
+  const { days, hours, mins, secs } = parseCountdown(countdown);
 
-  const { days, hours, mins } = parseCountdown(countdown);
+  const handlePlaceBid = async () => {
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/bids`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ refId: id, amount: parseFloat(bidAmount) }),
+      });
 
-  const handlePlaceBid = () => {
-    if (!bidAmount || parseFloat(bidAmount) <= mockData.highestBid.amount) {
-      alert(
-        `Bid must be higher than current highest bid of $${mockData.highestBid.amount}`
-      );
-      return;
+      if (res.status === 422) {
+        const data = await res.json();
+        setToastMessage(
+          data.message || 'The first bid must be at least the minimum bid.',
+        );
+        return;
+      }
+
+      if (res.status === 409) {
+        const data = await res.json();
+        setToastMessage(
+          data.message || 'Bid must be higher than current highest bid.',
+        );
+        return;
+      }
+
+      const data = await res.json();
+      if (!data.success) {
+        setToastMessage(data.message || 'Bid failed');
+      }
+
+      if (data.success) {
+        setBidAmount('');
+        setSuccessMessage(' Bid placed successfully!');
+      }
+    } catch (err) {
+      console.error('Error placing bid:', err);
+      setToastMessage('Server error while placing bid.');
     }
-    console.log("Placing bid:", bidAmount);
-    // Handle bid placement logic
-  };
-
-  const handleBuyNow = () => {
-    console.log("Buying now for:", mockData.buyPrice);
-    // Handle buy now logic
   };
 
   const handleQuickBid = (multiplier: number) => {
-    const newBid = Math.ceil(mockData.highestBid.amount * multiplier);
+    const newBid = Math.ceil((articleDetail?.highest_bid || 0) * multiplier);
     setBidAmount(newBid.toString());
   };
 
+  const handleBuyNow = async () => {
+    try {
+      const { data } = await buyNowArticle(id);
+      if (data.success) {
+        setBought(true);
+        setArticleDetail(data.article);
+        setSuccessMessage('🎉 Congratulations! You are the Winner');
+      } else {
+        setToastMessage(data.message || 'Buy Now failed');
+      }
+    } catch (err) {
+      console.error('Error buying article:', err);
+      setToastMessage('Something went wrong while buying the article.');
+    }
+  };
+
+  const {user} = useAuth();
+
+  const isBiddingDisabled =
+    bought ||
+    articleDetail?.status !== "in_progress" ||
+    countdown === "Expired";
+
+  const isBuyNowDisabled =
+    (articleDetail?.highest_bid || 0) >= (articleDetail?.buy_now || 0) ||
+    countdown === "Expired";
+
   return (
     <div className="min-h-screen bg-secondary">
-      <NavbarPrimary user={"buyer"} />
+      <NavbarPrimary user={user?.role} userId={user?.id} />
 
       <div className="container mx-auto px-6 py-8 max-w-7xl">
-        {/* Image */}
         <div className="bg-white rounded-lg p-4 shadow-lg mb-6">
           <img
-            src={mockData.image}
+            src={articleDetail?.img_url || "/imgs/placeholder.png"}
             alt="Content Image"
             className="w-full h-100 object-cover rounded-lg"
           />
         </div>
-        {/* Main Content Area */}
+
         <div className="flex flex-col lg:flex-row gap-8">
-          {/* Left Side - Image and Synopsis */}
           <div className="lg:w-1/2">
-            {/* Title and Author Section */}
             <div className="bg-white rounded-lg p-6 shadow-lg mb-6">
               <h1 className="text-2xl lg:text-3xl font-Forum text-primary mb-6 leading-tight">
-                {mockData.title}
+                {articleDetail?.title}
               </h1>
 
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -107,97 +179,127 @@ export const ContentDetail = ({ contentData }: ContentDetailProps) => {
                   <span className="text-sm text-gray-600 font-Montserrat">
                     Author
                   </span>
-                  <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-primary">
+                  <Link
+                    href={`/profile/seller/${articleDetail?.author?._id}`}
+                    className="w-12 h-12 rounded-full overflow-hidden border-2 border-primary cursor-pointer"
+                  >
                     <img
-                      src={mockData.author.avatar}
-                      alt={mockData.author.name}
+                      src={
+                        articleDetail?.author?.img_url ||
+                        "/imgs/default-avatar.png"
+                      }
+                      alt={articleDetail?.author?.name || "Unknown"}
                       className="w-full h-full object-cover"
                     />
-                  </div>
+                  </Link>
                   <div>
-                    <p className="font-Montserrat font-semibold text-primary text-lg">
-                      {mockData.author.name}
-                    </p>
+                    <Link
+                      href={`/profile/seller/${articleDetail?.author?._id}`}
+                      className="font-Montserrat font-semibold text-primary text-lg cursor-pointer"
+                    >
+                      {articleDetail?.author?.name || "Unknown Author"}
+                    </Link>
                     <Rating
                       name="author-rating"
-                      value={mockData.author.rating}
+                      value={articleDetail?.author?.rating || 0}
                       precision={0.5}
                       size="small"
                       readOnly
                     />
                   </div>
                 </div>
-
                 <div className="text-left sm:text-right">
                   <p className="text-lg font-Montserrat text-gray-700">
-                    {mockData.date}
+                    {articleDetail?.date &&
+                      new Date(articleDetail.date).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })}
                   </p>
                 </div>
               </div>
             </div>
 
-            {/* Synopsis */}
             <div className="bg-white rounded-lg p-6 shadow-lg">
               <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-4">
                 <h2 className="text-2xl font-Forum text-primary">Synopsis</h2>
                 <div className="flex flex-wrap gap-2">
-                  {mockData.tags.map((tag, index) => (
+                  {articleDetail?.tag?.genre.map((g, i) => (
                     <span
-                      key={index}
+                      key={i}
                       className="px-3 py-1 bg-tertiary text-primary rounded-full text-sm font-Montserrat border border-primary"
                     >
-                      {tag}
+                      {g.keyword}
+                    </span>
+                  ))}
+                  {articleDetail?.tag?.writing_style.map((w, i) => (
+                    <span
+                      key={i}
+                      className="px-3 py-1 bg-tertiary text-primary rounded-full text-sm font-Montserrat border border-primary"
+                    >
+                      {w.keyword}
                     </span>
                   ))}
                 </div>
               </div>
-
               <p className="text-gray-700 font-Montserrat leading-relaxed text-justify">
-                {mockData.synopsis}
+                {articleDetail?.synopsis}
               </p>
             </div>
           </div>
 
-          {/* Right Side - Content Details and Bidding */}
           <div className="lg:w-1/2">
-            {/* Countdown and Bidding Section */}
             <div className="bg-white rounded-lg p-6 shadow-lg">
-              {/* Highest Bid */}
               <div className="mb-6">
                 <h3 className="text-xl font-Forum text-primary mb-4">
                   Highest Bid
                 </h3>
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-primary">
-                    <img
-                      src={mockData.highestBid.avatar}
-                      alt={mockData.highestBid.bidder}
-                      className="w-full h-full object-cover"
-                    />
+                {articleDetail?.bids && articleDetail.bids.length > 0 ? (
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-primary">
+                      <img
+                        src={
+                          articleDetail.bids[0].ref_user?.img_url ||
+                          "/imgs/default-avatar.png"
+                        }
+                        alt={articleDetail.bids[0].ref_user?.name || "Bidder"}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div>
+                      <p className="font-Montserrat font-semibold text-lg">
+                        {articleDetail.bids[0].ref_user?.name}
+                      </p>
+                      <p className="text-3xl font-Forum font-bold text-primary">
+                        ฿{articleDetail.bids[0].amount}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-Montserrat font-semibold text-lg">
-                      {mockData.highestBid.bidder}
-                    </p>
-                    <p className="text-3xl font-Forum font-bold text-primary">
-                      ฿{mockData.highestBid.amount}
-                    </p>
-                  </div>
-                </div>
+                ) : (
+                  <p>No bids yet</p>
+                )}
 
-                {/* Bid History - Always Visible */}
                 <div className="border-t pt-4">
                   <h4 className="text-sm font-Montserrat font-semibold text-gray-600 mb-3">
                     Bid History
                   </h4>
                   <div className="space-y-2 max-h-32 overflow-y-auto">
-                    {mockData.bidHistory.map((bid, index) => (
+                    {articleDetail?.bids?.map((bid, index) => (
                       <div
                         key={index}
                         className="flex items-center justify-between text-sm"
                       >
-                        <span className="font-Montserrat text-gray-700">
-                          {bid.bidder}
+                        <span className="font-Montserrat text-gray-700 flex items-center gap-2">
+                          <img
+                            src={
+                              bid.ref_user?.img_url ||
+                              "/imgs/default-avatar.png"
+                            }
+                            alt={bid.ref_user?.name || "Bidder"}
+                            className="w-8 h-8 rounded-full object-cover"
+                          />
+                          {bid.ref_user?.name}
                         </span>
                         <span className="font-semibold text-primary">
                           ฿{bid.amount}
@@ -208,7 +310,6 @@ export const ContentDetail = ({ contentData }: ContentDetailProps) => {
                 </div>
               </div>
 
-              {/* Countdown Timer */}
               <div className="mb-6">
                 <h3 className="text-xl font-Forum text-primary mb-4">
                   Ends In
@@ -240,83 +341,110 @@ export const ContentDetail = ({ contentData }: ContentDetailProps) => {
                       Mins
                     </div>
                   </div>
-                </div>
-
-                {/* Progress Bar representing time remaining */}
-                <div className="w-full bg-gray-200 rounded-full h-3 mb-4">
-                  <div
-                    className="bg-accent h-3 rounded-full transition-all duration-500"
-                    style={{ width: "65%" }}
-                  ></div>
-                </div>
-              </div>
-
-              {/* Bidding Section */}
-              <div className="space-y-4">
-                {/* Quick Bid Buttons */}
-                <div className="flex gap-2 justify-center">
-                  <button
-                    onClick={() => handleQuickBid(5.0)}
-                    className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-Montserrat hover:bg-opacity-90 transition-colors"
-                  >
-                    5.0x
-                  </button>
-                  <button
-                    onClick={() => handleQuickBid(2.0)}
-                    className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-Montserrat hover:bg-opacity-90 transition-colors"
-                  >
-                    2.0x
-                  </button>
-                  <button
-                    onClick={() => handleQuickBid(1.5)}
-                    className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-Montserrat hover:bg-opacity-90 transition-colors"
-                  >
-                    1.5x
-                  </button>
-                </div>
-
-                {/* Custom Bid Input */}
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <input
-                    type="number"
-                    value={bidAmount}
-                    onChange={(e) => setBidAmount(e.target.value)}
-                    placeholder="Enter Amount"
-                    min={mockData.highestBid.amount + 1}
-                    className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-lg font-Montserrat focus:outline-none focus:border-primary transition-colors"
-                  />
-                  <button
-                    onClick={handlePlaceBid}
-                    className="px-6 py-3 bg-primary text-white rounded-lg font-Montserrat font-semibold hover:bg-opacity-90 transition-colors"
-                  >
-                    Place a bid
-                  </button>
-                </div>
-
-                {/* Buy Now Section */}
-                <div className="border-t-2 pt-6">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div>
-                      <p className="text-lg font-Forum text-primary">
-                        Buy Price
-                      </p>
-                      <p className="text-4xl font-Forum font-bold text-primary">
-                        ฿{mockData.buyPrice}
-                      </p>
+                  <div className="text-2xl font-bold text-gray-400">:</div>
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-primary font-Forum">
+                      {secs}
                     </div>
-                    <button
-                      onClick={handleBuyNow}
-                      className="px-8 py-3 bg-primary text-white rounded-lg font-Montserrat font-semibold hover:bg-opacity-90 transition-colors text-lg"
-                    >
-                      Buy Now
-                    </button>
+                    <div className="text-sm text-gray-600 font-Montserrat">
+                      Secs
+                    </div>
                   </div>
                 </div>
               </div>
+
+              {user?.role === "buyer" && (
+                <div className="space-y-4">
+                  <div className="flex gap-2 justify-center">
+                    {[5.0, 2.0, 1.5].map((m) => (
+                      <button
+                        key={m}
+                        onClick={() => handleQuickBid(m)}
+                        disabled={
+                          bought ||
+                          articleDetail?.status !== "in_progress" ||
+                          countdown === "Expired"
+                        }
+                        className={`px-4 py-2 bg-primary ${
+                          isBiddingDisabled
+                            ? " opacity-50 cursor-not-allowed"
+                            : ""
+                        } text-white rounded-lg text-sm font-Montserrat hover:bg-opacity-90 transition-colors`}
+                      >
+                        {m}x
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <input
+                      type="number"
+                      value={bidAmount}
+                      onChange={(e) => setBidAmount(e.target.value)}
+                      placeholder="Enter Amount"
+                      min={(articleDetail?.highest_bid || 0) + 1}
+                      className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-lg font-Montserrat focus:outline-none focus:border-primary transition-colors "
+                    />
+                    <button
+                      onClick={handlePlaceBid}
+                      disabled={
+                        bought ||
+                        articleDetail?.status !== "in_progress" ||
+                        countdown === "Expired"
+                      }
+                      className={`px-6 py-3 bg-primary ${
+                        isBiddingDisabled
+                          ? " opacity-50 cursor-not-allowed"
+                          : ""
+                      } text-white rounded-lg font-Montserrat font-semibold hover:bg-opacity-90 transition-colors`}
+                    >
+                      Place a bid
+                    </button>
+                  </div>
+
+                  <div className="border-t-2 pt-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                      <div>
+                        <p className="text-lg font-Forum text-primary">
+                          Buy Price
+                        </p>
+                        <p className="text-4xl font-Forum font-bold text-primary">
+                          ฿{articleDetail?.buy_now}
+                        </p>
+                      </div>
+                      <button
+                        onClick={handleBuyNow}
+                        disabled={
+                          (articleDetail?.highest_bid || 0) >=
+                            (articleDetail?.buy_now || 0) ||
+                          countdown === "Expired"
+                        }
+                        className={`px-8 py-3 bg-primary ${isBuyNowDisabled ? " opacity-50 cursor-not-allowed" : ""} text-white rounded-lg font-Montserrat font-semibold hover:bg-opacity-90 transition-colors text-lg`}
+                      >
+                        Buy Now
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
       </div>
+
+      {toastMessage && (
+        <ErrorToast
+          message={toastMessage}
+          onClose={() => setToastMessage(null)}
+        />
+      )}
+
+      {successMessage && (
+        <SuccessToast
+          message={successMessage}
+          onClose={() => setSuccessMessage(null)}
+        />
+      )}
     </div>
   );
 };

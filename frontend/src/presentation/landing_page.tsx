@@ -1,82 +1,41 @@
-import React from "react";
+"use client";
+import React, { useState, useEffect, Suspense } from "react";
 import { BackgroundCarousel } from "./components/background_carousel";
-import { ProductCard } from "./components/product_card";
-import { IContent } from "@/interfaces/content/content.domain";
+import ProductCard from "./components/product_card";
+import axios from "axios";
+import { useSearchParams } from "next/navigation";
 
-export const LandingPage = () => {
+function LandingContent() {
+  const searchParams = useSearchParams();
+  const [articles, setArticles] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const API_BASE = process.env.NEXT_PUBLIC_API_BASE;
 
-const mockProduct: IContent[] = [
-  {
-    title: "Oval office or hall of shame",
-    date: "16/August/2025",
-    author: "Bill Murry",
-    rating: 3,
-    genre: "Politics",
-    writing_style: "Academic",
-    tag: "Political Commentary",
-    due: "19/August/2025",
-    description:
-      "This article explores how escalating global tariff wars are intensifying the economic divide between high-income and low-income household of the citizens of United States of America",
-    highest_bid: 100,
-    buy_now: 500,
-  },
-  {
-    title: "Tech Revolution Impact",
-    date: "17/August/2025",
-    author: "Jane Smith",
-    rating: 2.5,
-    genre: "Technology",
-    writing_style: "Journalistic",
-    tag: "Innovation",
-    due: "22/August/2025",
-    description:
-      "An in-depth analysis of how emerging technologies are reshaping industries and creating new opportunities for economic growth",
-    highest_bid: 150,
-    buy_now: 600,
-  },
-  {
-    title: "Climate Change Economics",
-    date: "18/August/2025",
-    author: "Dr. Green",
-    rating: 5,
-    genre: "Economics",
-    writing_style: "Academic",
-    tag: "Environmental Policy",
-    due: "25/August/2025",
-    description:
-      "Examining the economic implications of climate change policies and their impact on global markets and sustainability initiatives",
-    highest_bid: 200,
-    buy_now: 750,
-  },
-  {
-    title: "Climate Change Economics",
-    date: "18/August/2025",
-    author: "Dr. Green",
-    rating: 5,
-    genre: "Economics",
-    writing_style: "Academic",
-    tag: "Environmental Policy",
-    due: "25/August/2025",
-    description:
-      "Examining the economic implications of climate change policies and their impact on global markets and sustainability initiatives",
-    highest_bid: 200,
-    buy_now: 750,
-  },
-  {
-    title: "Climate Change Economics",
-    date: "18/August/2025",
-    author: "Dr. Green",
-    rating: 5,
-    genre: "Economics",
-    writing_style: "Academic",
-    tag: "Environmental Policy",
-    due: "25/August/2025",
-    description:
-      "Examining the economic implications of climate change policies and their impact on global markets and sustainability initiatives",
-    highest_bid: 200,
-    buy_now: 750,
-  },
-];
+  const q = searchParams.get("q") || "";
+  const genre = searchParams.get("genre") || "";
+  const rating = searchParams.get("rating") || "";
+  const sort = searchParams.get("sort") || "";
+  const dir = searchParams.get("dir") || "desc";
+  const page = searchParams.get("page") || "1";
+  const limit = searchParams.get("limit") || "12";
+
+  useEffect(() => {
+    const fetchArticles = async () => {
+      setLoading(true);
+      try {
+        const { data } = await axios.get(`${API_BASE}/articles`, {
+          params: { q, genre, rating, sort, dir, page, limit },
+          withCredentials: true,
+        });
+        setArticles(data.items || []);
+      } catch (err) {
+        console.error("Error fetching marketplace data:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchArticles();
+  }, [q, genre, rating, sort, dir, page, limit]);
 
   return (
     <div className="flex flex-col">
@@ -84,9 +43,25 @@ const mockProduct: IContent[] = [
       <p className="font-Forum text-[50px] text-primary p-4">
         Recommended Articles
       </p>
-      <div>
-        <ProductCard props={mockProduct}/>
-      </div>
+      {loading ? (
+        <p className="text-center text-gray-500 text-lg">Loading articles...</p>
+      ) : (
+        <ProductCard articles={articles} />
+      )}
     </div>
+  );
+}
+
+export const LandingPage = () => {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center text-gray-500">
+          Loading landing page...
+        </div>
+      }
+    >
+      <LandingContent />
+    </Suspense>
   );
 };

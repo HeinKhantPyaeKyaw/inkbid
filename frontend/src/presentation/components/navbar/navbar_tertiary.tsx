@@ -5,17 +5,8 @@ import { faUser } from "@fortawesome/free-solid-svg-icons";
 import { useRouter } from "next/navigation";
 
 export const NavbarTertiary = () => {
-  //---------------------
-  //   CONST
-  //---------------------
   const router = useRouter();
-  //---------------------
-  //   HANDLE
-  //---------------------
 
-  //---------------------
-  //   RENDER
-  //---------------------
   return (
     <nav className="flex items-center justify-between px-6 ">
       <div className="w-1/20" />
@@ -30,7 +21,7 @@ export const NavbarTertiary = () => {
             <FontAwesomeIcon
               icon={faUser}
               className="text-accent text-[32px]"
-              onClick={() => router.push("/dashboard/seller/")}
+              onClick={() => router.push("/signup")}
             />
           </button>
         </div>
