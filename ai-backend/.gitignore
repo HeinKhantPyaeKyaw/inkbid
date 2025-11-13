@@ -1,0 +1,22 @@
+# Python cache
+__pycache__/
+*.pyc
+
+# pytest cache
+.pytest_cache/
+
+# Virtual environment
+venv/
+.env/
+.venv/
+env/
+
+# Local uploads (test PDFs/images)
+uploads/
+
+# Logs
+*.log
+
+# System files
+.DS_Store
+Thumbs.db
