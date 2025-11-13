@@ -1,5 +1,34 @@
+# Node modules
 node_modules/
+
+# Build outputs
 dist/
-.env
-.DS_Store
 *.tsbuildinfo
+
+# Env files
+.env
+.env.*.local
+.env.development.local
+
+# Firebase config (private keys)
+firebase-service-account.json
+config/firebase.js
+
+# Local uploads (test files, images, PDFs)
+uploads/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS/system files
+.DS_Store
+Thumbs.db
+
+# Docker
+.dockerignore
+Dockerfile
+docker-compose.yaml

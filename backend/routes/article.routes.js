@@ -1,0 +1,27 @@
+import express from 'express';
+import {
+  createArticle,
+  getAllArticlesWithBids,
+  getArticleWithBids,
+  buyNow,
+} from '../controller/article.controller.js';
+import { verifyAuth } from '../middlewares/auth.middleware.js';
+import upload from '../middlewares/upload.js';
+
+const articleRouter = express.Router();
+
+articleRouter.get('/articles', getAllArticlesWithBids);
+articleRouter.get('/articles/:id', getArticleWithBids);
+articleRouter.post('/articles/:id/buy-now', verifyAuth, buyNow);
+
+articleRouter.post(
+  '/articles',
+  verifyAuth,
+  upload.fields([
+    { name: 'image', maxCount: 1 },
+    { name: 'article', maxCount: 1 },
+  ]),
+  createArticle,
+);
+
+export default articleRouter;
