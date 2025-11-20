@@ -11,7 +11,7 @@ dist/
 .env.development.local
 
 # Firebase config (private keys)
-firebase-service-account.json
+config/firebase-service-account.json
 config/firebase.js
 
 # Local uploads (test files, images, PDFs)
