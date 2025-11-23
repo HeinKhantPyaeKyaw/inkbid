@@ -1,36 +1,45 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# InkBid — Real-Time Article Auction Platform
+<picture>
+<img alt="inkbid-profile.png" src="frontend/public/images/readme_profile.png">
+</picture>
 
-## Getting Started
+### Demo Video
 
-First, run the development server:
+**[Video Link](https://youtu.be/uP--W354lyQ)**
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🧠 Overview
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+InkBid is a **real-time auction marketplace** where writers sell digital articles and buyers compete through live bidding. The platform is built for transparency — real-time bidding history and AI validator to check AI generated content for the articles, and collaboration — combining Stripe-powered payments, contract generation, and a real-time notification system.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## ⚙️ Tech Stack
 
-To learn more about Next.js, take a look at the following resources:
+| Layer                  | Technologies                                                                     |
+| ---------------------- | -------------------------------------------------------------------------------- |
+| **Frontend**           | Next.js 14, TypeScript, Tailwind CSS, React Query, Socket.IO Client              |
+| **Backend**            | Node.js, Express.js, MongoDB, Mongoose, Socket.IO, BullMQ (Redis), PayPal API    |
+| **Infrastructure**     | AWS EC2 (Ubuntu), Nginx Reverse Proxy                                            |
+| **Storage**            | MongoDB Atlas, Firebase Storage                                                  |
+| **Messaging & Queues** | Redis + BullMQ                                                                   |
+| **Payments**           | Paypal Checkout, Webhook validation                                              |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🚀 Key Features
 
-## Deploy on Vercel
+* **Live bidding:** Real-time updates with Socket.IO, and optimistic locking with first-write-wins logic to handle concurrent bids.
+* **Secure payments"** PayPal Checkout, including payouts handling to service InkBid platform fees. 
+* **Contract generation:** Auto-generated contracts to bind the transaction between the author(seller) and buyer.
+* **Real-time notifications:** Events triggered notification system to notify bidding, status, and payment updates.
+* **Seller dashboard** Track listings, contracts, and generated revenue.
+* **Buyer dashboard** Manage bids, payments, and purchased articles.
+* **Background Jobs** BullMQ + Redis for job queues and articles finalization.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 📜 License
+
+This project is licensed under the King Mongkut's University of Technology Thonburi License.
