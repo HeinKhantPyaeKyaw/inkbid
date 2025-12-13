@@ -1,0 +1,51 @@
+services:
+  frontend:
+    image:
+    ports:
+      - '3000:3000'
+    environment:
+      - NEXT_PUBLIC_API_BASE=http://localhost:5500/api/v1
+  backend:
+    image:
+    ports:
+      - '5500:5500'
+    # volumes:
+    #   - ./backend/.env.development.local:/app/.env.development.local
+    environment:
+      # PORT
+      - PORT=5500
+      - NODE_ENV=development
+
+      #DATABASE
+      - DB_URI=
+
+      # Firebase Admin SDK service account
+      - FIREBASE_PROJECT_ID=
+      - FIREBASE_CLIENT_EMAIL=
+      - FIREBASE_PRIVATE_KEY=
+
+      # Firebase Web API Key (needed for REST signInWithPassword)
+      - FIREBASE_API_KEY=
+
+      - CLIENT_URL=http://localhost:3000
+
+      # --------------------------------------------------
+      #  Paypal Sandbox Configuration
+      # --------------------------------------------------
+      - PAYPAL_CLIENT_ID=
+      - PAYPAL_CLIENT_SECRET=
+      - PAYPAL_API_BASE=https://api-m.sandbox.paypal.com
+      - PAYPAL_MODE=sandbox
+
+      # Redis
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - redis
+  redis:
+    image: 'redis:latest'
+    ports:
+      - '6379:6379'
+  ai-backend:
+    image: inkbid-ai-backend:latest
+    ports:
+      - '8000:8000'

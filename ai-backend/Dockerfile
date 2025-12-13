@@ -5,3 +5,4 @@ RUN pip install -r requirements.txt
 COPY ./services /app/services
 COPY ./app.py /app/
 CMD ["python", "app.py"]
+
