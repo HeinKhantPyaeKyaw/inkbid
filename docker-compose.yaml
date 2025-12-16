@@ -48,4 +48,4 @@ services:
   ai-backend:
     image: inkbid-ai-backend:latest
     ports:
-      - '8000:8000'
+      - '5050:5050'
