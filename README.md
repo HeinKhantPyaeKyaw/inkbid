@@ -42,9 +42,9 @@ InkBid is a **real-time auction marketplace** where writers sell digital article
 
 ## ⚙️ Installation
 
-**1.Clone the repository:** Use `git clone` to download the project
-**2.Setup the environment variables** Create `.env` files and provide necessary configurations.
-**3.Run the server:** Start the server using `npm run dev` or `docker-compose up`.
+1. **Clone the repository:** Use `git clone` to download the project
+2. **Setup the environment variables** Create `.env` files and provide necessary configurations.
+3. **Run the server:** Start the server using `npm run dev` or `docker-compose up`.
 
 **Detailed setup guide :** [Setup Documentation](setup.md)
 
