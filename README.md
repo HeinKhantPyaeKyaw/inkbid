@@ -57,5 +57,5 @@ This project is a proprietary software of the School of Information Technology, 
 ## ☎️ Team & Contact
 If you encounter any issues or have questions, please contact the maintainers of this project.
 1. Hein Khant Pyae Kyaw ([heinkhant.pyae@kmutt.ac.th](mailto\:heinkhant.pyae@kmutt.ac.th))
-2. Kaung Myat Tun ([kaung.myat@kmutt.ac.th](mainto\:kaung.myat@kmutt.ac.th))
-3. Min Khant Wunna ([minkhant.wunn@kmutt.ac.th](mainto\:minkhant.wunn@kmutt.ac.th))
+2. Kaung Myat Tun ([kaung.myat@kmutt.ac.th](mailto\:kaung.myat@kmutt.ac.th))
+3. Min Khant Wunna ([minkhant.wunn@kmutt.ac.th](mailto\:minkhant.wunn@kmutt.ac.th))
