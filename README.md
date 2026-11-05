@@ -20,7 +20,7 @@ InkBid is a **real-time auction marketplace** where writers sell digital article
 | Layer                  | Technologies                                                                     |
 | ---------------------- | -------------------------------------------------------------------------------- |
 | **Frontend**           | Next.js 14, TypeScript, Tailwind CSS, React Query, Socket.IO Client              |
-| **Backend**            | Node.js, Express.js, MongoDB, Mongoose, Socket.IO, BullMQ (Redis), PayPal API    |
+| **Backend**            | Node.js, Express.js, MongoDB, Mongoose, Socket.IO, BullMQ (Redis), PayPal API, Flask, Python, Hugging Face API    |
 | **Infrastructure**     | AWS EC2 (Ubuntu), Nginx Reverse Proxy                                            |
 | **Storage**            | MongoDB Atlas, Firebase Storage                                                  |
 | **Messaging & Queues** | Redis + BullMQ                                                                   |
