@@ -11,7 +11,7 @@
 
 ## 🧠 Overview
 
-InkBid is a **real-time auction marketplace** where writers sell digital articles and buyers compete through live bidding. The platform is built for transparency — real-time bidding history and AI validator to check AI generated content for the articles, and collaboration — combining Stripe-powered payments, contract generation, and a real-time notification system.
+InkBid is a **real-time auction marketplace** where writers sell digital articles and buyers compete through live bidding. The platform is built for transparency — real-time bidding history and AI validator to check AI generated content for the articles, and collaboration — combining Paypal-powered payments, contract generation, and a real-time notification system.
 
 ---
 
